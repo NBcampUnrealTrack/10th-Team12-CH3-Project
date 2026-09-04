@@ -1,24 +1,62 @@
-Binaries/
-Build/
-DerivedDataCache/
-Intermediate/
-Saved/
+# ===== Unreal Engine =====
+Binaries/*
+Intermediate/*
+Saved/*
+DerivedDataCache/*
 
+Plugins/**/Binaries/*
+Plugins/**/Intermediate/*
+
+# Build/ 는 전부 무시하되 아이콘과 PakBlacklist 만 예외
+/Build/*
+!/Build/*/
+/Build/*/**
+!/Build/*/**/
+!/Build/**/PakBlacklist*.txt
+!/Build/**/*.ico
+
+# 라이트매스 베이크 결과 (재생성 가능, 용량 큼)
+*_BuiltData.uasset
+
+# ===== 엔진이 생성하는 프로젝트 파일 =====
 *.sln
-*.suo
+*.vcxproj
+*.vcxproj.filters
 *.xcodeproj
 *.xcworkspace
-*.VC.db
-*.VC.VC.opendb
 
-*.log
-*.tmp
+# 팀 온보딩용으로 공유하려면 아래 줄 주석 처리
+.vsconfig
 
-.DS_Store
-
-.vscode/
-.idea/
-
-# Visual Studio cache
+# ===== Visual Studio 2022 =====
 .vs/
-*.ipch
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+
+# ===== Rider / ReSharper =====
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ===== 안전망 =====
+/*.log
+/*.tmp
+/*.txt.bak
+
+/Packaged/
+/Package/
+/Output/
+/Dist/
+/Builds/
+
+# ===== 프로젝트별 =====
+# 구매/유료 에셋을 공개 저장소에서 제외하려면 아래에 추가 및 주석 해제
+# (제외 시 README 에 제외 사유와 실행 영상 링크 필수 — 클론해도 에디터에서 참조가 깨짐)
+# Content/Resources/*

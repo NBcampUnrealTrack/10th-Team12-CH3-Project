@@ -1,0 +1,67 @@
+# 언리얼 프로젝트 공통. Epic C++ Coding Standard 기준.
+#
+# ※ 옵션을 추가하기 전에 반드시 읽을 것
+# clang-format 은 인식 못 하는 키를 만나면 그 줄만 건너뛰는 게 아니라
+# 설정 파일 전체를 버리고 LLVM 기본값으로 되돌아간다. IDE 에서는 이
+# 에러가 표시되지 않으며, 그 결과 아래 SortIncludes 가 다시 켜져
+# 빌드가 깨진다.
+#
+# 옵션 추가 후 반드시:
+#   clang-format --dry-run --Werror Source/<파일>.cpp
+#
+# 의도적으로 제외한 것:
+#   Standard           — 컴파일 표준과 무관(파싱 힌트일 뿐).
+#                        실제 표준은 Build.cs 의 CppStandard 가 정한다.
+#   ReferenceAlignment — 13+ 필요. 기본값이 PointerAlignment 를 따라감.
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Epic: "줄 시작 공백은 탭, 정렬은 스페이스"
+# UseTab: Always 로 하면 정렬까지 탭이 되어 탭 폭 다른 사람 화면에서 깨짐
+UseTab: ForIndentation
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+
+# 0 = 자동 줄바꿈 안 함. 사람이 정한 줄바꿈을 존중.
+# 값을 주면 UPROPERTY 매크로 등을 임의 위치에서 접어버리고,
+# diff 에 "실제 변경"과 "포맷 변경"이 섞여 리뷰가 어려워진다.
+# 열 길이는 도구가 아니라 리뷰 규약으로 관리할 것.
+ColumnLimit: 0
+
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: None
+
+# 여는 괄호 위치 정렬 대신 탭 1칸 들여쓰기 (언리얼 관례)
+AlignAfterOpenBracket: DontAlign
+
+# Epic: FFoo* MyFoo — 별표는 타입 쪽에 붙임
+PointerAlignment: Left
+
+# 언리얼 생성자 초기화 리스트는 콤마 선행 스타일
+BreakConstructorInitializers: BeforeComma
+ConstructorInitializerIndentWidth: 4
+
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+
+# ★ 절대 켜지 말 것 ★
+# UHT 는 *.generated.h 가 헤더의 마지막 include 여야 한다고 요구한다.
+# 정렬이 켜지면 알파벳순으로 위로 올라가서 아래 에러로 빌드가 깨진다:
+#   "#include found after .generated.h file in class header"
+SortIncludes: false
+
+MaxEmptyLinesToKeep: 2
+
+# ↓ 파일 끝 개행 관련. InsertNewlineAtEOF 는 16+, KeepEmptyLinesAtEOF 는 17+ 필요.
+#   (VS 2022 번들 clang-format 19.x 에서 동작 확인)
+#   clang-format 이 새 버전에서 KeepEmptyLines 구조체로 통합하는 흐름이라,
+#   나중에 경고나 에러가 나면 아래로 교체:
+#     KeepEmptyLines:
+#       AtEndOfFile: true
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtEOF: true
