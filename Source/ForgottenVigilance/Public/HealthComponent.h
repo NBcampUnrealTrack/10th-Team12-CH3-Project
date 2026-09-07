@@ -9,7 +9,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, CurrentHea
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadOwner);
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class PROJECTNAME_API UHealthComponent : public UActorComponent
+class FORGOTTENVIGILANCE_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

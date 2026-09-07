@@ -27,6 +27,8 @@ class FORGOTTENVIGILANCE_API AForgottenGameState : public AGameState
 	GENERATED_BODY()
 
 public:
+	AForgottenGameState();
+	
 	void AddScore(int32 ScoreAmount);
 	void RegisterEnemyKill(int32 ScoreAmount);
 	void AdvanceObjectiveProgress(int32 ProgressAmount);
