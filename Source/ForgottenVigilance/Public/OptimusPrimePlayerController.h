@@ -5,8 +5,8 @@
 #include "GameFramework/PlayerController.h"
 #include "OptimusPrimePlayerController.generated.h"
 
-class UInputMappingContext; // IMC 관련 전방 선언
-class UInputAction;         // IA 관련 전방 선언
+class UInputMappingContext;
+class UInputAction;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerController
@@ -14,6 +14,8 @@ class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerContr
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+
 	AOptimusPrimePlayerController();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
@@ -26,6 +28,4 @@ public:
 	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> SprintAction;
-
-	virtual void BeginPlay() override;
 };
