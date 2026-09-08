@@ -1,8 +1,10 @@
+﻿
 #include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
@@ -18,12 +20,29 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	CameraComp->bUsePawnControlRotation = false;
 
 	bIsSprinting = false;
+	NormalSpeed = 600.0f;
+	SprintMultiplier = 1.7f;
+
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+}
+
+void AOptimusPrimeCharacter::UpdateSpeed()
+{
+	if (bIsSprinting)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * SprintMultiplier;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	}
 }
 
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	UpdateSpeed();
 }
 
 void AOptimusPrimeCharacter::Move(const FInputActionValue& value)
@@ -70,18 +89,18 @@ void AOptimusPrimeCharacter::Look(const FInputActionValue& value)
 void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& value)
 {
 	bIsSprinting = true;
-	//UpdateSpeed(); 
+	UpdateSpeed();
 }
 
 void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& value)
 {
 	bIsSprinting = false;
+	UpdateSpeed();
 }
 
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

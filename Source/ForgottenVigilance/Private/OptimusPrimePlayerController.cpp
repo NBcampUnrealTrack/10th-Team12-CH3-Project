@@ -1,13 +1,14 @@
+﻿
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputSubsystems.h"
 
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
-	: InputMappingContext(nullptr)
-	, MoveAction(nullptr)
-	, JumpAction(nullptr)
-	, LookAction(nullptr)
-	, SprintAction(nullptr)
+    : InputMappingContext(nullptr)
+    , MoveAction(nullptr)
+    , JumpAction(nullptr)
+    , LookAction(nullptr)
+    , SprintAction(nullptr)
 {
 }
 
@@ -18,7 +19,7 @@ void AOptimusPrimePlayerController::BeginPlay()
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-				LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		        LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
 			if (InputMappingContext)
 			{

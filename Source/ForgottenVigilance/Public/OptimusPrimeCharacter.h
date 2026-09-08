@@ -1,3 +1,4 @@
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,7 +16,9 @@ class FORGOTTENVIGILANCE_API AOptimusPrimeCharacter : public ACharacter
 
 public:
 	AOptimusPrimeCharacter();
-	
+
+	void UpdateSpeed();
+
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -40,7 +43,12 @@ protected:
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
-	
+
 private:
-	bool bIsSprinting= false;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float NormalSpeed;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float SprintMultiplier;
+
+	bool bIsSprinting;
 };
