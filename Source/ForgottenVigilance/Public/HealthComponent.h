@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "CharacterHealthComponent.generated.h"
+#include "HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, CurrentHealth, float, MaxHealth);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadOwner);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class FORGOTTENVIGILANCE_API UCharacterHealthComponent : public UActorComponent
+class FORGOTTENVIGILANCE_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UCharacterHealthComponent();
+	UHealthComponent();
 
 	void Heal(float HealAmount);
 	bool IsAlive() const;
