@@ -1,4 +1,4 @@
-﻿
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,7 +7,10 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UHealthComponent;
+
 struct FInputActionValue;
+
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimeCharacter : public ACharacter
@@ -19,23 +22,26 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintPure, Category = "Health")
+	bool IsCharacterDead() const;
+
 	AOptimusPrimeCharacter();
 
 protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void Move(const FInputActionValue& value);
+	void Move(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartJump(const FInputActionValue& value);
+	void StartJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopJump(const FInputActionValue& value);
+	void StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Look(const FInputActionValue& value);
+	void Look(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartSprint(const FInputActionValue& value);
+	void StartSprint(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopSprint(const FInputActionValue& value);
+	void StopSprint(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -43,8 +49,13 @@ protected:
 	TObjectPtr<UCameraComponent> CameraComp;
 
 private:
+	UFUNCTION()
+	void HandleDeath(AActor* DeadOwner);
+
 	void UpdateSpeed();
 
+	UPROPERTY(VisibleAnywhere, Category = "Health")
+	TObjectPtr<UHealthComponent> HealthComp;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")

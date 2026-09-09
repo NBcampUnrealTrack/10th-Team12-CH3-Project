@@ -1,18 +1,23 @@
-﻿
+
 #include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HealthComponent.h"
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	Tags.AddUnique(FName(TEXT("Player")));
+
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
+
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 300.0f;
+	SpringArmComp->TargetArmLength = 1200.0f;
 	SpringArmComp->bUsePawnControlRotation = true;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -38,61 +43,80 @@ void AOptimusPrimeCharacter::UpdateSpeed()
 	}
 }
 
+void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
+{
+	GetCharacterMovement()->DisableMovement();
+}
+
+bool AOptimusPrimeCharacter::IsCharacterDead() const
+{
+	if (!HealthComp)
+	{
+		return false;
+	}
+
+	return !(HealthComp->IsAlive());
+}
+
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	UpdateSpeed();
+
+	HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimeCharacter::HandleDeath);
 }
 
-void AOptimusPrimeCharacter::Move(const FInputActionValue& value)
+void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller)
+	{
 		return;
-
-	const FVector2D Moveinput = value.Get<FVector2D>();
-
-	if (!FMath::IsNearlyZero(Moveinput.X))
-	{
-		AddMovementInput(GetActorForwardVector(), Moveinput.X);
 	}
-	if (!FMath::IsNearlyZero(Moveinput.Y))
+
+	const FVector2D MoveInput = Value.Get<FVector2D>();
+
+	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		AddMovementInput(GetActorRightVector(), Moveinput.Y);
+		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+	}
+	if (!FMath::IsNearlyZero(MoveInput.Y))
+	{
+		AddMovementInput(GetActorRightVector(), MoveInput.Y);
 	}
 }
 
-void AOptimusPrimeCharacter::StartJump(const FInputActionValue& value)
+void AOptimusPrimeCharacter::StartJump(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>())
 	{
 		Jump();
 	}
 }
 
-void AOptimusPrimeCharacter::StopJump(const FInputActionValue& value)
+void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 {
-	if (!value.Get<bool>())
+	if (!Value.Get<bool>())
 	{
 		StopJumping();
 	}
 }
 
-void AOptimusPrimeCharacter::Look(const FInputActionValue& value)
+void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
-	FVector2D LookInput = value.Get<FVector2D>();
+	FVector2D LookInput = Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
 }
 
-void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& value)
+void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& Value)
 {
 	bIsSprinting = true;
 	UpdateSpeed();
 }
 
-void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& value)
+void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& Value)
 {
 	bIsSprinting = false;
 	UpdateSpeed();
@@ -107,58 +131,61 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (!EnhancedInput)
 	{
-		if (AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController()))
+		return;
+	}
+
+	if (AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController()))
+	{
+		if (PlayerController->MoveAction)
 		{
-			if (PlayerController->MoveAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->MoveAction,
-				    ETriggerEvent::Triggered,
-				    this,
-				    &AOptimusPrimeCharacter::Move);
-			}
-			if (PlayerController->LookAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->LookAction,
-				    ETriggerEvent::Triggered,
-				    this,
-				    &AOptimusPrimeCharacter::Look);
-			}
-			if (PlayerController->JumpAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->JumpAction,
-				    ETriggerEvent::Triggered,
-				    this,
-				    &AOptimusPrimeCharacter::StartJump);
-			}
-			if (PlayerController->JumpAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->JumpAction,
-				    ETriggerEvent::Completed,
-				    this,
-				    &AOptimusPrimeCharacter::StopJump);
-			}
-			if (PlayerController->SprintAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->SprintAction,
-				    ETriggerEvent::Triggered,
-				    this,
-				    &AOptimusPrimeCharacter::StartSprint);
-			}
-			if (PlayerController->SprintAction)
-			{
-				EnhancedInput->BindAction(
-				    PlayerController->SprintAction,
-				    ETriggerEvent::Completed,
-				    this,
-				    &AOptimusPrimeCharacter::StopSprint);
-			}
+			EnhancedInput->BindAction(
+			    PlayerController->MoveAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Move);
+		}
+		if (PlayerController->LookAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->LookAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Look);
+		}
+		if (PlayerController->JumpAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartJump);
+		}
+		if (PlayerController->JumpAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopJump);
+		}
+		if (PlayerController->SprintAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartSprint);
+		}
+		if (PlayerController->SprintAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopSprint);
 		}
 	}
 }
