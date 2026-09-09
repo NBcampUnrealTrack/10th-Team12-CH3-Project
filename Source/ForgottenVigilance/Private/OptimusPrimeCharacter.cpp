@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HealthComponent.h"
+#include "MainWeaponComponent.h"
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
@@ -14,6 +15,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	Tags.AddUnique(FName(TEXT("Player")));
 
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
+	MainWeaponComponent = CreateDefaultSubobject<UMainWeaponComponent>(TEXT("MainWeapon"));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -131,6 +133,16 @@ void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& Value)
 	UpdateSpeed();
 }
 
+void AOptimusPrimeCharacter::FireWeapon(const FInputActionValue& Value)
+{
+	MainWeaponComponent->StartFire();
+}
+
+void AOptimusPrimeCharacter::StopFireWeapon(const FInputActionValue& Value)
+{
+	MainWeaponComponent->StopFire();
+}
+
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -195,6 +207,22 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::StopSprint);
+		}
+		if (PlayerController->ShootAction)
+		{
+			EnhancedInput->BindAction(
+				PlayerController->ShootAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AOptimusPrimeCharacter::FireWeapon);
+		}
+		if (PlayerController->ShootAction)
+		{
+			EnhancedInput->BindAction(
+				PlayerController->ShootAction,
+				ETriggerEvent::Completed,
+				this,
+				&AOptimusPrimeCharacter::StopFireWeapon);
 		}
 	}
 }
