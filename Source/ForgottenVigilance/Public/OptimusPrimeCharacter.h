@@ -7,7 +7,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class UCharacterHealthComponent;
+class UHealthComponent;
 
 struct FInputActionValue;
 
@@ -55,7 +55,7 @@ private:
 	void UpdateSpeed();
 
 	UPROPERTY(VisibleAnywhere, Category = "Health")
-	TObjectPtr<UCharacterHealthComponent> HealthComp;
+	TObjectPtr<UHealthComponent> HealthComp;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
