@@ -2,7 +2,7 @@
 
 namespace
 {
-constexpr float DefaultMaxHealth = 1.0f;
+constexpr float DefaultMaxHealth = 100.0f;
 constexpr float ZeroThreshold = 0.0f;
 }
 
@@ -49,7 +49,7 @@ void UHealthComponent::HandleTakeAnyDamage(
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, ZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-
+	
 	if (!IsAlive())
 	{
 		OnDeath.Broadcast(GetOwner());
