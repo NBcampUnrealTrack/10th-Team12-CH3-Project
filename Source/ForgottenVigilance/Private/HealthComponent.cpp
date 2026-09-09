@@ -1,4 +1,4 @@
-#include "CharacterHealthComponent.h"
+#include "HealthComponent.h"
 
 namespace
 {
@@ -6,7 +6,7 @@ constexpr float DefaultMaxHealth = 100.0f;
 constexpr float ZeroThreshold = 0.0f;
 }
 
-UCharacterHealthComponent::UCharacterHealthComponent()
+UHealthComponent::UHealthComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -14,7 +14,7 @@ UCharacterHealthComponent::UCharacterHealthComponent()
 	CurrentHealth = DefaultMaxHealth;
 }
 
-void UCharacterHealthComponent::BeginPlay()
+void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -26,11 +26,11 @@ void UCharacterHealthComponent::BeginPlay()
 		return;
 	}
 
-	OwnerActor->OnTakeAnyDamage.AddDynamic(this, &UCharacterHealthComponent::HandleTakeAnyDamage);
+	OwnerActor->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::HandleTakeAnyDamage);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
-void UCharacterHealthComponent::HandleTakeAnyDamage(
+void UHealthComponent::HandleTakeAnyDamage(
 	AActor* DamagedActor,
 	float Damage,
 	const UDamageType* DamageType,
@@ -56,7 +56,7 @@ void UCharacterHealthComponent::HandleTakeAnyDamage(
 	}
 }
 
-void UCharacterHealthComponent::Heal(float HealAmount)
+void UHealthComponent::Heal(float HealAmount)
 {
 	if (HealAmount <= ZeroThreshold)
 	{
@@ -72,17 +72,17 @@ void UCharacterHealthComponent::Heal(float HealAmount)
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
-bool UCharacterHealthComponent::IsAlive() const
+bool UHealthComponent::IsAlive() const
 {
 	return CurrentHealth > ZeroThreshold;
 }
 
-float UCharacterHealthComponent::GetCurrentHealth() const
+float UHealthComponent::GetCurrentHealth() const
 {
 	return CurrentHealth;
 }
 
-float UCharacterHealthComponent::GetMaxHealth() const
+float UHealthComponent::GetMaxHealth() const
 {
 	return MaxHealth;
 }
