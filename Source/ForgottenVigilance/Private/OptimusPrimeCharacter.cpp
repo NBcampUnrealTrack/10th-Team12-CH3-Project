@@ -9,6 +9,8 @@
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	
+	Tags.AddUnique(FName(TEXT("Player")));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
