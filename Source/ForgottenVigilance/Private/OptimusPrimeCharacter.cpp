@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "CharacterHealthComponent.h"
+#include "HealthComponent.h"
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
@@ -13,11 +13,11 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	Tags.AddUnique(FName(TEXT("Player")));
 
-	HealthComp = CreateDefaultSubobject<UCharacterHealthComponent>(TEXT("Health"));
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 300.0f;
+	SpringArmComp->TargetArmLength = 1200.0f;
 	SpringArmComp->bUsePawnControlRotation = true;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
