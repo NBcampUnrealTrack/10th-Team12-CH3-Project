@@ -1,34 +1,27 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "AIBaseCharacter.h"
+#include "AIBaseController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
-// Sets default values
 AAIBaseCharacter::AAIBaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	AIControllerClass = AAIBaseController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-}
-
-// Called when the game starts or when spawned
-void AAIBaseCharacter::BeginPlay()
-{
-	Super::BeginPlay();
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	Movement->MaxWalkSpeed = WalkSpeed;
+	Movement->bOrientRotationToMovement = true;
+	Movement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 	
 }
 
-// Called every frame
-void AAIBaseCharacter::Tick(float DeltaTime)
+void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 {
-	Super::Tick(DeltaTime);
-
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->MaxWalkSpeed = NewSpeed;
+		UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
+	}
 }
 
-// Called to bind functionality to input
-void AAIBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
 
