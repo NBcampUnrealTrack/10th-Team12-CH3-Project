@@ -1,4 +1,4 @@
-﻿
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,7 +7,10 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UCharacterHealthComponent;
+
 struct FInputActionValue;
+
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimeCharacter : public ACharacter
@@ -18,6 +21,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintPure, Category = "Health")
+	bool IsCharacterDead() const;
 
 	AOptimusPrimeCharacter();
 
@@ -43,8 +49,13 @@ protected:
 	TObjectPtr<UCameraComponent> CameraComp;
 
 private:
+	UFUNCTION()
+	void HandleDeath(AActor* DeadOwner);
+
 	void UpdateSpeed();
 
+	UPROPERTY(VisibleAnywhere, Category = "Health")
+	TObjectPtr<UCharacterHealthComponent> HealthComp;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")

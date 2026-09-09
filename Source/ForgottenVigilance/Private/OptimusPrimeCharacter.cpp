@@ -1,16 +1,19 @@
-﻿
+
 #include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CharacterHealthComponent.h"
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	
+
 	Tags.AddUnique(FName(TEXT("Player")));
+
+	HealthComp = CreateDefaultSubobject<UCharacterHealthComponent>(TEXT("Health"));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -40,11 +43,28 @@ void AOptimusPrimeCharacter::UpdateSpeed()
 	}
 }
 
+void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
+{
+	GetCharacterMovement()->DisableMovement();
+}
+
+bool AOptimusPrimeCharacter::IsCharacterDead() const
+{
+	if (!HealthComp)
+	{
+		return false;
+	}
+
+	return !(HealthComp->IsAlive());
+}
+
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	UpdateSpeed();
+
+	HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimeCharacter::HandleDeath);
 }
 
 void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
