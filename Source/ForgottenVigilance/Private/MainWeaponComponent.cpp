@@ -5,6 +5,7 @@
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "GameFramework/Character.h"
 
 namespace
 {
@@ -15,11 +16,18 @@ constexpr float DefaultMaxHeat = 100.0f;
 constexpr float DefaultHeatPerShot = 4.0f;
 constexpr float DefaultCoolingRate = 25.0f;
 constexpr float ZeroThreshold = 0.0f;
+const FName DefaultAttachSocketName(TEXT("WeaponSocket"));
+const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
 }
 
 UMainWeaponComponent::UMainWeaponComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
+	
+	WeaponMesh = nullptr;
+	WeaponMeshComponent = nullptr;
+	AttachSocketName = DefaultAttachSocketName;
+	MuzzleSocketName = DefaultMuzzleSocketName;
 
     Damage = DefaultDamage;
     FireInterval = DefaultFireInterval;
@@ -38,6 +46,14 @@ void UMainWeaponComponent::BeginPlay()
     CurrentHeat = ZeroThreshold;
     bIsOverheated = false;
     OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (OwnerCharacter == nullptr)
+	{
+		return;
+	}
+
+	AttachToCharacterMesh(OwnerCharacter->GetMesh());
 }
 
 void UMainWeaponComponent::TickComponent(
@@ -190,4 +206,48 @@ bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
     QueryParams.AddIgnoredActor(GetOwner());
 
     return World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+}
+
+void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentMesh)
+{
+	if (ParentMesh == nullptr)
+	{
+		return;
+	}
+
+	if (WeaponMeshComponent != nullptr)
+	{
+		return;
+	}
+
+	AActor* OwnerActor = GetOwner();
+	if (OwnerActor == nullptr)
+	{
+		return;
+	}
+
+	WeaponMeshComponent = NewObject<USkeletalMeshComponent>(OwnerActor);
+	if (WeaponMeshComponent == nullptr)
+	{
+		return;
+	}
+
+	WeaponMeshComponent->SetSkeletalMesh(WeaponMesh);
+	WeaponMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMeshComponent->SetupAttachment(ParentMesh, AttachSocketName);
+	WeaponMeshComponent->RegisterComponent();
+	WeaponMeshComponent->AttachToComponent(
+	   ParentMesh,
+	   FAttachmentTransformRules::SnapToTargetIncludingScale,
+	   AttachSocketName);
+}
+
+FVector UMainWeaponComponent::GetMuzzleLocation() const
+{
+	if (WeaponMeshComponent == nullptr)
+	{
+		return FVector::ZeroVector;
+	}
+
+	return WeaponMeshComponent->GetSocketLocation(MuzzleSocketName);
 }

@@ -15,15 +15,16 @@ class FORGOTTENVIGILANCE_API UMainWeaponComponent : public UActorComponent
 public:
 	UMainWeaponComponent();
 
+	void AttachToCharacterMesh(USkeletalMeshComponent* ParentMesh);
 	void StartFire();
 	void StopFire();
 	bool IsOverheated() const;
 	float GetHeatRatio() const;
 
-	UPROPERTY(BlueprintAssignable, Category = Weapon)
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnHeatChanged OnHeatChanged;
 
-	UPROPERTY(BlueprintAssignable, Category = Weapon)
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnOverheatStateChanged OnOverheatStateChanged;
 
 protected:
@@ -39,22 +40,32 @@ private:
 	void UpdateCooling(float DeltaTime);
 	void SetOverheated(bool bNewOverheated);
 	bool TraceForHit(FHitResult& OutHit) const;
+	FVector GetMuzzleLocation() const;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USkeletalMesh> WeaponMesh;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))
+	FName AttachSocketName;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))
+	FName MuzzleSocketName;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USkeletalMeshComponent> WeaponMeshComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float Damage;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float FireInterval;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float TraceDistance;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float MaxHeat;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float HeatPerShot;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float CoolingRate;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	float CurrentHeat;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	bool bIsOverheated;
 
 	FTimerHandle FireTimerHandle;
