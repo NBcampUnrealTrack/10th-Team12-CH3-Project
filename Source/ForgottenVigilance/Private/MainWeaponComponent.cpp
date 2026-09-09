@@ -16,37 +16,37 @@ constexpr float DefaultMaxHeat = 100.0f;
 constexpr float DefaultHeatPerShot = 0.0f;
 constexpr float DefaultCoolingRate = 25.0f;
 constexpr float ZeroThreshold = 0.0f;
-const FName DefaultAttachSocketName(TEXT("WeaponSocket"));
+const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
 }
 
 UMainWeaponComponent::UMainWeaponComponent()
 {
-    PrimaryComponentTick.bCanEverTick = true;
-	
+	PrimaryComponentTick.bCanEverTick = true;
+
 	WeaponMesh = nullptr;
 	WeaponMeshComponent = nullptr;
 	AttachSocketName = DefaultAttachSocketName;
 	MuzzleSocketName = DefaultMuzzleSocketName;
 
-    Damage = DefaultDamage;
-    FireInterval = DefaultFireInterval;
-    TraceDistance = DefaultTraceDistance;
-    MaxHeat = DefaultMaxHeat;
-    HeatPerShot = DefaultHeatPerShot;
-    CoolingRate = DefaultCoolingRate;
-    CurrentHeat = ZeroThreshold;
-    bIsOverheated = false;
+	Damage = DefaultDamage;
+	FireInterval = DefaultFireInterval;
+	TraceDistance = DefaultTraceDistance;
+	MaxHeat = DefaultMaxHeat;
+	HeatPerShot = DefaultHeatPerShot;
+	CoolingRate = DefaultCoolingRate;
+	CurrentHeat = ZeroThreshold;
+	bIsOverheated = false;
 }
 
 void UMainWeaponComponent::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    CurrentHeat = ZeroThreshold;
-    bIsOverheated = false;
-    OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
-	
+	CurrentHeat = ZeroThreshold;
+	bIsOverheated = false;
+	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter == nullptr)
 	{
@@ -57,154 +57,154 @@ void UMainWeaponComponent::BeginPlay()
 }
 
 void UMainWeaponComponent::TickComponent(
-    float DeltaTime,
-    ELevelTick TickType,
-    FActorComponentTickFunction* ThisTickFunction)
+	float DeltaTime,
+	ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
 {
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    UpdateCooling(DeltaTime);
+	UpdateCooling(DeltaTime);
 }
 
 void UMainWeaponComponent::StartFire()
 {
-    if (bIsOverheated)
-    {
-       return;
-    }
+	if (bIsOverheated)
+	{
+		return;
+	}
 
-    UWorld* World = GetWorld();
-    if (World == nullptr)
-    {
-       return;
-    }
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
 
-    if (World->GetTimerManager().IsTimerActive(FireTimerHandle))
-    {
-       return;
-    }
+	if (World->GetTimerManager().IsTimerActive(FireTimerHandle))
+	{
+		return;
+	}
 
-    Fire();
-    World->GetTimerManager().SetTimer(FireTimerHandle, this, &UMainWeaponComponent::Fire, FireInterval, true);
+	Fire();
+	World->GetTimerManager().SetTimer(FireTimerHandle, this, &UMainWeaponComponent::Fire, FireInterval, true);
 }
 
 void UMainWeaponComponent::StopFire()
 {
-    UWorld* World = GetWorld();
-    if (World == nullptr)
-    {
-       return;
-    }
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
 
-    World->GetTimerManager().ClearTimer(FireTimerHandle);
+	World->GetTimerManager().ClearTimer(FireTimerHandle);
 }
 
 bool UMainWeaponComponent::IsOverheated() const
 {
-    return bIsOverheated;
+	return bIsOverheated;
 }
 
 float UMainWeaponComponent::GetHeatRatio() const
 {
-    if (MaxHeat <= ZeroThreshold)
-    {
-       return ZeroThreshold;
-    }
+	if (MaxHeat <= ZeroThreshold)
+	{
+		return ZeroThreshold;
+	}
 
-    return CurrentHeat / MaxHeat;
+	return CurrentHeat / MaxHeat;
 }
 
 void UMainWeaponComponent::Fire()
 {
-    if (bIsOverheated)
-    {
-       StopFire();
-       return;
-    }
+	if (bIsOverheated)
+	{
+		StopFire();
+		return;
+	}
 
-    FHitResult HitResult;
-    if (TraceForHit(HitResult))
-    {
-       AActor* HitActor = HitResult.GetActor();
-       APawn* OwnerPawn = Cast<APawn>(GetOwner());
-       if (HitActor != nullptr && OwnerPawn != nullptr)
-       {
-          UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerPawn->GetController(), GetOwner(), nullptr);
-       }
-    }
+	FHitResult HitResult;
+	if (TraceForHit(HitResult))
+	{
+		AActor* HitActor = HitResult.GetActor();
+		APawn* OwnerPawn = Cast<APawn>(GetOwner());
+		if (HitActor != nullptr && OwnerPawn != nullptr)
+		{
+			UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerPawn->GetController(), GetOwner(), nullptr);
+		}
+	}
 
-    AddHeat();
+	AddHeat();
 }
 
 void UMainWeaponComponent::AddHeat()
 {
-    CurrentHeat = FMath::Clamp(CurrentHeat + HeatPerShot, ZeroThreshold, MaxHeat);
-    OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
+	CurrentHeat = FMath::Clamp(CurrentHeat + HeatPerShot, ZeroThreshold, MaxHeat);
+	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
 
-    if (CurrentHeat < MaxHeat)
-    {
-       return;
-    }
+	if (CurrentHeat < MaxHeat)
+	{
+		return;
+	}
 
-    SetOverheated(true);
-    StopFire();
+	SetOverheated(true);
+	StopFire();
 }
 
 void UMainWeaponComponent::UpdateCooling(float DeltaTime)
 {
-    if (CurrentHeat <= ZeroThreshold)
-    {
-       return;
-    }
+	if (CurrentHeat <= ZeroThreshold)
+	{
+		return;
+	}
 
-    UWorld* World = GetWorld();
-    if (World != nullptr && World->GetTimerManager().IsTimerActive(FireTimerHandle))
-    {
-       return;
-    }
+	UWorld* World = GetWorld();
+	if (World != nullptr && World->GetTimerManager().IsTimerActive(FireTimerHandle))
+	{
+		return;
+	}
 
-    CurrentHeat = FMath::Clamp(CurrentHeat - CoolingRate * DeltaTime, ZeroThreshold, MaxHeat);
-    OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
+	CurrentHeat = FMath::Clamp(CurrentHeat - CoolingRate * DeltaTime, ZeroThreshold, MaxHeat);
+	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
 
-    if (CurrentHeat > ZeroThreshold)
-    {
-       return;
-    }
+	if (CurrentHeat > ZeroThreshold)
+	{
+		return;
+	}
 
-    SetOverheated(false);
+	SetOverheated(false);
 }
 
 void UMainWeaponComponent::SetOverheated(bool bNewOverheated)
 {
-    if (bIsOverheated == bNewOverheated)
-    {
-       return;
-    }
+	if (bIsOverheated == bNewOverheated)
+	{
+		return;
+	}
 
-    bIsOverheated = bNewOverheated;
-    OnOverheatStateChanged.Broadcast(bIsOverheated);
+	bIsOverheated = bNewOverheated;
+	OnOverheatStateChanged.Broadcast(bIsOverheated);
 }
 
 bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
 {
-    UWorld* World = GetWorld();
-    if (World == nullptr)
-    {
-       return false;
-    }
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return false;
+	}
 
-    APawn* OwnerPawn = Cast<APawn>(GetOwner());
-    if (OwnerPawn == nullptr)
-    {
-       return false;
-    }
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn == nullptr)
+	{
+		return false;
+	}
 
-    const FVector TraceStart = OwnerPawn->GetActorLocation();
-    const FVector TraceEnd = TraceStart + OwnerPawn->GetActorForwardVector() * TraceDistance;
+	const FVector TraceStart = OwnerPawn->GetActorLocation();
+	const FVector TraceEnd = TraceStart + OwnerPawn->GetActorForwardVector() * TraceDistance;
 
-    FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(GetOwner());
-	
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetOwner());
+
 	//디버그용 start
 	const bool bHit = World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 
@@ -216,7 +216,7 @@ bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
 	}
 	//end
 
-    return World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+	return World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 }
 
 void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentMesh)
@@ -248,9 +248,9 @@ void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentM
 	WeaponMeshComponent->SetupAttachment(ParentMesh, AttachSocketName);
 	WeaponMeshComponent->RegisterComponent();
 	WeaponMeshComponent->AttachToComponent(
-	   ParentMesh,
-	   FAttachmentTransformRules::SnapToTargetIncludingScale,
-	   AttachSocketName);
+		ParentMesh,
+		FAttachmentTransformRules::SnapToTargetIncludingScale,
+		AttachSocketName);
 }
 
 FVector UMainWeaponComponent::GetMuzzleLocation() const

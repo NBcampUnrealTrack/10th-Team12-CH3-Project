@@ -5,6 +5,7 @@
 #include "MainWeaponComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHeatChanged, float, CurrentHeat, float, MaxHeat);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverheatStateChanged, bool, bIsOverheated);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -30,9 +31,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(
-	   float DeltaTime,
-	   ELevelTick TickType,
-	   FActorComponentTickFunction* ThisTickFunction) override;
+		float DeltaTime,
+		ELevelTick TickType,
+		FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
 	void Fire();
@@ -41,7 +42,7 @@ private:
 	void SetOverheated(bool bNewOverheated);
 	bool TraceForHit(FHitResult& OutHit) const;
 	FVector GetMuzzleLocation() const;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMesh> WeaponMesh;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visual", meta = (AllowPrivateAccess = true))

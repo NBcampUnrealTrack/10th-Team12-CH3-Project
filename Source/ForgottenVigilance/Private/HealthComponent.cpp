@@ -49,7 +49,7 @@ void UHealthComponent::HandleTakeAnyDamage(
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, ZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-	
+
 	if (!IsAlive())
 	{
 		OnDeath.Broadcast(GetOwner());

@@ -1,4 +1,3 @@
-
 #include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
@@ -163,50 +162,50 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		if (PlayerController->MoveAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->MoveAction,
-			    ETriggerEvent::Triggered,
-			    this,
-			    &AOptimusPrimeCharacter::Move);
+				PlayerController->MoveAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AOptimusPrimeCharacter::Move);
 		}
 		if (PlayerController->LookAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->LookAction,
-			    ETriggerEvent::Triggered,
-			    this,
-			    &AOptimusPrimeCharacter::Look);
+				PlayerController->LookAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AOptimusPrimeCharacter::Look);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->JumpAction,
-			    ETriggerEvent::Triggered,
-			    this,
-			    &AOptimusPrimeCharacter::StartJump);
+				PlayerController->JumpAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AOptimusPrimeCharacter::StartJump);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->JumpAction,
-			    ETriggerEvent::Completed,
-			    this,
-			    &AOptimusPrimeCharacter::StopJump);
+				PlayerController->JumpAction,
+				ETriggerEvent::Completed,
+				this,
+				&AOptimusPrimeCharacter::StopJump);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->SprintAction,
-			    ETriggerEvent::Triggered,
-			    this,
-			    &AOptimusPrimeCharacter::StartSprint);
+				PlayerController->SprintAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AOptimusPrimeCharacter::StartSprint);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-			    PlayerController->SprintAction,
-			    ETriggerEvent::Completed,
-			    this,
-			    &AOptimusPrimeCharacter::StopSprint);
+				PlayerController->SprintAction,
+				ETriggerEvent::Completed,
+				this,
+				&AOptimusPrimeCharacter::StopSprint);
 		}
 		if (PlayerController->ShootAction)
 		{
@@ -226,4 +225,3 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		}
 	}
 }
-

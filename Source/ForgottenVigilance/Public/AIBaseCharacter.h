@@ -20,11 +20,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float RunSpeed = 600.0f;
-	
+
 private:
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
 };

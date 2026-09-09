@@ -1,21 +1,20 @@
-﻿
-#include "OptimusPrimePlayerController.h"
+﻿#include "OptimusPrimePlayerController.h"
 #include "EnhancedInputSubsystems.h"
 
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
-    : InputMappingContext(nullptr)
-    , MoveAction(nullptr)
-    , JumpAction(nullptr)
-    , LookAction(nullptr)
-    , SprintAction(nullptr)
+	: InputMappingContext(nullptr)
+	  , MoveAction(nullptr)
+	  , JumpAction(nullptr)
+	  , LookAction(nullptr)
+	  , SprintAction(nullptr)
 {
 }
 
 void AOptimusPrimePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
 	{

@@ -9,6 +9,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API UBTTask_FindPlayerbyActor : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
+
 public:
 	UBTTask_FindPlayerbyActor();
 

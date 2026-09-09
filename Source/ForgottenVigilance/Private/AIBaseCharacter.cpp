@@ -13,9 +13,9 @@ AAIBaseCharacter::AAIBaseCharacter()
 	Movement->MaxWalkSpeed = WalkSpeed;
 	Movement->bOrientRotationToMovement = true;
 	Movement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
-	
+
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	HealthComponent->OnDeath.AddDynamic(this,&AAIBaseCharacter::HandleDeath);
+	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
 }
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
@@ -29,6 +29,6 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
-	//
+	//죽을때 처리할 것들 여기에
 	this->Destroy();
 }
