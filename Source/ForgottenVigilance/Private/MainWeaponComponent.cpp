@@ -9,11 +9,11 @@
 
 namespace
 {
-constexpr float DefaultDamage = 12.0f;
-constexpr float DefaultFireInterval = 0.25f;
+constexpr float DefaultDamage = 50.0f;
+constexpr float DefaultFireInterval = 0.1f;
 constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
-constexpr float DefaultHeatPerShot = 4.0f;
+constexpr float DefaultHeatPerShot = 0.0f;
 constexpr float DefaultCoolingRate = 25.0f;
 constexpr float ZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("WeaponSocket"));
@@ -199,11 +199,22 @@ bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
        return false;
     }
 
-    const FVector TraceStart = OwnerPawn->GetPawnViewLocation();
-    const FVector TraceEnd = TraceStart + OwnerPawn->GetBaseAimRotation().Vector() * TraceDistance;
+    const FVector TraceStart = OwnerPawn->GetActorLocation();
+    const FVector TraceEnd = TraceStart + OwnerPawn->GetActorForwardVector() * TraceDistance;
 
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(GetOwner());
+	
+	//디버그용 start
+	const bool bHit = World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+
+	DrawDebugLine(World, TraceStart, bHit ? OutHit.ImpactPoint : TraceEnd, bHit ? FColor::Red : FColor::Green, false, 1.0f, 0, 1.0f);
+
+	if (bHit)
+	{
+		DrawDebugSphere(World, OutHit.ImpactPoint, 8.0f, 12, FColor::Red, false, 1.0f);
+	}
+	//end
 
     return World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 }

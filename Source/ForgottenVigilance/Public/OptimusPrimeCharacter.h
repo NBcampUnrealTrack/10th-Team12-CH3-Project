@@ -8,6 +8,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
+class UMainWeaponComponent;
 
 struct FInputActionValue;
 
@@ -42,6 +43,10 @@ protected:
 	void StartSprint(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& Value);
+	UFUNCTION()
+	void FireWeapon(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopFireWeapon(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -56,6 +61,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComp;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	TObjectPtr<UMainWeaponComponent> MainWeaponComponent;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")

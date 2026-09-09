@@ -1,4 +1,4 @@
-﻿
+
 #include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
@@ -23,11 +23,6 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
-
-	// 몸은 컨트롤러의 시선 대신 이동 방향을 따라 회전
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	bIsSprinting = false;
 	NormalSpeed = 600.0f;
@@ -80,18 +75,14 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 	}
 
 	const FVector2D MoveInput = Value.Get<FVector2D>();
-	const FRotator ControlRotation = Controller->GetControlRotation();
-	const FRotator YawRotation = FRotator(0.0f, ControlRotation.Yaw, 0.0f);
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(ForwardDirection, MoveInput.X);
+		AddMovementInput(GetActorForwardVector(), MoveInput.X);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(RightDirection, MoveInput.Y);
+		AddMovementInput(GetActorRightVector(), MoveInput.Y);
 	}
 }
 

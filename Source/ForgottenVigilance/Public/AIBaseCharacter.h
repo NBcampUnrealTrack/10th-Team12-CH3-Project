@@ -19,12 +19,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float RunSpeed = 600.0f;
 
-	// virtual void Tick(float DeltaTime) override;
 
-	// virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-protected:
-	//virtual void BeginPlay() override;
-	
-	
 };
