@@ -1,5 +1,6 @@
 #include "AIBaseCharacter.h"
 #include "AIBaseController.h"
+#include "HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
@@ -13,6 +14,8 @@ AAIBaseCharacter::AAIBaseCharacter()
 	Movement->bOrientRotationToMovement = true;
 	Movement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 	
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->OnDeath.AddDynamic(this,&AAIBaseCharacter::HandleDeath);
 }
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
@@ -24,4 +27,8 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 	}
 }
 
-
+void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
+{
+	//
+	this->Destroy();
+}

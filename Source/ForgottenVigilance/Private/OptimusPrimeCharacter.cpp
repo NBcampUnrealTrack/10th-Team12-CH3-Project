@@ -24,6 +24,11 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
+	// 몸은 컨트롤러의 시선 대신 이동 방향을 따라 회전
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+
 	bIsSprinting = false;
 	NormalSpeed = 600.0f;
 	SprintMultiplier = 1.7f;
@@ -75,14 +80,18 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 	}
 
 	const FVector2D MoveInput = Value.Get<FVector2D>();
+	const FRotator ControlRotation = Controller->GetControlRotation();
+	const FRotator YawRotation = FRotator(0.0f, ControlRotation.Yaw, 0.0f);
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(ForwardDirection, MoveInput.X);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(RightDirection, MoveInput.Y);
 	}
 }
 
