@@ -25,17 +25,17 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void Move(const FInputActionValue& value);
+	void Move(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartJump(const FInputActionValue& value);
+	void StartJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopJump(const FInputActionValue& value);
+	void StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Look(const FInputActionValue& value);
+	void Look(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartSprint(const FInputActionValue& value);
+	void StartSprint(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopSprint(const FInputActionValue& value);
+	void StopSprint(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
