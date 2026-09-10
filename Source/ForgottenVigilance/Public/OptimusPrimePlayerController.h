@@ -29,4 +29,7 @@ public:
 	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> ShootAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+	TSubclassOf<UUserWidget> HUDWidgetClass;
 };
