@@ -25,9 +25,9 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
-	// 몸은 컨트롤러의 시선 대신 이동 방향을 따라 회전
+	// 몸은 컨트롤러의 시선 대신 커서 방향을 따라 회전
 	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	bIsCameraRotating = false;
 

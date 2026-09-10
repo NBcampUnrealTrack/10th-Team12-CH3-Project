@@ -4,8 +4,9 @@
 #include "GameFramework/PlayerController.h"
 #include "OptimusPrimePlayerController.generated.h"
 
-class UInputMappingContext;
 class UInputAction;
+class UInputMappingContext;
+class UUserWidget;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerController
@@ -13,7 +14,7 @@ class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerContr
 	GENERATED_BODY()
 
 public:
-	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	AOptimusPrimePlayerController();
 
@@ -34,4 +35,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<UUserWidget> HUDWidgetClass;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float InitialCameraPitch;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aiming")
+	float AimRotationSpeed;
 };
