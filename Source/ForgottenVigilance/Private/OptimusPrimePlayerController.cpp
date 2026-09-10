@@ -17,6 +17,10 @@ void AOptimusPrimePlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	SetShowMouseCursor(true);
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+	InputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(InputMode);
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
