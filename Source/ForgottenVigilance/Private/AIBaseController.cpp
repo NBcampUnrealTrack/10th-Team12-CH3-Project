@@ -66,10 +66,14 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		// 시야에 들어옴 -> TargetActor에 저장
 		BlackboardComp->SetValueAsObject(TEXT("TargetActor"), Actor);
+		BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
+		BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
+
 	}
 	else
 	{
 		// 시야에서 놓침
 		BlackboardComp->ClearValue(TEXT("TargetActor"));
+		BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
 	}
 }
