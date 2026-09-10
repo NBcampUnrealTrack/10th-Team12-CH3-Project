@@ -1,4 +1,4 @@
-#include "OptimusPrimeCharacter.h"
+﻿#include "OptimusPrimeCharacter.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
@@ -29,6 +29,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	bIsCameraRotating = false;
 
 	bIsSprinting = false;
 	NormalSpeed = 600.0f;
@@ -114,10 +115,13 @@ void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 
 void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
-	FVector2D LookInput = Value.Get<FVector2D>();
+	if (bIsCameraRotating)
+	{
+		const FVector2D LookInput = Value.Get<FVector2D>();
 
-	AddControllerYawInput(LookInput.X);
-	AddControllerPitchInput(LookInput.Y);
+		AddControllerYawInput(LookInput.X);
+		AddControllerPitchInput(LookInput.Y);
+	}
 }
 
 void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& Value)
@@ -142,6 +146,16 @@ void AOptimusPrimeCharacter::StopFireWeapon(const FInputActionValue& Value)
 	MainWeaponComponent->StopFire();
 }
 
+void AOptimusPrimeCharacter::StartCameraRotate(const FInputActionValue& Value)
+{
+	bIsCameraRotating = true;
+}
+
+void AOptimusPrimeCharacter::StopCameraRotate(const FInputActionValue& Value)
+{
+	bIsCameraRotating = false;
+}
+
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -162,66 +176,82 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		if (PlayerController->MoveAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->MoveAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::Move);
+			    PlayerController->MoveAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Move);
 		}
 		if (PlayerController->LookAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->LookAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::Look);
+			    PlayerController->LookAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Look);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->JumpAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::StartJump);
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartJump);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->JumpAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopJump);
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopJump);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->SprintAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::StartSprint);
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartSprint);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->SprintAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopSprint);
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopSprint);
 		}
 		if (PlayerController->ShootAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->ShootAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::FireWeapon);
+			    PlayerController->ShootAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::FireWeapon);
 		}
 		if (PlayerController->ShootAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->ShootAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopFireWeapon);
+			    PlayerController->ShootAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopFireWeapon);
+		}
+		if (PlayerController->CameraRotateAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->CameraRotateAction,
+			    ETriggerEvent::Started,
+			    this,
+			    &AOptimusPrimeCharacter::StartCameraRotate);
+		}
+		if (PlayerController->CameraRotateAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->CameraRotateAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopCameraRotate);
 		}
 	}
 }

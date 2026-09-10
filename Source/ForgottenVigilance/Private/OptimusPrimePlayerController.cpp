@@ -3,17 +3,20 @@
 #include "Blueprint/UserWidget.h"
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
-	: InputMappingContext(nullptr)
-	  , MoveAction(nullptr)
-	  , JumpAction(nullptr)
-	  , LookAction(nullptr)
-	  , SprintAction(nullptr)
+    : InputMappingContext(nullptr)
+    , MoveAction(nullptr)
+    , JumpAction(nullptr)
+    , LookAction(nullptr)
+    , SprintAction(nullptr)
+    , CameraRotateAction(nullptr)
 {
 }
 
 void AOptimusPrimePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetShowMouseCursor(true);
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)

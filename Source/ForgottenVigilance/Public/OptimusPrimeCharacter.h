@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -46,6 +46,10 @@ protected:
 	void FireWeapon(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopFireWeapon(const FInputActionValue& Value);
+	UFUNCTION()
+	void StartCameraRotate(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopCameraRotate(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -68,4 +72,5 @@ private:
 	float SprintMultiplier;
 
 	bool bIsSprinting;
+	bool bIsCameraRotating;
 };
