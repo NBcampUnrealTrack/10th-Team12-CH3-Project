@@ -46,10 +46,6 @@ protected:
 	void FireWeapon(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopFireWeapon(const FInputActionValue& Value);
-	UFUNCTION()
-	void StartCameraRotate(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopCameraRotate(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -70,7 +66,8 @@ private:
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float CharacterTargetArmLength;
+	
 	bool bIsSprinting;
-	bool bIsCameraRotating;
 };

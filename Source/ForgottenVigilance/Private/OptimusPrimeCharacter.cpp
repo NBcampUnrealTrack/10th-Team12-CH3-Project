@@ -7,7 +7,13 @@
 #include "HealthComponent.h"
 #include "MainWeaponComponent.h"
 
+namespace
+{
+constexpr float DefaultCharacterTargetArmLength = 500.0f;
+} // namespace
+
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
+    : CharacterTargetArmLength(DefaultCharacterTargetArmLength)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -18,18 +24,17 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 1200.0f;
+	SpringArmComp->TargetArmLength = CharacterTargetArmLength;
 	SpringArmComp->bUsePawnControlRotation = true;
-
+	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
-
+	
 	// 몸은 컨트롤러의 시선 대신 커서 방향을 따라 회전
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	bIsCameraRotating = false;
 
 	bIsSprinting = false;
 	NormalSpeed = 600.0f;
@@ -68,6 +73,9 @@ bool AOptimusPrimeCharacter::IsCharacterDead() const
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// BP에서 변경한 값 반영
+	SpringArmComp->TargetArmLength = CharacterTargetArmLength;
 
 	UpdateSpeed();
 
@@ -115,13 +123,10 @@ void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 
 void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
-	if (bIsCameraRotating)
-	{
-		const FVector2D LookInput = Value.Get<FVector2D>();
+	const FVector2D LookInput = Value.Get<FVector2D>();
 
-		AddControllerYawInput(LookInput.X);
-		AddControllerPitchInput(LookInput.Y);
-	}
+	AddControllerYawInput(LookInput.X);
+	AddControllerPitchInput(LookInput.Y);
 }
 
 void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& Value)
@@ -144,16 +149,6 @@ void AOptimusPrimeCharacter::FireWeapon(const FInputActionValue& Value)
 void AOptimusPrimeCharacter::StopFireWeapon(const FInputActionValue& Value)
 {
 	MainWeaponComponent->StopFire();
-}
-
-void AOptimusPrimeCharacter::StartCameraRotate(const FInputActionValue& Value)
-{
-	bIsCameraRotating = true;
-}
-
-void AOptimusPrimeCharacter::StopCameraRotate(const FInputActionValue& Value)
-{
-	bIsCameraRotating = false;
 }
 
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
@@ -236,22 +231,6 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::StopFireWeapon);
-		}
-		if (PlayerController->CameraRotateAction)
-		{
-			EnhancedInput->BindAction(
-			    PlayerController->CameraRotateAction,
-			    ETriggerEvent::Started,
-			    this,
-			    &AOptimusPrimeCharacter::StartCameraRotate);
-		}
-		if (PlayerController->CameraRotateAction)
-		{
-			EnhancedInput->BindAction(
-			    PlayerController->CameraRotateAction,
-			    ETriggerEvent::Completed,
-			    this,
-			    &AOptimusPrimeCharacter::StopCameraRotate);
 		}
 	}
 }
