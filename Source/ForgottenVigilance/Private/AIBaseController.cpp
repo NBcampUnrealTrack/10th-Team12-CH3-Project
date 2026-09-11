@@ -4,6 +4,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 AAIBaseController::AAIBaseController()
 {
@@ -45,7 +46,6 @@ void AAIBaseController::BeginPlay()
 	}
 
 	StartBehaviorTree();
-
 }
 
 void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -64,12 +64,44 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		// 시야에 들어옴 -> TargetActor에 저장
+		GetWorld()->GetTimerManager().ClearTimer(LoseSightTimer);
+
 		BlackboardComp->SetValueAsObject(TEXT("TargetActor"), Actor);
+
+		BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
+
+		BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
 	}
 	else
 	{
 		// 시야에서 놓침
-		BlackboardComp->ClearValue(TEXT("TargetActor"));
+		//BlackboardComp->ClearValue(TEXT("TargetActor"));
+		//BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
+
+		 GetWorld()->GetTimerManager().SetTimer(
+		    LoseSightTimer,
+		    this,
+		    &AAIBaseController::StopChasing,
+		    LoseSightDelay,
+		    false);
 	}
+}
+
+void AAIBaseController::StopChasing()
+{
+	UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+	if (!BlackboardComp)
+	{
+		return;
+	}
+
+	BlackboardComp->ClearValue(TEXT("TargetActor"));
+
+	BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
+
+	UE_LOG(
+	    LogTemp,
+	    Warning,
+	    TEXT("[AI] Chase timeout"));
 }

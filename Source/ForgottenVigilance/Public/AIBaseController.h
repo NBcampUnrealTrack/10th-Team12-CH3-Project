@@ -25,16 +25,25 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	class UBehaviorTree* BehaviorTreeAsset;
 
-	// 시야 감지용 Perception 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerception;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
-	// 시야 감지 결과를 블랙보드에 반영
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float LoseSightDelay = 3.0f;
+
+	virtual void BeginPlay() override;
+
+	FTimerHandle LoseSightTimer;
+
+	void StopChasing();
+
 	UFUNCTION()
 	void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	virtual void BeginPlay() override;
+	
+
+
 };
