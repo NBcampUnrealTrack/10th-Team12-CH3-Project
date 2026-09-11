@@ -17,6 +17,7 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
     , SprintAction(nullptr)
     , ShootAction(nullptr)
     , CameraRotateAction(nullptr)
+    , HUDWidgetClass(nullptr)
     , InitialCameraPitch(DefaultInitialCameraPitch)
     , AimRotationSpeed(DefaultAimRotationSpeed)
 {
@@ -53,12 +54,17 @@ void AOptimusPrimePlayerController::BeginPlay()
 
 	if (HUDWidgetClass)
 	{
-		UUserWidget* HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
-		if (HUDWidget)
+		HUDWidgetInstance = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+		if (HUDWidgetInstance)
 		{
-			HUDWidget->AddToViewport();
+			HUDWidgetInstance->AddToViewport();
 		}
 	}
+}
+
+UUserWidget* AOptimusPrimePlayerController::GetHUDWidget() const
+{
+	return HUDWidgetInstance;
 }
 
 void AOptimusPrimePlayerController::Tick(float DeltaTime)
