@@ -70,4 +70,6 @@ private:
 	float CharacterTargetArmLength;
 	
 	bool bIsSprinting;
+
+	FVector CameraPivotWorldLocation;
 };
