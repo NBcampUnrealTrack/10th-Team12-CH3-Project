@@ -14,8 +14,9 @@ constexpr float DefaultCharacterTargetArmLength = 500.0f;
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
     : CharacterTargetArmLength(DefaultCharacterTargetArmLength)
+    , CameraPivotWorldLocation(0.0f)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	Tags.AddUnique(FName(TEXT("Player")));
 
@@ -74,6 +75,8 @@ void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	CameraPivotWorldLocation = SpringArmComp->GetComponentLocation() + SpringArmComp->TargetOffset;
+
 	// BP에서 변경한 값 반영
 	SpringArmComp->TargetArmLength = CharacterTargetArmLength;
 
@@ -154,6 +157,8 @@ void AOptimusPrimeCharacter::StopFireWeapon(const FInputActionValue& Value)
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	SpringArmComp->TargetOffset = CameraPivotWorldLocation - SpringArmComp->GetComponentLocation();
 }
 
 void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
