@@ -1,12 +1,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/ObjectPtr.h"
 #include "Blueprint/UserWidget.h"
 #include "ForgottenHUDWidget.generated.h"
+
+class UProgressBar;
+class UTextBlock;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void HandleHealthChanged(float CurrentHealth, float MaxHealth);
+
+	UFUNCTION()
+	void HandleHeatChanged(float CurrentHeat, float MaxHeat);
+
+	UFUNCTION()
+	void HandleOverheatChanged(bool bIsOverHeated);
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> HealthBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> HeatBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> OverheatWarningText;
 };
