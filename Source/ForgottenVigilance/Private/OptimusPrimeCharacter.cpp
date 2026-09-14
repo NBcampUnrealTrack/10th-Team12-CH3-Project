@@ -1,4 +1,6 @@
-﻿#include "OptimusPrimeCharacter.h"
+#include "OptimusPrimeCharacter.h"
+#include "Engine/LocalPlayer.h"
+#include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
@@ -7,9 +9,28 @@
 #include "HealthComponent.h"
 #include "MainWeaponComponent.h"
 
-AOptimusPrimeCharacter::AOptimusPrimeCharacter()
+namespace
 {
-	PrimaryActorTick.bCanEverTick = false;
+constexpr float DefaultCharacterTargetArmLength = 300.0f;
+
+FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
+	const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
+{
+	// 실제 이동 중 좌우 성분만 제외해 앞뒤 이동과 높이 변화는 즉시 따라갑니다.
+	FVector Pivot = PreviousPivot + TargetMovement
+		- CameraRight * FVector::DotProduct(TargetMovement, CameraRight);
+	const float LateralDistance = FVector::DotProduct(TargetLocation - Pivot, CameraRight);
+	const float ClampedDistance = FMath::Clamp(LateralDistance, -HalfWidth, HalfWidth);
+	// 경계를 넘어간 거리만 보정하므로 정지 후 중앙으로 돌아가지 않습니다.
+	return Pivot + CameraRight * (LateralDistance - ClampedDistance);
+}
+} // namespace
+
+AOptimusPrimeCharacter::AOptimusPrimeCharacter()
+    : CameraPivotWorldLocation(FVector::ZeroVector)
+{
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickGroup = TG_PostPhysics;
 
 	Tags.AddUnique(FName(TEXT("Player")));
 
@@ -18,18 +39,18 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 1200.0f;
+	// C++ 기본값만 지정합니다. 이후 BP의 스프링암 설정을 그대로 사용합니다.
+	SpringArmComp->TargetArmLength = DefaultCharacterTargetArmLength;
 	SpringArmComp->bUsePawnControlRotation = true;
-
+	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
-
-	// 몸은 컨트롤러의 시선 대신 커서 방향을 따라 회전
+	
+	// 몸은 화면 중앙의 조준 목표를 향해 별도로 회전합니다.
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	bIsCameraRotating = false;
 
 	bIsSprinting = false;
 	NormalSpeed = 600.0f;
@@ -68,6 +89,20 @@ bool AOptimusPrimeCharacter::IsCharacterDead() const
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// 시작 기준점과 캐릭터 사이의 높이/위치 차이를 보존합니다.
+	CameraPivotWorldLocation = SpringArmComp->GetComponentLocation() + SpringArmComp->TargetOffset;
+
+	InitialCameraPivotOffset = CameraPivotWorldLocation - GetActorLocation();
+	PreviousCameraTargetLocation = GetActorLocation() + InitialCameraPivotOffset;
+	// 이동 완료 -> 기준점 보정 -> 스프링암 갱신 순서로 한 프레임 지연을 피합니다.
+	AddTickPrerequisiteComponent(GetCharacterMovement());
+	SpringArmComp->AddTickPrerequisiteActor(this);
+	SpringArmComp->bEnableCameraLag = false;
+	SpringArmComp->bEnableCameraRotationLag = false;
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	UpdateSpeed();
 
@@ -115,13 +150,10 @@ void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 
 void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
-	if (bIsCameraRotating)
-	{
-		const FVector2D LookInput = Value.Get<FVector2D>();
+	const FVector2D LookInput = Value.Get<FVector2D>();
 
-		AddControllerYawInput(LookInput.X);
-		AddControllerPitchInput(LookInput.Y);
-	}
+	AddControllerYawInput(LookInput.X);
+	AddControllerPitchInput(LookInput.Y);
 }
 
 void AOptimusPrimeCharacter::StartSprint(const FInputActionValue& Value)
@@ -146,19 +178,108 @@ void AOptimusPrimeCharacter::StopFireWeapon(const FInputActionValue& Value)
 	MainWeaponComponent->StopFire();
 }
 
-void AOptimusPrimeCharacter::StartCameraRotate(const FInputActionValue& Value)
+void AOptimusPrimeCharacter::UpdateCameraDeadZoneWidth(float DeltaTime)
 {
-	bIsCameraRotating = true;
+	// 줌 중에도 현재 암 길이와 FOV로 폭을 갱신합니다. 준비 전에는 일반 추적으로 대체합니다.
+	bDeadZoneWidthInitialized = false;
+
+	const APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController || !PlayerController->GetLocalPlayer())
+	{
+		return;
+	}
+	UCameraComponent* Camera = CameraComp.Get();
+	const USpringArmComponent* SpringArm = SpringArmComp.Get();
+	if (!Camera || !SpringArm || DeadZoneReferenceResolution.X <= 0 || DeadZoneReferenceResolution.Y <= 0)
+	{
+		return;
+	}
+
+	// 현재 창 크기 대신 고정된 기준 화면을 사용해 뷰포트 크기 변경과 줌을 구분합니다.
+	FMinimalViewInfo ReferenceView;
+	Camera->GetCameraView(DeltaTime, ReferenceView);
+	if (ReferenceView.ProjectionMode != ECameraProjectionMode::Perspective)
+	{
+		return;
+	}
+	FSceneViewProjectionData ReferenceProjection;
+	const FIntRect ReferenceRect(0, 0, DeadZoneReferenceResolution.X, DeadZoneReferenceResolution.Y);
+	ReferenceProjection.SetViewRectangle(ReferenceRect);
+	FMinimalViewInfo::CalculateProjectionMatrixGivenViewRectangle(ReferenceView,
+		PlayerController->GetLocalPlayer()->AspectRatioAxisConstraint, ReferenceRect, ReferenceProjection);
+	const float HorizontalProjectionScale = ReferenceProjection.ProjectionMatrix.M[0][0];
+	if (HorizontalProjectionScale <= 0.0f)
+	{
+		return;
+	}
+	// 기준 화면 전체 폭에 대응하는 반폭을 저장합니다. BP 비율은 아래에서 별도로 적용합니다.
+	// 벽 충돌로 줄어든 실제 거리가 아니라 줌이 설정한 암 길이를 사용합니다.
+	// 암 길이 0에서는 데드존도 0이 되어 캐릭터를 즉시 추적합니다.
+	DeadZoneReferenceHalfWidthWorld = FMath::Max(0.0f, SpringArm->TargetArmLength) / HorizontalProjectionScale;
+	bDeadZoneWidthInitialized = true;
 }
 
-void AOptimusPrimeCharacter::StopCameraRotate(const FInputActionValue& Value)
+float AOptimusPrimeCharacter::GetCameraDeadZoneHalfWidth() const
 {
-	bIsCameraRotating = false;
+	// 상한 없이 적용하므로 기준 화면보다 넓게 설정하거나 플레이 중 비율을 바꿀 수 있습니다.
+	return DeadZoneReferenceHalfWidthWorld * FMath::Max(0.0f, DeadZoneWidthFraction);
+}
+
+void AOptimusPrimeCharacter::UpdateCameraFollow()
+{
+	const FVector TargetLocation = GetActorLocation() + InitialCameraPivotOffset;
+	const FVector TargetMovement = TargetLocation - PreviousCameraTargetLocation;
+	const FRotator CameraYaw(0.0f, SpringArmComp->GetTargetRotation().Yaw, 0.0f);
+	PreviousCameraTargetLocation = TargetLocation;
+	if (!bDeadZoneWidthInitialized
+		|| TargetMovement.SizeSquared() > FMath::Square(CameraTeleportResetDistance))
+	{
+		// 초기화 전이나 순간이동 직후에는 이전 위치에 카메라를 남기지 않습니다.
+		CameraPivotWorldLocation = TargetLocation;
+	}
+	else
+	{
+		const FVector RightDirection = FRotationMatrix(CameraYaw).GetUnitAxis(EAxis::Y);
+		CameraPivotWorldLocation = CalculateDeadZonePivot(CameraPivotWorldLocation,
+			TargetLocation, TargetMovement, RightDirection, GetCameraDeadZoneHalfWidth());
+	}
+	// 부착된 스프링암의 이동을 보정해, 계산한 월드 기준점에서 카메라가 회전하게 합니다.
+	SpringArmComp->TargetOffset = CameraPivotWorldLocation - SpringArmComp->GetComponentLocation();
 }
 
 void AOptimusPrimeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateCameraDeadZoneWidth(DeltaTime);
+
+	UpdateCrosshairRotation(DeltaTime);
+	UpdateCameraFollow();
+}
+
+void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
+{
+	const AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController());
+	if (!IsLocallyControlled() || !PlayerController
+		|| !MainWeaponComponent || IsCharacterDead())
+	{
+		return;
+	}
+	FVector AimTarget;
+	if (!MainWeaponComponent->GetAimTarget(AimTarget))
+	{
+		return;
+	}
+	FVector AimDirection = AimTarget - GetActorLocation();
+	AimDirection.Z = 0.0f;
+	if (AimDirection.IsNearlyZero())
+	{
+		return;
+	}
+	const FRotator TargetRotation(0.0f, AimDirection.Rotation().Yaw, 0.0f);
+	const FRotator NextRotation = FMath::RInterpConstantTo(GetActorRotation(), TargetRotation,
+		DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
+	SetActorRotation(NextRotation);
 }
 
 void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -236,22 +357,6 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::StopFireWeapon);
-		}
-		if (PlayerController->CameraRotateAction)
-		{
-			EnhancedInput->BindAction(
-			    PlayerController->CameraRotateAction,
-			    ETriggerEvent::Started,
-			    this,
-			    &AOptimusPrimeCharacter::StartCameraRotate);
-		}
-		if (PlayerController->CameraRotateAction)
-		{
-			EnhancedInput->BindAction(
-			    PlayerController->CameraRotateAction,
-			    ETriggerEvent::Completed,
-			    this,
-			    &AOptimusPrimeCharacter::StopCameraRotate);
 		}
 	}
 }

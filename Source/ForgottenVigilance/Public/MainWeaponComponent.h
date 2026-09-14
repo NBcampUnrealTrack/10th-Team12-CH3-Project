@@ -21,6 +21,7 @@ public:
 	void StopFire();
 	bool IsOverheated() const;
 	float GetHeatRatio() const;
+	bool GetAimTarget(FVector& OutTarget) const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnHeatChanged OnHeatChanged;

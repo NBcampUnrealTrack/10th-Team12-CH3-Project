@@ -1,7 +1,9 @@
-﻿#include "OptimusPrimePlayerController.h"
+#include "OptimusPrimePlayerController.h"
 #include "Blueprint/UserWidget.h"
-#include "DrawDebugHelpers.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/LocalPlayer.h"
 
 namespace
 {
@@ -16,7 +18,6 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
     , JumpAction(nullptr)
     , SprintAction(nullptr)
     , ShootAction(nullptr)
-    , CameraRotateAction(nullptr)
     , HUDWidgetClass(nullptr)
     , InitialCameraPitch(DefaultInitialCameraPitch)
     , AimRotationSpeed(DefaultAimRotationSpeed)
@@ -27,18 +28,28 @@ void AOptimusPrimePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetControlRotation(FRotator(InitialCameraPitch, GetControlRotation().Yaw, 0.0f));
-
-	SetShowMouseCursor(true);
-	FInputModeGameAndUI InputMode;
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
-	InputMode.SetHideCursorDuringCapture(false);
-	SetInputMode(InputMode);
+	const float MinPitch = FMath::Min(CameraPitchMin, CameraPitchMax);
+	const float MaxPitch = FMath::Max(CameraPitchMin, CameraPitchMax);
+	if (PlayerCameraManager)
+	{
+		PlayerCameraManager->ViewPitchMin = MinPitch;
+		PlayerCameraManager->ViewPitchMax = MaxPitch;
+	}
+	SetControlRotation(FRotator(FMath::Clamp(InitialCameraPitch, MinPitch, MaxPitch),
+		GetControlRotation().Yaw, 0.0f));
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
 	{
 		return;
+	}
+	SetShowMouseCursor(false);
+	FInputModeGameOnly InputMode;
+	InputMode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(InputMode);
+	if (UGameViewportClient* ViewportClient = LocalPlayer->ViewportClient)
+	{
+		ViewportClient->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
 	}
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
@@ -67,42 +78,7 @@ UUserWidget* AOptimusPrimePlayerController::GetHUDWidget() const
 	return HUDWidgetInstance;
 }
 
-void AOptimusPrimePlayerController::Tick(float DeltaTime)
+float AOptimusPrimePlayerController::GetAimRotationSpeed() const
 {
-	Super::Tick(DeltaTime);
-
-	FHitResult CursorHit;
-
-	const bool bHit = GetHitResultUnderCursorByChannel(
-	    UEngineTypes::ConvertToTraceType(ECC_Visibility),
-	    false,
-	    CursorHit);
-
-	if (bHit)
-	{
-		DrawDebugSphere(
-		    GetWorld(),
-		    CursorHit.ImpactPoint,
-		    1.0f,
-		    12,
-		    FColor::Red,
-		    false,
-		    0.1f);
-
-		APawn* ControlledPawn = GetPawn();
-		if (!ControlledPawn)
-		{
-			return;
-		}
-		const FVector AimDirection = CursorHit.ImpactPoint - ControlledPawn->GetActorLocation();
-		const FRotator AimRotation = AimDirection.Rotation();
-
-		const FRotator NextRotation = FMath::RInterpConstantTo(
-		    ControlledPawn->GetActorRotation(),
-		    FRotator(0.0f, AimRotation.Yaw, 0.0f),
-		    DeltaTime,
-		    AimRotationSpeed);
-
-		ControlledPawn->SetActorRotation(NextRotation);
-	}
+	return AimRotationSpeed;
 }

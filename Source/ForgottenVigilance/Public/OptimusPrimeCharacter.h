@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -10,7 +10,6 @@ class UHealthComponent;
 class UMainWeaponComponent;
 
 struct FInputActionValue;
-
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimeCharacter : public ACharacter
@@ -24,6 +23,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Health")
 	bool IsCharacterDead() const;
+
+	UFUNCTION(BlueprintPure, Category = "Camera|DeadZone")
+	float GetCameraDeadZoneHalfWidth() const;
 
 	AOptimusPrimeCharacter();
 
@@ -46,10 +48,6 @@ protected:
 	void FireWeapon(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopFireWeapon(const FInputActionValue& Value);
-	UFUNCTION()
-	void StartCameraRotate(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopCameraRotate(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -61,6 +59,23 @@ private:
 	void HandleDeath(AActor* DeadOwner);
 
 	void UpdateSpeed();
+	void UpdateCameraDeadZoneWidth(float DeltaTime);
+	void UpdateCameraFollow();
+	void UpdateCrosshairRotation(float DeltaTime);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|DeadZone",
+		meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
+			ToolTip = "Width relative to the reference screen: 0.1 = 10%, 1 = 100%. Values above 1 are allowed. Follows Target Arm Length and camera FOV changes, independently of viewport resizing and spring arm collision."))
+	float DeadZoneWidthFraction = 0.1f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone", meta = (ClampMin = "1.0", Units = "cm"))
+	float CameraTeleportResetDistance = 2000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone")
+	FIntPoint DeadZoneReferenceResolution = FIntPoint(1920, 1032);
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Camera|DeadZone")
+	float DeadZoneReferenceHalfWidthWorld = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComp;
@@ -70,7 +85,11 @@ private:
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
-
+	
 	bool bIsSprinting;
-	bool bIsCameraRotating;
+
+	FVector CameraPivotWorldLocation;
+	FVector PreviousCameraTargetLocation = FVector::ZeroVector;
+	FVector InitialCameraPivotOffset = FVector::ZeroVector;
+	bool bDeadZoneWidthInitialized = false;
 };

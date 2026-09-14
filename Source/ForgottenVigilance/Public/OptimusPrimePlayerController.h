@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -14,9 +14,8 @@ class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerContr
 	GENERATED_BODY()
 
 public:
-	virtual void Tick(float DeltaTime) override;
-
 	AOptimusPrimePlayerController();
+	float GetAimRotationSpeed() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -30,8 +29,6 @@ public:
 	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> ShootAction;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
-	TObjectPtr<UInputAction> CameraRotateAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<UUserWidget> HUDWidgetClass;
@@ -47,6 +44,12 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float InitialCameraPitch;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera", meta = (ClampMin = "-89.0", ClampMax = "89.0"))
+	float CameraPitchMin = -70.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera", meta = (ClampMin = "-89.0", ClampMax = "89.0"))
+	float CameraPitchMax = 35.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Aiming")
 	float AimRotationSpeed;
