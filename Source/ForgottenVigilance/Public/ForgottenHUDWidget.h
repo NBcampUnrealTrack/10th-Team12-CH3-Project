@@ -15,9 +15,6 @@ class FORGOTTENVIGILANCE_API UForgottenHUDWidget : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
-	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
-		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
-		int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 	UFUNCTION()
 	void HandleHealthChanged(float CurrentHealth, float MaxHealth);
@@ -36,15 +33,4 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> OverheatWarningText;
-
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone")
-	bool bShowDeadZoneGuides = true;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone")
-	FLinearColor DeadZoneGuideColor = FLinearColor(1.0f, 0.0f, 0.0f, 0.4f);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone", meta = (ClampMin = "1.0"))
-	float DeadZoneGuideThicknessPixels = 2.0f;
-
 };

@@ -1,4 +1,4 @@
-﻿#include "OptimusPrimePlayerController.h"
+#include "OptimusPrimePlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/PlayerCameraManager.h"
@@ -18,7 +18,6 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
     , JumpAction(nullptr)
     , SprintAction(nullptr)
     , ShootAction(nullptr)
-    , CameraRotateAction(nullptr)
     , HUDWidgetClass(nullptr)
     , InitialCameraPitch(DefaultInitialCameraPitch)
     , AimRotationSpeed(DefaultAimRotationSpeed)
@@ -82,9 +81,4 @@ UUserWidget* AOptimusPrimePlayerController::GetHUDWidget() const
 float AOptimusPrimePlayerController::GetAimRotationSpeed() const
 {
 	return AimRotationSpeed;
-}
-
-void AOptimusPrimePlayerController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }

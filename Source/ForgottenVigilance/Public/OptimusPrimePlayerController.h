@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -14,8 +14,6 @@ class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerContr
 	GENERATED_BODY()
 
 public:
-	virtual void Tick(float DeltaTime) override;
-
 	AOptimusPrimePlayerController();
 	float GetAimRotationSpeed() const;
 
@@ -31,8 +29,6 @@ public:
 	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> ShootAction;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
-	TObjectPtr<UInputAction> CameraRotateAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<UUserWidget> HUDWidgetClass;

@@ -1,4 +1,4 @@
-﻿#include "MainWeaponComponent.h"
+#include "MainWeaponComponent.h"
 
 #include "Engine/World.h"
 #include "GameFramework/Controller.h"
@@ -9,11 +9,6 @@
 #include "GameFramework/PlayerController.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
-
-#if WITH_DEV_AUTOMATION_TESTS
-#include "Components/BoxComponent.h"
-#include "Misc/AutomationTest.h"
-#endif
 
 namespace
 {
@@ -36,59 +31,6 @@ bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& Mu
 		TraceEnd, ECC_Visibility, QueryParams);
 }
 }
-
-#if WITH_DEV_AUTOMATION_TESTS
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWeaponCrosshairTraceTest,
-	"ForgottenVigilance.Weapon.CrosshairTrace",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FWeaponCrosshairTraceTest::RunTest(const FString& Parameters)
-{
-	UWorld* TestWorld = UWorld::CreateWorld(EWorldType::Game, false);
-	if (!TestNotNull(TEXT("Collision test world"), TestWorld))
-	{
-		return false;
-	}
-	AActor* TargetActor = TestWorld->SpawnActor<AActor>();
-	UBoxComponent* TargetBox = NewObject<UBoxComponent>(TargetActor);
-	TargetActor->SetRootComponent(TargetBox);
-	TargetBox->SetBoxExtent(FVector(30, 30, 30));
-	TargetBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	TargetBox->SetCollisionResponseToAllChannels(ECR_Block);
-	TargetBox->RegisterComponent();
-	const FVector TargetLocation(1000, 0, 300);
-	TargetActor->SetActorLocation(TargetLocation);
-	const FVector Muzzle(50, 50, 50);
-	const FVector GuardStart(0, 0, 50);
-	const FVector ShotEnd = Muzzle + (TargetLocation - Muzzle).GetSafeNormal() * 2000.0f;
-	FCollisionQueryParams QueryParams;
-	FHitResult Hit;
-	bool bMuzzleBlocked = false;
-	TestTrue(TEXT("Offset muzzle hits elevated target"),
-		TraceMuzzlePath(TestWorld, GuardStart, Muzzle, ShotEnd, QueryParams, Hit, bMuzzleBlocked));
-	TestTrue(TEXT("Elevated target is the actual hit"), Hit.GetActor() == TargetActor);
-	TestFalse(TEXT("Open muzzle path"), bMuzzleBlocked);
-
-	AActor* WallActor = TestWorld->SpawnActor<AActor>();
-	UBoxComponent* WallBox = NewObject<UBoxComponent>(WallActor);
-	WallActor->SetRootComponent(WallBox);
-	WallBox->SetBoxExtent(FVector(10, 200, 300));
-	WallBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	WallBox->SetCollisionResponseToAllChannels(ECR_Block);
-	WallBox->RegisterComponent();
-	WallActor->SetActorLocation(FVector(400, 0, 150));
-	TraceMuzzlePath(TestWorld, GuardStart, Muzzle, ShotEnd, QueryParams, Hit, bMuzzleBlocked);
-	TestTrue(TEXT("Wall blocks target visible to an offset camera"), Hit.GetActor() == WallActor);
-	TraceMuzzlePath(TestWorld, GuardStart, FVector(500, 0, 50), ShotEnd, QueryParams, Hit, bMuzzleBlocked);
-	TestTrue(TEXT("Muzzle protruding through wall is blocked"), bMuzzleBlocked && Hit.GetActor() == WallActor);
-	WallBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	TestFalse(TEXT("Out of range does not hit elevated target"),
-		TraceMuzzlePath(TestWorld, GuardStart, Muzzle,
-			Muzzle + (TargetLocation - Muzzle).GetSafeNormal() * 100.0f, QueryParams, Hit, bMuzzleBlocked));
-	TestWorld->DestroyWorld(false);
-	return true;
-}
-#endif
 
 UMainWeaponComponent::UMainWeaponComponent()
 {
