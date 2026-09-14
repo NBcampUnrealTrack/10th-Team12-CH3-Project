@@ -1,6 +1,9 @@
 ﻿#include "OptimusPrimePlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/LocalPlayer.h"
 
 namespace
 {
@@ -26,12 +29,28 @@ void AOptimusPrimePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetControlRotation(FRotator(InitialCameraPitch, GetControlRotation().Yaw, 0.0f));
+	const float MinPitch = FMath::Min(CameraPitchMin, CameraPitchMax);
+	const float MaxPitch = FMath::Max(CameraPitchMin, CameraPitchMax);
+	if (PlayerCameraManager)
+	{
+		PlayerCameraManager->ViewPitchMin = MinPitch;
+		PlayerCameraManager->ViewPitchMax = MaxPitch;
+	}
+	SetControlRotation(FRotator(FMath::Clamp(InitialCameraPitch, MinPitch, MaxPitch),
+		GetControlRotation().Yaw, 0.0f));
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
 	{
 		return;
+	}
+	SetShowMouseCursor(false);
+	FInputModeGameOnly InputMode;
+	InputMode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(InputMode);
+	if (UGameViewportClient* ViewportClient = LocalPlayer->ViewportClient)
+	{
+		ViewportClient->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
 	}
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
@@ -58,6 +77,11 @@ void AOptimusPrimePlayerController::BeginPlay()
 UUserWidget* AOptimusPrimePlayerController::GetHUDWidget() const
 {
 	return HUDWidgetInstance;
+}
+
+float AOptimusPrimePlayerController::GetAimRotationSpeed() const
+{
+	return AimRotationSpeed;
 }
 
 void AOptimusPrimePlayerController::Tick(float DeltaTime)

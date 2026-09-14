@@ -1,4 +1,4 @@
-#include "MainWeaponComponent.h"
+﻿#include "MainWeaponComponent.h"
 
 #include "Engine/World.h"
 #include "GameFramework/Controller.h"
@@ -6,6 +6,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PlayerController.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "DrawDebugHelpers.h"
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Components/BoxComponent.h"
+#include "Misc/AutomationTest.h"
+#endif
 
 namespace
 {
@@ -13,12 +21,74 @@ constexpr float DefaultDamage = 50.0f;
 constexpr float DefaultFireInterval = 0.1f;
 constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
-constexpr float DefaultHeatPerShot = 0.0f;
+constexpr float DefaultHeatPerShot = 1.0f;
 constexpr float DefaultCoolingRate = 25.0f;
 constexpr float ZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
+
+bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& MuzzleStart,
+	const FVector& TraceEnd, const FCollisionQueryParams& QueryParams, FHitResult& OutHit, bool& bMuzzleBlocked)
+{
+	bMuzzleBlocked = World->LineTraceSingleByChannel(OutHit, GuardStart, MuzzleStart,
+		ECC_Visibility, QueryParams);
+	return bMuzzleBlocked || World->LineTraceSingleByChannel(OutHit, MuzzleStart,
+		TraceEnd, ECC_Visibility, QueryParams);
 }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWeaponCrosshairTraceTest,
+	"ForgottenVigilance.Weapon.CrosshairTrace",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FWeaponCrosshairTraceTest::RunTest(const FString& Parameters)
+{
+	UWorld* TestWorld = UWorld::CreateWorld(EWorldType::Game, false);
+	if (!TestNotNull(TEXT("Collision test world"), TestWorld))
+	{
+		return false;
+	}
+	AActor* TargetActor = TestWorld->SpawnActor<AActor>();
+	UBoxComponent* TargetBox = NewObject<UBoxComponent>(TargetActor);
+	TargetActor->SetRootComponent(TargetBox);
+	TargetBox->SetBoxExtent(FVector(30, 30, 30));
+	TargetBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TargetBox->SetCollisionResponseToAllChannels(ECR_Block);
+	TargetBox->RegisterComponent();
+	const FVector TargetLocation(1000, 0, 300);
+	TargetActor->SetActorLocation(TargetLocation);
+	const FVector Muzzle(50, 50, 50);
+	const FVector GuardStart(0, 0, 50);
+	const FVector ShotEnd = Muzzle + (TargetLocation - Muzzle).GetSafeNormal() * 2000.0f;
+	FCollisionQueryParams QueryParams;
+	FHitResult Hit;
+	bool bMuzzleBlocked = false;
+	TestTrue(TEXT("Offset muzzle hits elevated target"),
+		TraceMuzzlePath(TestWorld, GuardStart, Muzzle, ShotEnd, QueryParams, Hit, bMuzzleBlocked));
+	TestTrue(TEXT("Elevated target is the actual hit"), Hit.GetActor() == TargetActor);
+	TestFalse(TEXT("Open muzzle path"), bMuzzleBlocked);
+
+	AActor* WallActor = TestWorld->SpawnActor<AActor>();
+	UBoxComponent* WallBox = NewObject<UBoxComponent>(WallActor);
+	WallActor->SetRootComponent(WallBox);
+	WallBox->SetBoxExtent(FVector(10, 200, 300));
+	WallBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallBox->SetCollisionResponseToAllChannels(ECR_Block);
+	WallBox->RegisterComponent();
+	WallActor->SetActorLocation(FVector(400, 0, 150));
+	TraceMuzzlePath(TestWorld, GuardStart, Muzzle, ShotEnd, QueryParams, Hit, bMuzzleBlocked);
+	TestTrue(TEXT("Wall blocks target visible to an offset camera"), Hit.GetActor() == WallActor);
+	TraceMuzzlePath(TestWorld, GuardStart, FVector(500, 0, 50), ShotEnd, QueryParams, Hit, bMuzzleBlocked);
+	TestTrue(TEXT("Muzzle protruding through wall is blocked"), bMuzzleBlocked && Hit.GetActor() == WallActor);
+	WallBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TestFalse(TEXT("Out of range does not hit elevated target"),
+		TraceMuzzlePath(TestWorld, GuardStart, Muzzle,
+			Muzzle + (TargetLocation - Muzzle).GetSafeNormal() * 100.0f, QueryParams, Hit, bMuzzleBlocked));
+	TestWorld->DestroyWorld(false);
+	return true;
+}
+#endif
 
 UMainWeaponComponent::UMainWeaponComponent()
 {
@@ -54,6 +124,11 @@ void UMainWeaponComponent::BeginPlay()
 	}
 
 	AttachToCharacterMesh(OwnerCharacter->GetMesh());
+	if (!WeaponMeshComponent || !WeaponMeshComponent->DoesSocketExist(MuzzleSocketName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: muzzle socket '%s' is unavailable; firing from pawn view location."),
+			*GetNameSafe(GetOwner()), *MuzzleSocketName.ToString());
+	}
 }
 
 void UMainWeaponComponent::TickComponent(
@@ -185,38 +260,77 @@ void UMainWeaponComponent::SetOverheated(bool bNewOverheated)
 	OnOverheatStateChanged.Broadcast(bIsOverheated);
 }
 
+bool UMainWeaponComponent::GetAimTarget(FVector& OutTarget) const
+{
+	UWorld* World = GetWorld();
+	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!World || !OwnerPawn || TraceDistance <= 0.0f)
+	{
+		return false;
+	}
+	FVector RayStart;
+	FVector RayDirection;
+	const APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+	if (PlayerController && PlayerController->IsLocalController())
+	{
+		int32 ViewportWidth = 0;
+		int32 ViewportHeight = 0;
+		PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
+		if (ViewportWidth <= 0 || ViewportHeight <= 0
+			|| !PlayerController->DeprojectScreenPositionToWorld(ViewportWidth * 0.5f,
+				ViewportHeight * 0.5f, RayStart, RayDirection))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		// 플레이어 화면이 없는 Pawn은 기존 전방 조준을 사용합니다.
+		RayStart = OwnerPawn->GetPawnViewLocation();
+		RayDirection = OwnerPawn->GetActorForwardVector();
+	}
+	const FVector RayEnd = RayStart + RayDirection * TraceDistance;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetOwner());
+	FHitResult CameraHit;
+	const bool bCameraHit = World->LineTraceSingleByChannel(CameraHit, RayStart, RayEnd,
+		ECC_Visibility, QueryParams);
+	OutTarget = bCameraHit ? CameraHit.ImpactPoint : RayEnd;
+	return true;
+}
+
 bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
 {
 	UWorld* World = GetWorld();
-	if (World == nullptr)
+	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	FVector AimTarget;
+	if (!World || !OwnerPawn || !GetAimTarget(AimTarget))
 	{
 		return false;
 	}
-
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (OwnerPawn == nullptr)
+	const FVector TraceStart = GetMuzzleLocation();
+	const FVector ShotDirection = (AimTarget - TraceStart).GetSafeNormal();
+	if (ShotDirection.IsNearlyZero())
 	{
 		return false;
 	}
-
-	const FVector TraceStart = OwnerPawn->GetActorLocation();
-	const FVector TraceEnd = TraceStart + OwnerPawn->GetActorForwardVector() * TraceDistance;
-
+	const FVector TraceEnd = TraceStart + ShotDirection * TraceDistance;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(GetOwner());
 
-	//디버그용 start
-	const bool bHit = World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
-
-	DrawDebugLine(World, TraceStart, bHit ? OutHit.ImpactPoint : TraceEnd, bHit ? FColor::Red : FColor::Green, false, 1.0f, 0, 1.0f);
+	// 총구가 벽을 뚫고 나갔을 때도 캐릭터와 총구 사이의 장애물에 막히게 합니다.
+	const FVector GuardStart = OwnerPawn->GetActorLocation();
+	bool bMuzzleBlocked = false;
+	const bool bHit = TraceMuzzlePath(World, GuardStart, TraceStart, TraceEnd, QueryParams,
+		OutHit, bMuzzleBlocked);
+	DrawDebugLine(World, bMuzzleBlocked ? GuardStart : TraceStart,
+		bHit ? OutHit.ImpactPoint : TraceEnd, bHit ? FColor::Red : FColor::Green, false, 1.0f, 0, 1.0f);
 
 	if (bHit)
 	{
 		DrawDebugSphere(World, OutHit.ImpactPoint, 8.0f, 12, FColor::Red, false, 1.0f);
 	}
-	//end
-
-	return World->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+	return bHit;
 }
 
 void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentMesh)
@@ -255,9 +369,10 @@ void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentM
 
 FVector UMainWeaponComponent::GetMuzzleLocation() const
 {
-	if (WeaponMeshComponent == nullptr)
+	if (!WeaponMeshComponent || !WeaponMeshComponent->DoesSocketExist(MuzzleSocketName))
 	{
-		return FVector::ZeroVector;
+		const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+		return OwnerPawn ? OwnerPawn->GetPawnViewLocation() : FVector::ZeroVector;
 	}
 
 	return WeaponMeshComponent->GetSocketLocation(MuzzleSocketName);
