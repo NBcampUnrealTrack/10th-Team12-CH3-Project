@@ -3,7 +3,7 @@
 namespace
 {
 constexpr float DefaultMaxHealth = 100.0f;
-constexpr float ZeroThreshold = 0.0f;
+constexpr float HealthZeroThreshold = 0.0f;
 }
 
 UHealthComponent::UHealthComponent()
@@ -37,7 +37,7 @@ void UHealthComponent::HandleTakeAnyDamage(
 	AController* InstigatedBy,
 	AActor* DamageCauser)
 {
-	if (Damage <= ZeroThreshold)
+	if (Damage <= HealthZeroThreshold)
 	{
 		return;
 	}
@@ -47,7 +47,7 @@ void UHealthComponent::HandleTakeAnyDamage(
 		return;
 	}
 
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, ZeroThreshold, MaxHealth);
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, HealthZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
 	if (!IsAlive())
@@ -58,7 +58,7 @@ void UHealthComponent::HandleTakeAnyDamage(
 
 void UHealthComponent::Heal(float HealAmount)
 {
-	if (HealAmount <= ZeroThreshold)
+	if (HealAmount <= HealthZeroThreshold)
 	{
 		return;
 	}
@@ -74,7 +74,7 @@ void UHealthComponent::Heal(float HealAmount)
 
 bool UHealthComponent::IsAlive() const
 {
-	return CurrentHealth > ZeroThreshold;
+	return CurrentHealth > HealthZeroThreshold;
 }
 
 float UHealthComponent::GetCurrentHealth() const

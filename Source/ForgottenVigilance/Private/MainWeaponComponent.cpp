@@ -18,7 +18,7 @@ constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
 constexpr float DefaultHeatPerShot = 1.0f;
 constexpr float DefaultCoolingRate = 25.0f;
-constexpr float ZeroThreshold = 0.0f;
+constexpr float MainWeaponZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
 
@@ -47,7 +47,7 @@ UMainWeaponComponent::UMainWeaponComponent()
 	MaxHeat = DefaultMaxHeat;
 	HeatPerShot = DefaultHeatPerShot;
 	CoolingRate = DefaultCoolingRate;
-	CurrentHeat = ZeroThreshold;
+	CurrentHeat = MainWeaponZeroThreshold;
 	bIsOverheated = false;
 }
 
@@ -55,7 +55,7 @@ void UMainWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CurrentHeat = ZeroThreshold;
+	CurrentHeat = MainWeaponZeroThreshold;
 	bIsOverheated = false;
 	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
 
@@ -123,9 +123,9 @@ bool UMainWeaponComponent::IsOverheated() const
 
 float UMainWeaponComponent::GetHeatRatio() const
 {
-	if (MaxHeat <= ZeroThreshold)
+	if (MaxHeat <= MainWeaponZeroThreshold)
 	{
-		return ZeroThreshold;
+		return MainWeaponZeroThreshold;
 	}
 
 	return CurrentHeat / MaxHeat;
@@ -155,7 +155,7 @@ void UMainWeaponComponent::Fire()
 
 void UMainWeaponComponent::AddHeat()
 {
-	CurrentHeat = FMath::Clamp(CurrentHeat + HeatPerShot, ZeroThreshold, MaxHeat);
+	CurrentHeat = FMath::Clamp(CurrentHeat + HeatPerShot, MainWeaponZeroThreshold, MaxHeat);
 	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
 
 	if (CurrentHeat < MaxHeat)
@@ -169,7 +169,7 @@ void UMainWeaponComponent::AddHeat()
 
 void UMainWeaponComponent::UpdateCooling(float DeltaTime)
 {
-	if (CurrentHeat <= ZeroThreshold)
+	if (CurrentHeat <= MainWeaponZeroThreshold)
 	{
 		return;
 	}
@@ -180,10 +180,10 @@ void UMainWeaponComponent::UpdateCooling(float DeltaTime)
 		return;
 	}
 
-	CurrentHeat = FMath::Clamp(CurrentHeat - CoolingRate * DeltaTime, ZeroThreshold, MaxHeat);
+	CurrentHeat = FMath::Clamp(CurrentHeat - CoolingRate * DeltaTime, MainWeaponZeroThreshold, MaxHeat);
 	OnHeatChanged.Broadcast(CurrentHeat, MaxHeat);
 
-	if (CurrentHeat > ZeroThreshold)
+	if (CurrentHeat > MainWeaponZeroThreshold)
 	{
 		return;
 	}
