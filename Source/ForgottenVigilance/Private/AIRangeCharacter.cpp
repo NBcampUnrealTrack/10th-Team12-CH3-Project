@@ -4,6 +4,6 @@
 
 AAIRangeCharacter::AAIRangeCharacter()
 {
-	AIWeaponComponent = CreateDefaultSubobject<UAIWeaponComponent>(TEXT("AIWeaponComponent"));
+	AIWeaponComponent = CreateDefaultSubobject<UAIRangeWeaponComponent>(TEXT("AIRangeWeaponComponent"));
 }
 

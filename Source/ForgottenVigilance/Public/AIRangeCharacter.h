@@ -5,18 +5,19 @@
 #include "GameFramework/Actor.h"
 #include "AIRangeCharacter.generated.h"
 
-class UAIWeaponComponent;
+class UAIRangeWeaponComponent;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AAIRangeCharacter : public AAIBaseCharacter
 {
 	GENERATED_BODY()
-
-public:
+	
+public:	
 	// Sets default values for this actor's properties
 	AAIRangeCharacter();
 
-private:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Weapon", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAIWeaponComponent> AIWeaponComponent;
+	TObjectPtr<UAIRangeWeaponComponent> AIWeaponComponent;
+
 };
