@@ -51,6 +51,8 @@ protected:
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> CameraComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
+	float CharacterTargetArmLength;
 
 private:
 	UFUNCTION()
@@ -66,8 +68,6 @@ private:
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
-	UPROPERTY(EditDefaultsOnly, Category = "Camera")
-	float CharacterTargetArmLength;
 	
 	bool bIsSprinting;
 
