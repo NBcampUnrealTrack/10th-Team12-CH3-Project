@@ -68,6 +68,8 @@ private:
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float CharacterTargetArmLength;
 	
 	bool bIsSprinting;
 
