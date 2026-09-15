@@ -74,7 +74,7 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit) const
 	        OutHit,
 	        TraceStart,
 	        TraceEnd,
-	        ECC_Visibility,
+	        ECC_Pawn,
 	        QueryParams);
 
 	DrawDebugLine(
