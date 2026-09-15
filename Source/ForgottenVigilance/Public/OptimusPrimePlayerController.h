@@ -8,6 +8,10 @@ class UInputAction;
 class UInputMappingContext;
 class UUserWidget;
 
+class UForgottenMain;
+class UForgottenHUDWidget;
+class UForgottenGameOver;
+
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerController
 {
@@ -31,12 +35,37 @@ public:
 	TObjectPtr<UInputAction> ShootAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
-	UUserWidget* HUDWidgetInstance;
+	TSubclassOf<UForgottenHUDWidget> HUDWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD")
+	TObjectPtr<UForgottenHUDWidget> HUDWidgetInstance;
 
-	UFUNCTION(BlueprintCallable, Category = "HUD")
-	UUserWidget* GetHUDWidget() const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
+	TSubclassOf<UForgottenMain> MainMenuWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Menu")
+	TObjectPtr<UForgottenMain> MainMenuWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Over")
+	TSubclassOf<UForgottenGameOver> GameOverWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Over")
+	TObjectPtr<UForgottenGameOver> GameOverWidgetInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
+	FName MainMenuLevelName; 
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowMainMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowHUD();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	void StartGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	void RetryGame();
 
 protected:
 	virtual void BeginPlay() override;
@@ -53,4 +82,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Aiming")
 	float AimRotationSpeed;
+
+	void ClearAllWidgets();
 };
