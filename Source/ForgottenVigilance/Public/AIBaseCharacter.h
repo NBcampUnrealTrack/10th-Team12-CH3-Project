@@ -20,6 +20,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float RunSpeed = 600.0f;
+	
+protected:
+	virtual void BeginPlay() override;
 
 private:
 	UFUNCTION()
