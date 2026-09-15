@@ -1,8 +1,11 @@
 #include "AIBaseController.h"
+#include "AIBaseCharacter.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AISense.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Hearing.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -62,28 +65,47 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		return;
 	}
 
-	if (Stimulus.WasSuccessfullySensed())
+	// =========================
+	// Sight
+	// =========================
+
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(LoseSightTimer);
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(LoseSightTimer);
 
-		BlackboardComp->SetValueAsObject(TEXT("TargetActor"), Actor);
+			BlackboardComp->SetValueAsObject(TEXT("TargetActor"), Actor);
 
-		BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
+			BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
 
-		BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
+			BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
+
+			if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+			{
+				AICharacter->SetMovementSpeed(AICharacter->RunSpeed);
+			}
+		}
+		else
+		{
+			// 시야에서 놓침
+			GetWorld()->GetTimerManager().SetTimer(
+			    LoseSightTimer,
+			    this,
+			    &AAIBaseController::StopChasing,
+			    LoseSightDelay,
+			    false);
+		}
 	}
-	else
+	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
 	{
-		// 시야에서 놓침
-		//BlackboardComp->ClearValue(TEXT("TargetActor"));
-		//BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
-
-		 GetWorld()->GetTimerManager().SetTimer(
-		    LoseSightTimer,
-		    this,
-		    &AAIBaseController::StopChasing,
-		    LoseSightDelay,
-		    false);
+		// =========================
+		// Hearing
+		// =========================
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Stimulus.StimulusLocation);
+		}
 	}
 }
 
@@ -99,6 +121,11 @@ void AAIBaseController::StopChasing()
 	BlackboardComp->ClearValue(TEXT("TargetActor"));
 
 	BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
+
+	if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+	{
+		AICharacter->SetMovementSpeed(AICharacter->WalkSpeed);
+	}
 
 	UE_LOG(
 	    LogTemp,
