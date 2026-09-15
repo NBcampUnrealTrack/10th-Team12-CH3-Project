@@ -15,7 +15,6 @@ AAIBaseCharacter::AAIBaseCharacter()
 	Movement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
 }
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
@@ -25,6 +24,13 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 		Movement->MaxWalkSpeed = NewSpeed;
 		UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
 	}
+}
+
+void AAIBaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
 }
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)

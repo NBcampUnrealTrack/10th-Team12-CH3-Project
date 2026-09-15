@@ -28,7 +28,7 @@ bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& Mu
 	bMuzzleBlocked = World->LineTraceSingleByChannel(OutHit, GuardStart, MuzzleStart,
 		ECC_Visibility, QueryParams);
 	return bMuzzleBlocked || World->LineTraceSingleByChannel(OutHit, MuzzleStart,
-		TraceEnd, ECC_Visibility, QueryParams);
+		TraceEnd, ECC_Pawn, QueryParams);
 }
 }
 
