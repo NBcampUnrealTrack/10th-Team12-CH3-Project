@@ -1,5 +1,6 @@
 #include "BTTask_MeleeAttack.h"
 #include "AIBaseCharacter.h"
+#include "MeleeAttackComponent.h"
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -39,7 +40,14 @@ EBTNodeResult::Type UBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& Own
 		return EBTNodeResult::Failed;
 	}
 
-	AICharacter->PerformMeleeAttack(TargetActor);
+	UMeleeAttackComponent* MeleeAttackComponent = AICharacter->FindComponentByClass<UMeleeAttackComponent>();
+
+	if (!MeleeAttackComponent)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	MeleeAttackComponent->PerformAttack(TargetActor);
 
 	return EBTNodeResult::Succeeded;
 }

@@ -1,4 +1,5 @@
 #include "AIBaseController.h"
+#include "AIBaseCharacter.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -71,6 +72,11 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
 
 		BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
+
+		if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+		{
+			AICharacter->SetMovementSpeed(AICharacter->RunSpeed);
+		}
 	}
 	else
 	{
@@ -99,6 +105,11 @@ void AAIBaseController::StopChasing()
 	BlackboardComp->ClearValue(TEXT("TargetActor"));
 
 	BlackboardComp->SetValueAsBool(TEXT("IsChasing"), false);
+
+	if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+	{
+		AICharacter->SetMovementSpeed(AICharacter->WalkSpeed);
+	}
 
 	UE_LOG(
 	    LogTemp,
