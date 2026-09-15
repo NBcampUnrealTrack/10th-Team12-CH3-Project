@@ -19,7 +19,7 @@ private:
 	bool AITraceForHit(FHitResult& OutHit) const;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float AIGunDamage = 50.0f;
+	float AIGunDamage = 20.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float AIGunAttackRange = 1000.0f;
