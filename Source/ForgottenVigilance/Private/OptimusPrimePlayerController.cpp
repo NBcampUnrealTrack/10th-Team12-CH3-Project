@@ -1,15 +1,19 @@
 #include "OptimusPrimePlayerController.h"
 #include "Blueprint/UserWidget.h"
+#include "ForgottenMain.h"
+#include "ForgottenHUDWidget.h"
+#include "ForgottenGameOver.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/LocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace
 {
 constexpr float DefaultInitialCameraPitch = -30.0f;
 constexpr float DefaultAimRotationSpeed = 540.0f;
-}
+} // namespace
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
     : InputMappingContext(nullptr)
@@ -19,6 +23,11 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
     , SprintAction(nullptr)
     , ShootAction(nullptr)
     , HUDWidgetClass(nullptr)
+    , HUDWidgetInstance(nullptr)
+    , MainMenuWidgetClass(nullptr)
+    , MainMenuWidgetInstance(nullptr)
+    , GameOverWidgetClass(nullptr)
+    , GameOverWidgetInstance(nullptr)
     , InitialCameraPitch(DefaultInitialCameraPitch)
     , AimRotationSpeed(DefaultAimRotationSpeed)
 {
@@ -36,7 +45,7 @@ void AOptimusPrimePlayerController::BeginPlay()
 		PlayerCameraManager->ViewPitchMax = MaxPitch;
 	}
 	SetControlRotation(FRotator(FMath::Clamp(InitialCameraPitch, MinPitch, MaxPitch),
-		GetControlRotation().Yaw, 0.0f));
+	    GetControlRotation().Yaw, 0.0f));
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
@@ -63,19 +72,110 @@ void AOptimusPrimePlayerController::BeginPlay()
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 
-	if (HUDWidgetClass)
+	    const FString CurrentMapName = GetWorld()->GetMapName();
+
+	if (CurrentMapName.Contains(TEXT("TitleMap")))
 	{
-		HUDWidgetInstance = CreateWidget<UUserWidget>(this, HUDWidgetClass);
-		if (HUDWidgetInstance)
-		{
-			HUDWidgetInstance->AddToViewport();
-		}
+		ShowMainMenu();
 	}
 }
 
-UUserWidget* AOptimusPrimePlayerController::GetHUDWidget() const
+void AOptimusPrimePlayerController::ShowMainMenu()
 {
-	return HUDWidgetInstance;
+	if (!MainMenuWidgetClass)
+	{
+		return;
+	}
+
+	UUserWidget* MainMenuWidget =
+	    CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+
+	if (MainMenuWidget)
+	{
+		MainMenuWidget->AddToViewport();
+	}
+
+	SetShowMouseCursor(true);
+
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+}
+
+void AOptimusPrimePlayerController::ShowHUD()
+{
+	if (!HUDWidgetClass)
+	{
+		return;
+	}
+
+	UUserWidget* HUDWidget =
+	    CreateWidget<UUserWidget>(this, HUDWidgetClass);
+
+	if (HUDWidget)
+	{
+		HUDWidget->AddToViewport();
+	}
+
+	SetShowMouseCursor(false);
+
+	FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
+}
+
+void AOptimusPrimePlayerController::ShowGameOver()
+{
+	if (!GameOverWidgetClass)
+	{
+		return;
+	}
+
+	UUserWidget* GameOverWidget =
+	    CreateWidget<UUserWidget>(this, GameOverWidgetClass);
+
+	if (GameOverWidget)
+	{
+		GameOverWidget->AddToViewport();
+	}
+
+	SetShowMouseCursor(true);
+
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+}
+
+void AOptimusPrimePlayerController::ClearAllWidgets()
+{
+	if (MainMenuWidgetInstance)
+	{
+		MainMenuWidgetInstance->RemoveFromParent();
+		MainMenuWidgetInstance = nullptr;
+	}
+
+	if (HUDWidgetInstance)
+	{
+		HUDWidgetInstance->RemoveFromParent();
+		HUDWidgetInstance = nullptr;
+	}
+
+	if (GameOverWidgetInstance)
+	{
+		GameOverWidgetInstance->RemoveFromParent();
+		GameOverWidgetInstance = nullptr;
+	}
+}
+
+void AOptimusPrimePlayerController::StartGame()
+{
+	UGameplayStatics::OpenLevel(
+	    GetWorld(),
+	    FName(TEXT("MainMap")));
+}
+
+void AOptimusPrimePlayerController::RetryGame()
+{
+	UGameplayStatics::OpenLevel(
+	    GetWorld(),
+	    FName(TEXT("MainMap")));
 }
 
 float AOptimusPrimePlayerController::GetAimRotationSpeed() const
