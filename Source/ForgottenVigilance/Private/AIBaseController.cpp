@@ -79,11 +79,22 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 			BlackboardComp->SetValueAsBool(TEXT("IsChasing"), true);
 
-		BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
+			BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Actor->GetActorLocation());
 
-		if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+			if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
+			{
+				AICharacter->SetMovementSpeed(AICharacter->RunSpeed);
+			}
+		}
+		else
 		{
-			AICharacter->SetMovementSpeed(AICharacter->RunSpeed);
+			// 시야에서 놓침
+			GetWorld()->GetTimerManager().SetTimer(
+			    LoseSightTimer,
+			    this,
+			    &AAIBaseController::StopChasing,
+			    LoseSightDelay,
+			    false);
 		}
 	}
 	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
@@ -95,11 +106,7 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		{
 			BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Stimulus.StimulusLocation);
 		}
-
 	}
-	
-	
-
 }
 
 void AAIBaseController::StopChasing()
