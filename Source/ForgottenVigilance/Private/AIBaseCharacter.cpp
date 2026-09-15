@@ -19,11 +19,15 @@ AAIBaseCharacter::AAIBaseCharacter()
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 {
-	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+
+	if (!Movement || FMath::IsNearlyEqual(Movement->MaxWalkSpeed, NewSpeed))
 	{
-		Movement->MaxWalkSpeed = NewSpeed;
-		UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
+		return;
 	}
+
+	Movement->MaxWalkSpeed = NewSpeed;
+	UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
 }
 
 void AAIBaseCharacter::BeginPlay()
