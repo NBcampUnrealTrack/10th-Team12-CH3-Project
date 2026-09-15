@@ -28,6 +28,13 @@ void UAIRangeWeaponComponent::FireGun()
 	{
 		return;
 	}
+	
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (HitActor != PlayerPawn)
+	{
+		return;
+	}
 
 	UGameplayStatics::ApplyDamage(
 	    HitActor,
@@ -56,9 +63,7 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit) const
 
 	const FVector TraceStart = OwnerPawn->GetActorLocation();
 
-	const FVector TraceEnd =
-	    TraceStart +
-	    OwnerPawn->GetActorForwardVector() * AIGunAttackRange;
+	const FVector TraceEnd =  TraceStart + OwnerPawn->GetActorForwardVector() * AIGunAttackRange;
 
 	FCollisionQueryParams QueryParams;
 
@@ -75,7 +80,7 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit) const
 	DrawDebugLine(
 	    World,
 	    TraceStart,
-	    bHit ? OutHit.ImpactPoint : TraceEnd,
+	    TraceEnd,
 	    bHit ? FColor::Red : FColor::Green,
 	    false,
 	    1.0f,

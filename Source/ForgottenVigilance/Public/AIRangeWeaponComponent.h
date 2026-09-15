@@ -22,7 +22,8 @@ private:
 	float AIGunDamage = 50.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float AIGunAttackRange = 300.0f;
+	float AIGunAttackRange = 1000.0f;
+
 
 		
 };
