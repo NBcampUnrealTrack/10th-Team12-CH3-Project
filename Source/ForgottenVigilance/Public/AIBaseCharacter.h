@@ -15,6 +15,9 @@ public:
 	AAIBaseCharacter();
 	void SetMovementSpeed(float NewSpeed);
 
+	bool CanMeleeAttack() const;
+	void PerformMeleeAttack(AActor* TargetActor);
+
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float WalkSpeed = 300.0f;
 
@@ -24,10 +27,24 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackDamage = 20.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackRange = 200.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackCooldown = 1.5f;
+
 private:
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
 
+	void ResetAttackCooldown();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
+
+	FTimerHandle AttackCooldownTimer;
+	bool bIsAttackOnCooldown = false;
 };

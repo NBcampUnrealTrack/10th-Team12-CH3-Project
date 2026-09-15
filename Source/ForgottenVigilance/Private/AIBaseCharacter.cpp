@@ -2,6 +2,8 @@
 #include "AIBaseController.h"
 #include "HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -37,4 +39,38 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
 	//죽을때 처리할 것들 여기에
 	this->Destroy();
+}
+
+bool AAIBaseCharacter::CanMeleeAttack() const
+{
+	return !bIsAttackOnCooldown;
+}
+
+void AAIBaseCharacter::PerformMeleeAttack(AActor* TargetActor)
+{
+	if (!TargetActor || !CanMeleeAttack())
+	{
+		return;
+	}
+
+	const float Distance = FVector::Dist(GetActorLocation(), TargetActor->GetActorLocation());
+	if (Distance > AttackRange)
+	{
+		return;
+	}
+
+	UGameplayStatics::ApplyDamage(TargetActor, AttackDamage, GetController(), this, nullptr);
+
+	bIsAttackOnCooldown = true;
+	GetWorldTimerManager().SetTimer(
+	    AttackCooldownTimer,
+	    this,
+	    &AAIBaseCharacter::ResetAttackCooldown,
+	    AttackCooldown,
+	    false);
+}
+
+void AAIBaseCharacter::ResetAttackCooldown()
+{
+	bIsAttackOnCooldown = false;
 }
