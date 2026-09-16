@@ -38,6 +38,10 @@ void AForgottenGameState::BeginPlay()
 	{
 		PlayerController->ShowMainMenu();
 	}
+	else if (PureLevelName.Contains(TEXT("MainLevel")))
+	{
+		PlayerController->ShowHUD();
+	}
 }
 
 void AForgottenGameState::RegisterEnemyKill(int32 ScoreAmount)
