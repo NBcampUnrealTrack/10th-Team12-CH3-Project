@@ -1,4 +1,4 @@
-#include "OptimusPrimeCharacter.h"
+﻿#include "OptimusPrimeCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
@@ -12,13 +12,15 @@
 namespace
 {
 constexpr float DefaultCharacterTargetArmLength = 300.0f;
+constexpr float DefaultNonForwardSpeedMultiplier = 0.4f;
+constexpr float DefaultNormalSpeed = 600.0f;
+constexpr float DefaultSprintMultiplier = 1.7f;
 
 FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
-	const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
+    const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
 {
 	// 실제 이동 중 좌우 성분만 제외해 앞뒤 이동과 높이 변화는 즉시 따라갑니다.
-	FVector Pivot = PreviousPivot + TargetMovement
-		- CameraRight * FVector::DotProduct(TargetMovement, CameraRight);
+	FVector Pivot = PreviousPivot + TargetMovement - CameraRight * FVector::DotProduct(TargetMovement, CameraRight);
 	const float LateralDistance = FVector::DotProduct(TargetLocation - Pivot, CameraRight);
 	const float ClampedDistance = FMath::Clamp(LateralDistance, -HalfWidth, HalfWidth);
 	// 경계를 넘어간 거리만 보정하므로 정지 후 중앙으로 돌아가지 않습니다.
@@ -27,7 +29,12 @@ FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& Targ
 } // namespace
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
-    : CameraPivotWorldLocation(FVector::ZeroVector)
+    : NormalSpeed(DefaultNormalSpeed)
+    , NonForwardSpeedMultiplier(DefaultNonForwardSpeedMultiplier)
+    , SprintMultiplier(DefaultSprintMultiplier)
+    , bIsMovingSidewaysOrBackward(false)
+    , bIsSprinting(false)
+    , CameraPivotWorldLocation(FVector::ZeroVector)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
@@ -42,26 +49,26 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	// C++ 기본값만 지정합니다. 이후 BP의 스프링암 설정을 그대로 사용합니다.
 	SpringArmComp->TargetArmLength = DefaultCharacterTargetArmLength;
 	SpringArmComp->bUsePawnControlRotation = true;
-	
+
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
-	
+
 	// 몸은 화면 중앙의 조준 목표를 향해 별도로 회전합니다.
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-
-	bIsSprinting = false;
-	NormalSpeed = 600.0f;
-	SprintMultiplier = 1.7f;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 
 void AOptimusPrimeCharacter::UpdateSpeed()
 {
-	if (bIsSprinting)
+	if (bIsMovingSidewaysOrBackward)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * NonForwardSpeedMultiplier;
+	}
+	else if (bIsSprinting)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * SprintMultiplier;
 	}
@@ -89,7 +96,7 @@ bool AOptimusPrimeCharacter::IsCharacterDead() const
 void AOptimusPrimeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// 시작 기준점과 캐릭터 사이의 높이/위치 차이를 보존합니다.
 	CameraPivotWorldLocation = SpringArmComp->GetComponentLocation() + SpringArmComp->TargetOffset;
 
@@ -130,6 +137,16 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(RightDirection, MoveInput.Y);
 	}
+	if ((MoveInput.X < 0.0f && !FMath::IsNearlyZero(MoveInput.X))
+		|| !FMath::IsNearlyZero(MoveInput.Y))
+	{
+		bIsMovingSidewaysOrBackward = true;
+	}
+	else
+	{
+		bIsMovingSidewaysOrBackward = false;
+	}
+	UpdateSpeed();
 }
 
 void AOptimusPrimeCharacter::StartJump(const FInputActionValue& Value)
@@ -206,7 +223,7 @@ void AOptimusPrimeCharacter::UpdateCameraDeadZoneWidth(float DeltaTime)
 	const FIntRect ReferenceRect(0, 0, DeadZoneReferenceResolution.X, DeadZoneReferenceResolution.Y);
 	ReferenceProjection.SetViewRectangle(ReferenceRect);
 	FMinimalViewInfo::CalculateProjectionMatrixGivenViewRectangle(ReferenceView,
-		PlayerController->GetLocalPlayer()->AspectRatioAxisConstraint, ReferenceRect, ReferenceProjection);
+	    PlayerController->GetLocalPlayer()->AspectRatioAxisConstraint, ReferenceRect, ReferenceProjection);
 	const float HorizontalProjectionScale = ReferenceProjection.ProjectionMatrix.M[0][0];
 	if (HorizontalProjectionScale <= 0.0f)
 	{
@@ -231,8 +248,7 @@ void AOptimusPrimeCharacter::UpdateCameraFollow()
 	const FVector TargetMovement = TargetLocation - PreviousCameraTargetLocation;
 	const FRotator CameraYaw(0.0f, SpringArmComp->GetTargetRotation().Yaw, 0.0f);
 	PreviousCameraTargetLocation = TargetLocation;
-	if (!bDeadZoneWidthInitialized
-		|| TargetMovement.SizeSquared() > FMath::Square(CameraTeleportResetDistance))
+	if (!bDeadZoneWidthInitialized || TargetMovement.SizeSquared() > FMath::Square(CameraTeleportResetDistance))
 	{
 		// 초기화 전이나 순간이동 직후에는 이전 위치에 카메라를 남기지 않습니다.
 		CameraPivotWorldLocation = TargetLocation;
@@ -241,7 +257,7 @@ void AOptimusPrimeCharacter::UpdateCameraFollow()
 	{
 		const FVector RightDirection = FRotationMatrix(CameraYaw).GetUnitAxis(EAxis::Y);
 		CameraPivotWorldLocation = CalculateDeadZonePivot(CameraPivotWorldLocation,
-			TargetLocation, TargetMovement, RightDirection, GetCameraDeadZoneHalfWidth());
+		    TargetLocation, TargetMovement, RightDirection, GetCameraDeadZoneHalfWidth());
 	}
 	// 부착된 스프링암의 이동을 보정해, 계산한 월드 기준점에서 카메라가 회전하게 합니다.
 	SpringArmComp->TargetOffset = CameraPivotWorldLocation - SpringArmComp->GetComponentLocation();
@@ -260,8 +276,7 @@ void AOptimusPrimeCharacter::Tick(float DeltaTime)
 void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 {
 	const AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController());
-	if (!IsLocallyControlled() || !PlayerController
-		|| !MainWeaponComponent || IsCharacterDead())
+	if (!IsLocallyControlled() || !PlayerController || !MainWeaponComponent || IsCharacterDead())
 	{
 		return;
 	}
@@ -278,7 +293,7 @@ void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 	}
 	const FRotator TargetRotation(0.0f, AimDirection.Rotation().Yaw, 0.0f);
 	const FRotator NextRotation = FMath::RInterpConstantTo(GetActorRotation(), TargetRotation,
-		DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
+	    DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
 	SetActorRotation(NextRotation);
 }
 
@@ -299,6 +314,14 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			EnhancedInput->BindAction(
 			    PlayerController->MoveAction,
 			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Move);
+		}
+		if (PlayerController->MoveAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->MoveAction,
+			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::Move);
 		}
