@@ -11,6 +11,7 @@ class UUserWidget;
 class UForgottenMain;
 class UForgottenHUDWidget;
 class UForgottenGameOver;
+class UHealthComponent;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerController
@@ -69,6 +70,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void OnPossess(APawn* InPawn) override;
+
+	UFUNCTION()
+	void HandlePlayerDeath(AActor* DeadOwner);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
