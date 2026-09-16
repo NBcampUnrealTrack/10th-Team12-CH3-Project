@@ -16,20 +16,20 @@ constexpr float DefaultAimRotationSpeed = 540.0f;
 } // namespace
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
-    : InputMappingContext(nullptr)
-    , MoveAction(nullptr)
-    , LookAction(nullptr)
-    , JumpAction(nullptr)
-    , SprintAction(nullptr)
-    , ShootAction(nullptr)
-    , HUDWidgetClass(nullptr)
-    , HUDWidgetInstance(nullptr)
-    , MainMenuWidgetClass(nullptr)
-    , MainMenuWidgetInstance(nullptr)
-    , GameOverWidgetClass(nullptr)
-    , GameOverWidgetInstance(nullptr)
-    , InitialCameraPitch(DefaultInitialCameraPitch)
-    , AimRotationSpeed(DefaultAimRotationSpeed)
+	: InputMappingContext(nullptr)
+	  , MoveAction(nullptr)
+	  , LookAction(nullptr)
+	  , JumpAction(nullptr)
+	  , SprintAction(nullptr)
+	  , ShootAction(nullptr)
+	  , HUDWidgetClass(nullptr)
+	  , HUDWidgetInstance(nullptr)
+	  , MainMenuWidgetClass(nullptr)
+	  , MainMenuWidgetInstance(nullptr)
+	  , GameOverWidgetClass(nullptr)
+	  , GameOverWidgetInstance(nullptr)
+	  , InitialCameraPitch(DefaultInitialCameraPitch)
+	  , AimRotationSpeed(DefaultAimRotationSpeed)
 {
 }
 
@@ -45,17 +45,14 @@ void AOptimusPrimePlayerController::BeginPlay()
 		PlayerCameraManager->ViewPitchMax = MaxPitch;
 	}
 	SetControlRotation(FRotator(FMath::Clamp(InitialCameraPitch, MinPitch, MaxPitch),
-	    GetControlRotation().Yaw, 0.0f));
+		GetControlRotation().Yaw, 0.0f));
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
 	{
 		return;
 	}
-	SetShowMouseCursor(false);
-	FInputModeGameOnly InputMode;
-	InputMode.SetConsumeCaptureMouseDown(false);
-	SetInputMode(InputMode);
+	
 	if (UGameViewportClient* ViewportClient = LocalPlayer->ViewportClient)
 	{
 		ViewportClient->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
@@ -72,32 +69,34 @@ void AOptimusPrimePlayerController::BeginPlay()
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 
-	    const FString CurrentMapName = GetWorld()->GetMapName();
-
-	if (CurrentMapName.Contains(TEXT("TitleMap")))
-	{
-		ShowMainMenu();
-	}
+	// const FString CurrentMapName = GetWorld()->GetMapName();
+	//
+	// if (CurrentMapName.Contains(TEXT("TitleMap")))
+	// {
+	// 	ShowMainMenu();
+	// }
 }
 
 void AOptimusPrimePlayerController::ShowMainMenu()
 {
 	if (!MainMenuWidgetClass)
-	{
+	{ 
 		return;
 	}
 
 	UUserWidget* MainMenuWidget =
-	    CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+		CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
 
 	if (MainMenuWidget)
 	{
 		MainMenuWidget->AddToViewport();
 	}
 
+	bShowMouseCursor = true;
 	SetShowMouseCursor(true);
 
 	FInputModeUIOnly InputMode;
+	
 	SetInputMode(InputMode);
 }
 
@@ -109,7 +108,7 @@ void AOptimusPrimePlayerController::ShowHUD()
 	}
 
 	UUserWidget* HUDWidget =
-	    CreateWidget<UUserWidget>(this, HUDWidgetClass);
+		CreateWidget<UUserWidget>(this, HUDWidgetClass);
 
 	if (HUDWidget)
 	{
@@ -130,7 +129,7 @@ void AOptimusPrimePlayerController::ShowGameOver()
 	}
 
 	UUserWidget* GameOverWidget =
-	    CreateWidget<UUserWidget>(this, GameOverWidgetClass);
+		CreateWidget<UUserWidget>(this, GameOverWidgetClass);
 
 	if (GameOverWidget)
 	{
@@ -167,15 +166,15 @@ void AOptimusPrimePlayerController::ClearAllWidgets()
 void AOptimusPrimePlayerController::StartGame()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("MainMap")));
+		GetWorld(),
+		FName(TEXT("MainMap")));
 }
 
 void AOptimusPrimePlayerController::RetryGame()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("MainMap")));
+		GetWorld(),
+		FName(TEXT("MainMap")));
 }
 
 float AOptimusPrimePlayerController::GetAimRotationSpeed() const
