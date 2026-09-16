@@ -1,8 +1,10 @@
 #include "OptimusPrimePlayerController.h"
+#include "OptimusPrimeCharacter.h"
 #include "Blueprint/UserWidget.h"
 #include "ForgottenMain.h"
 #include "ForgottenHUDWidget.h"
 #include "ForgottenGameOver.h"
+#include "HealthComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/GameViewportClient.h"
@@ -68,13 +70,24 @@ void AOptimusPrimePlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
+}
 
-	// const FString CurrentMapName = GetWorld()->GetMapName();
-	//
-	// if (CurrentMapName.Contains(TEXT("TitleMap")))
-	// {
-	// 	ShowMainMenu();
-	// }
+void AOptimusPrimePlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (AOptimusPrimeCharacter* PossessedCharacter = Cast<AOptimusPrimeCharacter>(InPawn))
+	{
+		if (UHealthComponent* HealthComp = PossessedCharacter->FindComponentByClass<UHealthComponent>())
+		{
+			HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimePlayerController::HandlePlayerDeath);
+		}
+	}
+}
+
+void AOptimusPrimePlayerController::HandlePlayerDeath(AActor* DeadOwner)
+{
+	ShowGameOver();
 }
 
 void AOptimusPrimePlayerController::ShowMainMenu()
@@ -84,8 +97,7 @@ void AOptimusPrimePlayerController::ShowMainMenu()
 		return;
 	}
 
-	UUserWidget* MainMenuWidget =
-		CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+	UForgottenMain* MainMenuWidget = CreateWidget<UForgottenMain>(this, MainMenuWidgetClass);
 
 	if (MainMenuWidget)
 	{
@@ -107,8 +119,7 @@ void AOptimusPrimePlayerController::ShowHUD()
 		return;
 	}
 
-	UUserWidget* HUDWidget =
-		CreateWidget<UUserWidget>(this, HUDWidgetClass);
+	UForgottenHUDWidget* HUDWidget = CreateWidget<UForgottenHUDWidget>(this, HUDWidgetClass);
 
 	if (HUDWidget)
 	{
@@ -128,8 +139,7 @@ void AOptimusPrimePlayerController::ShowGameOver()
 		return;
 	}
 
-	UUserWidget* GameOverWidget =
-		CreateWidget<UUserWidget>(this, GameOverWidgetClass);
+	UForgottenGameOver* GameOverWidget = CreateWidget<UForgottenGameOver>(this, GameOverWidgetClass);
 
 	if (GameOverWidget)
 	{
