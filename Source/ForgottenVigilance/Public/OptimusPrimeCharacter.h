@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -84,8 +84,11 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float NonForwardSpeedMultiplier;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
 	
+	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
 
 	FVector CameraPivotWorldLocation;
