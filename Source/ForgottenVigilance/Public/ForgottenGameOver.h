@@ -20,6 +20,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ExitButton;
 
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Anim_Glitch;
+
 	UFUNCTION()
 	void OnRetryButtonClicked();
 

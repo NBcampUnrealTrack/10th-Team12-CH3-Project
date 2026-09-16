@@ -2,10 +2,16 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Animation/WidgetAnimation.h"
 
 void UForgottenMain::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (Anim_Main)
+	{
+		PlayAnimation(Anim_Main);
+	}
 
 	if (StartButton)
 	{

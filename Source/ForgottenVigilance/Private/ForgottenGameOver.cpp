@@ -6,6 +6,11 @@ void UForgottenGameOver::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	if (Anim_Glitch)
+	{
+		PlayAnimation(Anim_Glitch);
+	}
+
 	if (RetryButton)
 	{
 		RetryButton->OnClicked.AddDynamic(
