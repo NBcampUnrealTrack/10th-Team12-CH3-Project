@@ -21,10 +21,10 @@ public:
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
 
-	UPROPERTY(BlueprintAssignable, Category = Health)
+	UPROPERTY(BlueprintAssignable, Transient, Category = Health)
 	FOnHealthChanged OnHealthChanged;
 
-	UPROPERTY(BlueprintAssignable, Category = Health)
+	UPROPERTY(BlueprintAssignable, Transient, Category = Health)
 	FOnDeath OnDeath;
 
 protected:
