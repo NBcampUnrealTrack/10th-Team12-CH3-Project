@@ -2,6 +2,7 @@
 #include "AIBaseController.h"
 #include "HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -13,6 +14,9 @@ AAIBaseCharacter::AAIBaseCharacter()
 	Movement->MaxWalkSpeed = WalkSpeed;
 	Movement->bOrientRotationToMovement = true;
 	Movement->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 }
