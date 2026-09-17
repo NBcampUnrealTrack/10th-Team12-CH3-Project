@@ -12,12 +12,12 @@
 
 namespace
 {
-constexpr float DefaultDamage = 50.0f;
-constexpr float DefaultFireInterval = 0.1f;
+constexpr float DefaultDamage = 1000.0f;
+constexpr float DefaultFireInterval = 0.2f;
 constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
-constexpr float DefaultHeatPerShot = 1.0f;
-constexpr float DefaultCoolingRate = 25.0f;
+constexpr float DefaultHeatPerShot = 3.5f;
+constexpr float DefaultCoolingRate = 30.0f;
 constexpr float MainWeaponZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultMuzzleSocketName(TEXT("Muzzle"));

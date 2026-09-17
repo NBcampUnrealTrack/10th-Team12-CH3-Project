@@ -45,6 +45,9 @@ void AAIBaseCharacter::BeginPlay()
 	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
 
 	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
@@ -52,24 +55,26 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 
 	if (CurrentHealth < PreviousHealth && CurrentHealth > 0.0f)
 	{
-		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
-		if (PlayerPawn)
+		if (bLoseTargetOnHit)
 		{
-			AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
+			APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-
-			if (PlayerPawn && AIController)
+			if (PlayerPawn)
 			{
-				UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+				AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
 
-				if (Blackboard)
+				if (PlayerPawn && AIController)
 				{
-					Blackboard->SetValueAsVector(TEXT("LastKnownLocation"), PlayerPawn->GetActorLocation());
+					UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
 
-					Blackboard->ClearValue(TEXT("TargetActor"));
+					if (Blackboard)
+					{
+						Blackboard->SetValueAsVector(TEXT("LastKnownLocation"), PlayerPawn->GetActorLocation());
 
-					Blackboard->SetValueAsBool(TEXT("IsChasing"),false);
+						Blackboard->ClearValue(TEXT("TargetActor"));
+
+						Blackboard->SetValueAsBool(TEXT("IsChasing"), false);
+					}
 				}
 			}
 		}

@@ -100,6 +100,12 @@ void AForgottenGameMode::NotifyFinalBossDefeated()
 
 void AForgottenGameMode::FinishGame(bool bCleared)
 {
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red,
+			FString::Printf(TEXT("FinishGame bCleared=%d"), bCleared ? 1 : 0));
+	}
+	
 	if (bGameFinished)
 	{
 		return;
