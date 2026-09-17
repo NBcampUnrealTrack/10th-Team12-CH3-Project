@@ -86,3 +86,8 @@ float UHealthComponent::GetMaxHealth() const
 {
 	return MaxHealth;
 }
+
+bool UHealthComponent::IsHit() const
+{
+	return CurrentHealth < MaxHealth;
+}
