@@ -9,12 +9,7 @@ class AOptimusPrimePlayerController;
 UENUM(BlueprintType)
 enum class EForgottenPhase : uint8
 {
-	Route1Combat,
-	Route1Guardian,
-	Route1Return,
-	Route2Combat,
-	Route2Guardian,
-	Route2Return,
+	Exploring,
 	FinalBoss,
 	Cleared,
 	Failed

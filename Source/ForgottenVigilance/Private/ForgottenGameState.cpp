@@ -15,7 +15,7 @@ AForgottenGameState::AForgottenGameState()
 	Score = StateZeroCount;
 	KillCount = StateZeroCount;
 	ObjectiveProgress = StateZeroCount;
-	Phase = EForgottenPhase::Route1Combat;
+	Phase = EForgottenPhase::Exploring;
 	PlayerController = nullptr;
 }
 
@@ -65,6 +65,13 @@ void AForgottenGameState::AdvanceObjectiveProgress()
 
 	ObjectiveProgress = FMath::Min(ObjectiveProgress + StateSingleStep, RequiredObjectiveProgress);
 	OnObjectiveProgressChanged.Broadcast(ObjectiveProgress, RequiredObjectiveProgress);
+
+	if (!IsObjectiveCompleted())
+	{
+		return;
+	}
+
+	EnterPhase(EForgottenPhase::FinalBoss);
 }
 
 void AForgottenGameState::EnterPhase(EForgottenPhase NewPhase)

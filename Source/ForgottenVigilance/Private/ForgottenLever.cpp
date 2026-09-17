@@ -38,8 +38,9 @@ AForgottenLever::AForgottenLever()
 	PromptText->SetVisibility(false);
 
 	GuardianSpawnGroup = nullptr;
-	GuardianPhase = EForgottenPhase::Route1Guardian;
-	ReturnPhase = EForgottenPhase::Route1Return;
+	GuardianSpawnGroup = nullptr;
+	ReturnSpawnGroup = nullptr;
+	bActivateGuardianOnApproach = false;
 	bGuardianDefeated = false;
 	bPlayerInRange = false;
 	bActivated = false;
@@ -77,19 +78,17 @@ void AForgottenLever::HandleOverlapBegin(
 	bPlayerInRange = true;
 	UpdatePromptVisibility();
 
-	if (bActivated || bGuardianDefeated)
+	if (bActivated || bGuardianDefeated || !bActivateGuardianOnApproach)
 	{
 		return;
 	}
 
-	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
-
-	if (!ForgottenGameState)
+	if (!IsValid(GuardianSpawnGroup))
 	{
 		return;
 	}
 
-	ForgottenGameState->EnterPhase(GuardianPhase);
+	GuardianSpawnGroup->ActivateGroup();
 }
 
 void AForgottenLever::HandleOverlapEnd(
@@ -138,6 +137,11 @@ void AForgottenLever::ActivateLever()
 	bActivated = true;
 	UpdatePromptVisibility();
 
+	if (IsValid(ReturnSpawnGroup))
+	{
+		ReturnSpawnGroup->ActivateGroup();
+	}
+
 	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
 
 	if (!ForgottenGameState)
@@ -146,14 +150,6 @@ void AForgottenLever::ActivateLever()
 	}
 
 	ForgottenGameState->AdvanceObjectiveProgress();
-
-	if (ForgottenGameState->IsObjectiveCompleted())
-	{
-		ForgottenGameState->EnterPhase(EForgottenPhase::FinalBoss);
-		return;
-	}
-
-	ForgottenGameState->EnterPhase(ReturnPhase);
 }
 
 void AForgottenLever::UpdatePromptVisibility()
