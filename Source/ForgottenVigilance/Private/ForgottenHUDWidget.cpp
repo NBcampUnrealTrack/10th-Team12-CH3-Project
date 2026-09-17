@@ -4,6 +4,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "ForgottenGameState.h"
 
 void UForgottenHUDWidget::NativeConstruct()
 {
@@ -50,6 +51,22 @@ void UForgottenHUDWidget::NativeConstruct()
 
 		HandleOverheatChanged(WeaponComp->IsOverheated());
 	}
+	
+	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (!ForgottenGameState)
+	{
+		return;
+	}
+
+	ForgottenGameState->OnScoreChanged.AddDynamic(this, &UForgottenHUDWidget::HandleScoreChanged);
+	ForgottenGameState->OnObjectiveProgressChanged.AddDynamic(this, &UForgottenHUDWidget::HandleObjectiveChanged);
+	ForgottenGameState->OnRemainingTimeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleRemainingTimeChanged);
+
+	HandleScoreChanged(ForgottenGameState->GetScore());
+	HandleObjectiveChanged(
+		ForgottenGameState->GetObjectiveProgress(),
+		ForgottenGameState->GetRequiredObjectiveProgress());
 }
 
 void UForgottenHUDWidget::HandleHealthChanged(float CurrentHealth, float MaxHealth)
@@ -86,4 +103,25 @@ void UForgottenHUDWidget::HandleOverheatChanged(bool bIsOverheated)
 			OverheatWarningText->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
+}
+
+void UForgottenHUDWidget::HandleScoreChanged(int32 NewScore)
+{
+	ScoreText->SetText(FText::AsNumber(NewScore));
+}
+
+void UForgottenHUDWidget::HandleObjectiveChanged(int32 CurrentProgress, int32 RequiredProgress)
+{
+	ObjectiveText->SetText(FText::FromString(
+		FString::Printf(TEXT("%d / %d"), CurrentProgress, RequiredProgress)));
+}
+
+void UForgottenHUDWidget::HandleRemainingTimeChanged(float RemainingTime)
+{
+	const int32 TotalSeconds = FMath::FloorToInt(RemainingTime);
+	const int32 Minutes = TotalSeconds / 60;
+	const int32 Seconds = TotalSeconds % 60;
+
+	TimerText->SetText(FText::FromString(
+		FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds)));
 }

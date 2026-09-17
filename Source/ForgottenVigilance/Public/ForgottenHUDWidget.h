@@ -26,6 +26,15 @@ protected:
 
 	UFUNCTION()
 	void HandleOverheatChanged(bool bIsOverHeated);
+	
+	UFUNCTION()
+	void HandleScoreChanged(int32 NewScore);
+
+	UFUNCTION()
+	void HandleObjectiveChanged(int32 CurrentProgress, int32 RequiredProgress);
+
+	UFUNCTION()
+	void HandleRemainingTimeChanged(float RemainingTime);
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -38,4 +47,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> OverheatWarningText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ScoreText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ObjectiveText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> TimerText;
 };
