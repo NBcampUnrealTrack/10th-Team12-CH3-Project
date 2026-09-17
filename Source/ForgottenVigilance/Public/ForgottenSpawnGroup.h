@@ -19,6 +19,14 @@ struct FForgottenSpawnEntry
 	int32 Count = 1;
 };
 
+UENUM(BlueprintType)
+enum class EGroupActivation : uint8
+{
+	OnBeginPlay,
+	OnPhase,
+	Manual
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGroupCleared, AForgottenSpawnGroup*, ClearedGroup);
 
 UCLASS()
@@ -56,18 +64,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	TArray<FForgottenSpawnEntry> SpawnTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
-	EForgottenPhase ActivationPhase;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UBoxComponent> SpawnBox;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
-	bool bAdvancePhaseOnCleared;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
-	EForgottenPhase NextPhaseOnCleared;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	int32 AliveCount;
@@ -77,4 +76,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	bool bCleared;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
+	EGroupActivation ActivationMode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
+	EForgottenPhase ActivationPhase;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
+	TArray<TObjectPtr<AForgottenSpawnGroup>> NextGroupsOnCleared;
 };
