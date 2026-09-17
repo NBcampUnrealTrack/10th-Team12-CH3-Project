@@ -32,7 +32,7 @@ protected:
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	float LoseSightDelay = 3.0f;
+	float LoseSightDelay = 20.0f;
 
 	virtual void BeginPlay() override;
 
