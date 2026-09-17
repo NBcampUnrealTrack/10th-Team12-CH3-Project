@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -7,6 +7,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHeatChanged, float, CurrentHeat, float, MaxHeat);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverheatStateChanged, bool, bIsOverheated);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShotFired);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORGOTTENVIGILANCE_API UMainWeaponComponent : public UActorComponent
@@ -28,6 +30,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnOverheatStateChanged OnOverheatStateChanged;
+
+	UPROPERTY(BlueprintAssignable, Transient, Category = "Weapon")
+	FOnShotFired OnShotFired;
 
 protected:
 	virtual void BeginPlay() override;

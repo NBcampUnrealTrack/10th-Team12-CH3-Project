@@ -1,4 +1,4 @@
-#include "MainWeaponComponent.h"
+﻿#include "MainWeaponComponent.h"
 
 #include "Engine/World.h"
 #include "GameFramework/Controller.h"
@@ -138,6 +138,7 @@ void UMainWeaponComponent::Fire()
 		StopFire();
 		return;
 	}
+	OnShotFired.Broadcast();
 
 	FHitResult HitResult;
 	if (TraceForHit(HitResult))
