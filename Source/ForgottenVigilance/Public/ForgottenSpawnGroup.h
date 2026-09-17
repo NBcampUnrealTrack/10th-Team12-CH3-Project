@@ -5,7 +5,7 @@
 #include "ForgottenGameState.h"
 #include "ForgottenSpawnGroup.generated.h"
 
-class UBillboardComponent;
+class UBoxComponent;
 
 USTRUCT(BlueprintType)
 struct FForgottenSpawnEntry
@@ -50,10 +50,9 @@ private:
 	void SpawnEntries();
 	void SpawnSingleEnemy(TSubclassOf<AActor> EnemyClass);
 	void MarkCleared();
-	FVector FindSpawnLocation() const;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
-	TObjectPtr<UBillboardComponent> RootBillboard;
+	FVector GetRandomPointInBox() const;
+	float GetCapsuleHalfHeight(TSubclassOf<AActor> EnemyClass) const;
+	bool FindSpawnLocation(TSubclassOf<AActor> EnemyClass, FVector& OutLocation) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	TArray<FForgottenSpawnEntry> SpawnTable;
@@ -61,8 +60,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	EForgottenPhase ActivationPhase;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
-	float SpawnRadius;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UBoxComponent> SpawnBox;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	bool bAdvancePhaseOnCleared;
