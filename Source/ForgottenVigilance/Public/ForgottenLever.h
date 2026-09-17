@@ -5,8 +5,10 @@
 #include "ForgottenGameState.h"
 #include "ForgottenLever.generated.h"
 
-class UStaticMeshComponent;
+class AForgottenSpawnGroup;
 class USphereComponent;
+class UStaticMeshComponent;
+class UTextRenderComponent;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AForgottenLever : public AActor
@@ -16,13 +18,12 @@ class FORGOTTENVIGILANCE_API AForgottenLever : public AActor
 public:
 	AForgottenLever();
 
-	bool IsActivated() const;
 	void TryInteract();
 	bool CanInteract() const;
+	bool IsActivated() const;
 
 protected:
 	virtual void BeginPlay() override;
-	
 
 private:
 	UFUNCTION()
@@ -33,7 +34,7 @@ private:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
-	
+
 	UFUNCTION()
 	void HandleOverlapEnd(
 		UPrimitiveComponent* OverlappedComponent,
@@ -42,10 +43,10 @@ private:
 		int32 OtherBodyIndex);
 
 	UFUNCTION()
-	void HandleGuardianDeath(AActor* DeadOwner);
+	void HandleGuardianGroupCleared(AForgottenSpawnGroup* ClearedGroup);
 
-	void SpawnGuardian();
 	void ActivateLever();
+	void UpdatePromptVisibility();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UStaticMeshComponent> LeverMesh;
@@ -53,11 +54,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	TObjectPtr<USphereComponent> TriggerSphere;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	TSubclassOf<AActor> GuardianClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UTextRenderComponent> PromptText;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	TObjectPtr<AActor> GuardianSpawnPoint;
+	TObjectPtr<AForgottenSpawnGroup> GuardianSpawnGroup;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	EForgottenPhase GuardianPhase;
@@ -66,17 +67,11 @@ private:
 	EForgottenPhase ReturnPhase;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	TObjectPtr<AActor> SpawnedGuardian;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	bool bGuardianSpawned;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	bool bActivated;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bGuardianDefeated;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bPlayerInRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
+	bool bActivated;
 };

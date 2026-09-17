@@ -1,15 +1,16 @@
 #include "ForgottenLever.h"
 
-#include "HealthComponent.h"
+#include "ForgottenSpawnGroup.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Engine/World.h"
-#include "GameFramework/Pawn.h"
-#include "Kismet/GameplayStatics.h"
 
 namespace
 {
-constexpr float DefaultTriggerRadius = 400.0f;
+constexpr float DefaultTriggerRadius = 350.0f;
+constexpr float PromptHeightOffset = 150.0f;
+constexpr float PromptWorldSize = 48.0f;
 const FName PlayerTagName(TEXT("Player"));
 }
 
@@ -28,15 +29,20 @@ AForgottenLever::AForgottenLever()
 	TriggerSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	TriggerSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
-	GuardianClass = nullptr;
-	GuardianSpawnPoint = nullptr;
+	PromptText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("PromptText"));
+	PromptText->SetupAttachment(LeverMesh);
+	PromptText->SetRelativeLocation(FVector(0.0f, 0.0f, PromptHeightOffset));
+	PromptText->SetHorizontalAlignment(EHTA_Center);
+	PromptText->SetWorldSize(PromptWorldSize);
+	PromptText->SetText(FText::FromString(TEXT("[E]")));
+	PromptText->SetVisibility(false);
+
+	GuardianSpawnGroup = nullptr;
 	GuardianPhase = EForgottenPhase::Route1Guardian;
 	ReturnPhase = EForgottenPhase::Route1Return;
-	SpawnedGuardian = nullptr;
-	bGuardianSpawned = false;
-	bActivated = false;
 	bGuardianDefeated = false;
 	bPlayerInRange = false;
+	bActivated = false;
 }
 
 void AForgottenLever::BeginPlay()
@@ -45,6 +51,14 @@ void AForgottenLever::BeginPlay()
 
 	TriggerSphere->OnComponentBeginOverlap.AddDynamic(this, &AForgottenLever::HandleOverlapBegin);
 	TriggerSphere->OnComponentEndOverlap.AddDynamic(this, &AForgottenLever::HandleOverlapEnd);
+
+	if (!GuardianSpawnGroup)
+	{
+		bGuardianDefeated = true;
+		return;
+	}
+
+	GuardianSpawnGroup->OnGroupCleared.AddDynamic(this, &AForgottenLever::HandleGuardianGroupCleared);
 }
 
 void AForgottenLever::HandleOverlapBegin(
@@ -61,13 +75,21 @@ void AForgottenLever::HandleOverlapBegin(
 	}
 
 	bPlayerInRange = true;
+	UpdatePromptVisibility();
 
-	if (bGuardianSpawned || bActivated)
+	if (bActivated || bGuardianDefeated)
 	{
 		return;
 	}
 
-	SpawnGuardian();
+	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (!ForgottenGameState)
+	{
+		return;
+	}
+
+	ForgottenGameState->EnterPhase(GuardianPhase);
 }
 
 void AForgottenLever::HandleOverlapEnd(
@@ -82,81 +104,13 @@ void AForgottenLever::HandleOverlapEnd(
 	}
 
 	bPlayerInRange = false;
+	UpdatePromptVisibility();
 }
 
-void AForgottenLever::SpawnGuardian()
-{
-	if (!GuardianClass)
-	{
-		ActivateLever();
-		return;
-	}
-
-	const FVector SpawnLocation = GuardianSpawnPoint
-		? GuardianSpawnPoint->GetActorLocation()
-		: GetActorLocation();
-	const FRotator SpawnRotation = GuardianSpawnPoint
-		? GuardianSpawnPoint->GetActorRotation()
-		: GetActorRotation();
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	SpawnedGuardian = GetWorld()->SpawnActor<AActor>(GuardianClass, SpawnLocation, SpawnRotation, SpawnParams);
-
-	if (!SpawnedGuardian)
-	{
-		ActivateLever();
-		return;
-	}
-
-	bGuardianSpawned = true;
-
-	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
-
-	if (ForgottenGameState)
-	{
-		ForgottenGameState->EnterPhase(GuardianPhase);
-	}
-
-	UHealthComponent* GuardianHealth = SpawnedGuardian->FindComponentByClass<UHealthComponent>();
-
-	if (!GuardianHealth)
-	{
-		return;
-	}
-
-	GuardianHealth->OnDeath.AddDynamic(this, &AForgottenLever::HandleGuardianDeath);
-}
-
-void AForgottenLever::HandleGuardianDeath(AActor* DeadOwner)
+void AForgottenLever::HandleGuardianGroupCleared(AForgottenSpawnGroup* ClearedGroup)
 {
 	bGuardianDefeated = true;
-}
-
-void AForgottenLever::ActivateLever()
-{
-	if (bActivated)
-	{
-		return;
-	}
-
-	bActivated = true;
-
-	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
-
-	if (!ForgottenGameState)
-	{
-		return;
-	}
-
-	ForgottenGameState->AdvanceObjectiveProgress();
-	ForgottenGameState->EnterPhase(ReturnPhase);
-}
-
-bool AForgottenLever::IsActivated() const
-{
-	return bActivated;
+	UpdatePromptVisibility();
 }
 
 bool AForgottenLever::CanInteract() const
@@ -172,4 +126,42 @@ void AForgottenLever::TryInteract()
 	}
 
 	ActivateLever();
+}
+
+void AForgottenLever::ActivateLever()
+{
+	if (bActivated)
+	{
+		return;
+	}
+
+	bActivated = true;
+	UpdatePromptVisibility();
+
+	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (!ForgottenGameState)
+	{
+		return;
+	}
+
+	ForgottenGameState->AdvanceObjectiveProgress();
+
+	if (ForgottenGameState->IsObjectiveCompleted())
+	{
+		ForgottenGameState->EnterPhase(EForgottenPhase::FinalBoss);
+		return;
+	}
+
+	ForgottenGameState->EnterPhase(ReturnPhase);
+}
+
+void AForgottenLever::UpdatePromptVisibility()
+{
+	PromptText->SetVisibility(CanInteract());
+}
+
+bool AForgottenLever::IsActivated() const
+{
+	return bActivated;
 }
