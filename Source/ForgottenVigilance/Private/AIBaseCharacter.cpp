@@ -45,6 +45,9 @@ void AAIBaseCharacter::BeginPlay()
 	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
 
 	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
