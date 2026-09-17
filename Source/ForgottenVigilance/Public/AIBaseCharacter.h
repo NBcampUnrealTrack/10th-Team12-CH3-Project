@@ -21,6 +21,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float RunSpeed = 600.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "AI") 
+	bool bLoseTargetOnHit = true;
 
 protected:
 	virtual void BeginPlay() override;
