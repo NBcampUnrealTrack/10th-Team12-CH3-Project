@@ -20,6 +20,7 @@ public:
 	bool IsAlive() const;
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
+	bool IsHit() const;
 
 	UPROPERTY(BlueprintAssignable, Transient, Category = Health)
 	FOnHealthChanged OnHealthChanged;
