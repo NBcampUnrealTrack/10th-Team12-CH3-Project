@@ -5,6 +5,8 @@
 #include "ForgottenGameOver.generated.h"
 
 class UButton;
+class UTextBlock;
+class UWidgetAnimation;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenGameOver : public UUserWidget
@@ -20,8 +22,38 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ExitButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Retry_Red;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Retry_Cyan;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Exit_Red;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Exit_Cyan;
+
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_Glitch;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Anim_RetryHover;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Anim_ExitHover;
+	
+	UFUNCTION()
+	void OnRetryButtonHovered();
+
+	UFUNCTION()
+	void OnRetryButtonUnhovered();
+
+	UFUNCTION()
+	void OnExitButtonHovered();
+
+	UFUNCTION()
+	void OnExitButtonUnhovered();
 
 	UFUNCTION()
 	void OnRetryButtonClicked();
