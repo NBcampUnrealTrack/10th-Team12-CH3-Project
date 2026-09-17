@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "UObject/ObjectPtr.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "ForgottenHUDWidget.generated.h"
 
 class UProgressBar;
@@ -29,7 +31,10 @@ protected:
 	TObjectPtr<UProgressBar> HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UProgressBar> HeatBar;
+	TObjectPtr<UImage> HeatBarImage;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> HeatBarMaterial;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> OverheatWarningText;
