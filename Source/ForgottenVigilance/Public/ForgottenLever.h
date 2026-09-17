@@ -61,10 +61,10 @@ private:
 	TObjectPtr<AForgottenSpawnGroup> GuardianSpawnGroup;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	EForgottenPhase GuardianPhase;
+	TObjectPtr<AForgottenSpawnGroup> ReturnSpawnGroup;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	EForgottenPhase ReturnPhase;
+	bool bActivateGuardianOnApproach;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bGuardianDefeated;

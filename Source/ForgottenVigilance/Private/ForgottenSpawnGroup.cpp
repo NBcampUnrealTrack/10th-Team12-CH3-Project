@@ -28,18 +28,29 @@ AForgottenSpawnGroup::AForgottenSpawnGroup()
 	SpawnBox->SetBoxExtent(FVector(DefaultBoxExtentXY, DefaultBoxExtentXY, DefaultBoxExtentZ));
 	SpawnBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SpawnBox->SetHiddenInGame(true);
-
-	ActivationPhase = EForgottenPhase::Route1Combat;
-	bAdvancePhaseOnCleared = false;
-	NextPhaseOnCleared = EForgottenPhase::Route1Combat;
+	
 	AliveCount = SpawnZeroCount;
 	bActivated = false;
 	bCleared = false;
+	
+	ActivationMode = EGroupActivation::OnBeginPlay;
+	ActivationPhase = EForgottenPhase::FinalBoss;
 }
 
 void AForgottenSpawnGroup::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (ActivationMode == EGroupActivation::OnBeginPlay)
+	{
+		ActivateGroup();
+		return;
+	}
+
+	if (ActivationMode != EGroupActivation::OnPhase)
+	{
+		return;
+	}
 
 	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
 
@@ -160,19 +171,15 @@ void AForgottenSpawnGroup::MarkCleared()
 	bCleared = true;
 	OnGroupCleared.Broadcast(this);
 
-	if (!bAdvancePhaseOnCleared)
+	for (const TObjectPtr<AForgottenSpawnGroup>& NextGroup : NextGroupsOnCleared)
 	{
-		return;
+		if (!IsValid(NextGroup))
+		{
+			continue;
+		}
+
+		NextGroup->ActivateGroup();
 	}
-
-	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
-
-	if (!ForgottenGameState)
-	{
-		return;
-	}
-
-	ForgottenGameState->EnterPhase(NextPhaseOnCleared);
 }
 
 FVector AForgottenSpawnGroup::GetRandomPointInBox() const
