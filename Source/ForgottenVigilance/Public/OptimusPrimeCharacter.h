@@ -48,6 +48,8 @@ protected:
 	void FireWeapon(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopFireWeapon(const FInputActionValue& Value);
+	UFUNCTION()
+	void Interact(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;

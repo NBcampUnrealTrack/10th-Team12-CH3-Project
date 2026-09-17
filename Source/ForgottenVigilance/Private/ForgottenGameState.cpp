@@ -5,16 +5,16 @@
 namespace
 {
 constexpr int32 DefaultRequiredObjectiveProgress = 2;
-constexpr int32 ZeroCount = 0;
-constexpr int32 SingleStep = 1;
+constexpr int32 StateZeroCount = 0;
+constexpr int32 StateSingleStep = 1;
 }
 
 AForgottenGameState::AForgottenGameState()
 {
 	RequiredObjectiveProgress = DefaultRequiredObjectiveProgress;
-	Score = ZeroCount;
-	KillCount = ZeroCount;
-	ObjectiveProgress = ZeroCount;
+	Score = StateZeroCount;
+	KillCount = StateZeroCount;
+	ObjectiveProgress = StateZeroCount;
 	Phase = EForgottenPhase::Route1Combat;
 	PlayerController = nullptr;
 }
@@ -44,10 +44,10 @@ void AForgottenGameState::BeginPlay()
 
 void AForgottenGameState::RegisterEnemyKill(int32 ScoreAmount)
 {
-	KillCount += SingleStep;
+	KillCount += StateSingleStep;
 	OnKillCountChanged.Broadcast(KillCount);
 
-	if (ScoreAmount == ZeroCount)
+	if (ScoreAmount == StateZeroCount)
 	{
 		return;
 	}
@@ -63,7 +63,7 @@ void AForgottenGameState::AdvanceObjectiveProgress()
 		return;
 	}
 
-	ObjectiveProgress = FMath::Min(ObjectiveProgress + SingleStep, RequiredObjectiveProgress);
+	ObjectiveProgress = FMath::Min(ObjectiveProgress + StateSingleStep, RequiredObjectiveProgress);
 	OnObjectiveProgressChanged.Broadcast(ObjectiveProgress, RequiredObjectiveProgress);
 }
 

@@ -8,8 +8,8 @@
 namespace
 {
 constexpr float DefaultSpawnRadius = 800.0f;
-constexpr int32 ZeroCount = 0;
-constexpr int32 SingleStep = 1;
+constexpr int32 SpawnZeroCount = 0;
+constexpr int32 SpawnSingleStep = 1;
 }
 
 AForgottenSpawnGroup::AForgottenSpawnGroup()
@@ -23,7 +23,7 @@ AForgottenSpawnGroup::AForgottenSpawnGroup()
 	SpawnRadius = DefaultSpawnRadius;
 	bAdvancePhaseOnCleared = false;
 	NextPhaseOnCleared = EForgottenPhase::Route1Combat;
-	AliveCount = ZeroCount;
+	AliveCount = SpawnZeroCount;
 	bActivated = false;
 	bCleared = false;
 }
@@ -70,7 +70,7 @@ void AForgottenSpawnGroup::ActivateGroup()
 
 	SpawnEntries();
 
-	if (AliveCount > ZeroCount)
+	if (AliveCount > SpawnZeroCount)
 	{
 		return;
 	}
@@ -118,7 +118,7 @@ void AForgottenSpawnGroup::SpawnSingleEnemy(TSubclassOf<AActor> EnemyClass)
 	}
 
 	EnemyHealth->OnDeath.AddDynamic(this, &AForgottenSpawnGroup::HandleEnemyDeath);
-	AliveCount += SingleStep;
+	AliveCount += SpawnSingleStep;
 }
 
 void AForgottenSpawnGroup::HandleEnemyDeath(AActor* DeadOwner)
@@ -128,9 +128,9 @@ void AForgottenSpawnGroup::HandleEnemyDeath(AActor* DeadOwner)
 		return;
 	}
 
-	AliveCount = FMath::Max(AliveCount - SingleStep, ZeroCount);
+	AliveCount = FMath::Max(AliveCount - SpawnSingleStep, SpawnZeroCount);
 
-	if (AliveCount > ZeroCount)
+	if (AliveCount > SpawnZeroCount)
 	{
 		return;
 	}
