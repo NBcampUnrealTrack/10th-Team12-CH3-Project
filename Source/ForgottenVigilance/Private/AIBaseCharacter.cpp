@@ -37,12 +37,46 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 void AAIBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	PreviousHealth = HealthComponent->GetCurrentHealth();
+
+	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
+
 	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
+}
+
+void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
+{
+	if (CurrentHealth < PreviousHealth && CurrentHealth > 0.0f)
+	{
+		if (HitMontage)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AI HIT!"));
+			PlayAnimMontage(HitMontage);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("HitMontage is NULL!"));
+		}
+	}
+
+	UE_LOG(LogTemp, Warning,
+	    TEXT("AI Health Changed: %.1f / %.1f"),
+	    CurrentHealth,
+	    MaxHealth);
+
+	PreviousHealth = CurrentHealth;
 }
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
-	//죽을때 처리할 것들 여기에
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
+
+	GetCharacterMovement()->DisableMovement();
+
+	SetLifeSpan(3.0f);
 	this->Destroy();
 }
