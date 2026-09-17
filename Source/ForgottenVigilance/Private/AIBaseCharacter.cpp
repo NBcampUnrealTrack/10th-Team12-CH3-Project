@@ -3,6 +3,8 @@
 #include "HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -47,8 +49,30 @@ void AAIBaseCharacter::BeginPlay()
 
 void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 {
+
 	if (CurrentHealth < PreviousHealth && CurrentHealth > 0.0f)
 	{
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+		if (PlayerPawn)
+		{
+			AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
+
+
+			if (PlayerPawn && AIController)
+			{
+				UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+
+				if (Blackboard)
+				{
+					Blackboard->SetValueAsVector(TEXT("LastKnownLocation"), PlayerPawn->GetActorLocation());
+
+					Blackboard->ClearValue(TEXT("TargetActor"));
+
+					Blackboard->SetValueAsBool(TEXT("IsChasing"),false);
+				}
+			}
+		}
 		if (HitMontage)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AI HIT!"));
@@ -70,6 +94,9 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	if (DeathMontage)
 	{
 		PlayAnimMontage(DeathMontage);
@@ -78,5 +105,4 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 	GetCharacterMovement()->DisableMovement();
 
 	SetLifeSpan(3.0f);
-	this->Destroy();
 }
