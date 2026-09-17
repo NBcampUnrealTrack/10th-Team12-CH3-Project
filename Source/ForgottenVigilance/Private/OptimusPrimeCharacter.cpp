@@ -8,13 +8,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HealthComponent.h"
 #include "MainWeaponComponent.h"
+#include "Animation/AnimMontage.h"
 
 #include "ForgottenLever.h"
 
 namespace
 {
 constexpr float DefaultCharacterTargetArmLength = 300.0f;
-constexpr float DefaultNonForwardSpeedMultiplier = 0.4f;
+constexpr float DefaultNonForwardSpeedMultiplier = 0.5f;
 constexpr float DefaultNormalSpeed = 600.0f;
 constexpr float DefaultSprintMultiplier = 1.7f;
 
@@ -85,6 +86,26 @@ void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
 	GetCharacterMovement()->DisableMovement();
 }
 
+void AOptimusPrimeCharacter::HandleShotFired()
+{
+	UAnimMontage* SelectedMontage = nullptr;
+	if (FMath::RandBool())
+	{
+		SelectedMontage = LeftFireMontage;
+	}
+	else
+	{
+		SelectedMontage = RightFireMontage;
+	}
+
+	if (!SelectedMontage)
+	{
+		return;
+	}
+
+	PlayAnimMontage(SelectedMontage, FireMontagePlayRate, NAME_None);
+}
+
 bool AOptimusPrimeCharacter::IsCharacterDead() const
 {
 	if (!HealthComp)
@@ -116,6 +137,7 @@ void AOptimusPrimeCharacter::BeginPlay()
 	UpdateSpeed();
 
 	HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimeCharacter::HandleDeath);
+	MainWeaponComponent->OnShotFired.AddDynamic(this, &AOptimusPrimeCharacter::HandleShotFired);
 }
 
 void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)

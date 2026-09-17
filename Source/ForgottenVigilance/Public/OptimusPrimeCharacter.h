@@ -8,7 +8,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
 class UMainWeaponComponent;
-
+class UAnimMontage;
+	
 struct FInputActionValue;
 
 UCLASS()
@@ -59,6 +60,8 @@ protected:
 private:
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
+	UFUNCTION()
+	void HandleShotFired();
 
 	void UpdateSpeed();
 	void UpdateCameraDeadZoneWidth(float DeltaTime);
@@ -90,6 +93,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat")
+	TObjectPtr<UAnimMontage> LeftFireMontage = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat")
+	TObjectPtr<UAnimMontage> RightFireMontage = nullptr;
+	// 사격 몽타주의 재생 속도 배율. 1.0은 원래 속도
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat",
+	    meta = (ClampMin = "0.01", UIMin = "0.1"))
+	float FireMontagePlayRate = 2.0f;
+
 	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
 
