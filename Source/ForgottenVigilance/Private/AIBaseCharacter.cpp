@@ -3,6 +3,8 @@
 #include "HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -37,12 +39,70 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 void AAIBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	PreviousHealth = HealthComponent->GetCurrentHealth();
+
+	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
+
 	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
+}
+
+void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
+{
+
+	if (CurrentHealth < PreviousHealth && CurrentHealth > 0.0f)
+	{
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+		if (PlayerPawn)
+		{
+			AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
+
+
+			if (PlayerPawn && AIController)
+			{
+				UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+
+				if (Blackboard)
+				{
+					Blackboard->SetValueAsVector(TEXT("LastKnownLocation"), PlayerPawn->GetActorLocation());
+
+					Blackboard->ClearValue(TEXT("TargetActor"));
+
+					Blackboard->SetValueAsBool(TEXT("IsChasing"),false);
+				}
+			}
+		}
+		if (HitMontage)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AI HIT!"));
+			PlayAnimMontage(HitMontage);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("HitMontage is NULL!"));
+		}
+	}
+
+	UE_LOG(LogTemp, Warning,
+	    TEXT("AI Health Changed: %.1f / %.1f"),
+	    CurrentHealth,
+	    MaxHealth);
+
+	PreviousHealth = CurrentHealth;
 }
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
-	//죽을때 처리할 것들 여기에
-	this->Destroy();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
+
+	GetCharacterMovement()->DisableMovement();
+
+	SetLifeSpan(3.0f);
 }

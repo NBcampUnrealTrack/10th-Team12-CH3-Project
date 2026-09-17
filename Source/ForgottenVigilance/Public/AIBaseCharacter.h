@@ -5,6 +5,7 @@
 #include "AIBaseCharacter.generated.h"
 
 class UHealthComponent;
+class UAnimMontage;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AAIBaseCharacter : public ACharacter
@@ -24,10 +25,21 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TObjectPtr<UAnimMontage> HitMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TObjectPtr<UAnimMontage> DeathMontage;
+
 private:
+	UFUNCTION()
+	void HandleHealthChanged(float CurrentHealth, float MaxHealth);
+
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
+
+	float PreviousHealth = 0.0f;
 };
