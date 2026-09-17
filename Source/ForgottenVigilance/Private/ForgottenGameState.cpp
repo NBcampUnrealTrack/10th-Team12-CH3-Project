@@ -1,7 +1,5 @@
 #include "ForgottenGameState.h"
 
-#include "ForgottenHUDWidget.h"
-#include "ForgottenMain.h"
 #include "OptimusPrimePlayerController.h"
 
 namespace

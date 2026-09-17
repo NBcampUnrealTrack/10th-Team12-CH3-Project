@@ -5,9 +5,6 @@
 #include "ForgottenGameState.generated.h"
 
 class AOptimusPrimePlayerController;
-class UForgottenGameOver;
-class UForgottenMain;
-class UForgottenHUDWidget;
 
 UENUM(BlueprintType)
 enum class EForgottenPhase : uint8
@@ -37,7 +34,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API AForgottenGameState : public AGameState
 {
 	GENERATED_BODY()
-	
+
 public:
 	AForgottenGameState();
 

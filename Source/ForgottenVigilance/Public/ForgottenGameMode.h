@@ -10,7 +10,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API AForgottenGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+
 public:
 	AForgottenGameMode();
 
