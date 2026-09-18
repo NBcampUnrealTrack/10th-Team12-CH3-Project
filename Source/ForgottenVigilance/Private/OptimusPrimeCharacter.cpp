@@ -94,6 +94,20 @@ void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
 	{
 		DisableInput(PlayerController);
 	}
+
+	if (FMath::RandBool())
+	{
+		SelectedDeathSequence = ForwardDeathSequence;
+	}
+	else
+	{
+		SelectedDeathSequence = BackwardDeathSequence;
+	}
+
+	if (SelectedDeathSequence)
+	{
+		OnDeathAnimationReady.Broadcast();
+	}
 }
 
 void AOptimusPrimeCharacter::HandleShotFired()
