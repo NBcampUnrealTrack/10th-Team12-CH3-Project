@@ -101,6 +101,20 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
+	AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
+
+	if (AIController)
+	{
+		AIController->StopMovement();
+		if (AIController->BrainComponent)
+		{
+			AIController->BrainComponent->StopLogic(TEXT("Dead"));
+		}
+	}
+	
+
+	GetCharacterMovement()->DisableMovement();
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -109,7 +123,6 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 		PlayAnimMontage(DeathMontage);
 	}
 
-	GetCharacterMovement()->DisableMovement();
 
-	SetLifeSpan(3.0f);
+	SetLifeSpan(10.0f);
 }
