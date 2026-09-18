@@ -31,20 +31,12 @@ protected:
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_ExitHover;
 
-	UFUNCTION()
-	void OnRetryButtonHovered();
-
-	UFUNCTION()
-	void OnRetryButtonUnhovered();
 
 	UFUNCTION()
 	void OnExitButtonHovered();
 
 	UFUNCTION()
 	void OnExitButtonUnhovered();
-
-	UFUNCTION()
-	void OnRetryButtonClicked();
 
 	UFUNCTION()
 	void OnExitButtonClicked();
