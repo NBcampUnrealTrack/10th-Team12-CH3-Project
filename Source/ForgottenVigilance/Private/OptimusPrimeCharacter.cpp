@@ -434,3 +434,32 @@ void AOptimusPrimeCharacter::Interact(const FInputActionValue& Value)
 		return;
 	}
 }
+
+void AOptimusPrimeCharacter::OnPawnDetected(APawn* DetectedPawn)
+{
+	if (!DetectedPawn || DetectedPawn == this)
+	{
+		return;
+	}
+
+	DetectedEnemies.Add(DetectedPawn, GetWorld()->GetTimeSeconds());
+}
+
+void AOptimusPrimeCharacter::CheckStaleTargets()
+{
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	TArray<TObjectPtr<AActor>> StaleTargets;
+
+	for (const auto& Pair : DetectedEnemies)
+	{
+		if (CurrentTime - Pair.Value > 5.0f) // 5 seconds stale time
+		{
+			StaleTargets.Add(Pair.Key);
+		}
+	}
+
+	for (TObjectPtr<AActor> StaleTarget : StaleTargets)
+	{
+		DetectedEnemies.Remove(StaleTarget);
+	}
+}
