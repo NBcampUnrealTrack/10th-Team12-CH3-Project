@@ -5,6 +5,7 @@
 #include "AIBaseCharacter.generated.h"
 
 class UHealthComponent;
+class UScoreOnDeathComponent;
 class UAnimMontage;
 
 UCLASS()
@@ -40,6 +41,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameState")
+	TObjectPtr<UScoreOnDeathComponent> ScoreOnDeathComponent;
 
 	float PreviousHealth = 0.0f;
 };

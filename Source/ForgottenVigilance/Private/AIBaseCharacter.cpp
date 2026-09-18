@@ -1,6 +1,7 @@
 #include "AIBaseCharacter.h"
 #include "AIBaseController.h"
 #include "HealthComponent.h"
+#include "ScoreOnDeathComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -21,6 +22,7 @@ AAIBaseCharacter::AAIBaseCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	ScoreOnDeathComponent = CreateDefaultSubobject<UScoreOnDeathComponent>(TEXT("ScoreOnDeathComponent"));
 }
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
