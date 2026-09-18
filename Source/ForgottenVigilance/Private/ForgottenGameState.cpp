@@ -1,6 +1,7 @@
 #include "ForgottenGameState.h"
 
 #include "OptimusPrimePlayerController.h"
+#include "BgmPlayerComponent.h"
 
 namespace
 {
@@ -17,6 +18,7 @@ AForgottenGameState::AForgottenGameState()
 	ObjectiveProgress = StateZeroCount;
 	Phase = EForgottenPhase::Exploring;
 	PlayerController = nullptr;
+	BgmPlayer = CreateDefaultSubobject<UBgmPlayerComponent>(TEXT("BgmPlayer"));
 }
 
 void AForgottenGameState::BeginPlay()

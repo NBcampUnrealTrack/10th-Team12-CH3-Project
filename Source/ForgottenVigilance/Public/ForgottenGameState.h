@@ -5,6 +5,7 @@
 #include "ForgottenGameState.generated.h"
 
 class AOptimusPrimePlayerController;
+class UBgmPlayerComponent;
 
 UENUM(BlueprintType)
 enum class EForgottenPhase : uint8
@@ -80,4 +81,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = true))
 	TObjectPtr<AOptimusPrimePlayerController> PlayerController;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BGM", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UBgmPlayerComponent> BgmPlayer;
 };
