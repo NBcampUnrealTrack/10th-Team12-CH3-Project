@@ -9,6 +9,8 @@
 #include "HealthComponent.h"
 #include "MainWeaponComponent.h"
 #include "Animation/AnimMontage.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "ForgottenLever.h"
 
@@ -30,6 +32,22 @@ FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& Targ
 	return Pivot + CameraRight * (LateralDistance - ClampedDistance);
 }
 } // namespace
+
+void AOptimusPrimeCharacter::EnableDeathRagdoll()
+{
+	// 살아 있거나 이미 래그돌 상태라면 처리 x
+	if (!IsCharacterDead() || GetMesh()->IsSimulatingPhysics())
+	{
+		return;
+	}
+
+	// 이동용 캡슐 대신 메시의 물리 바디가 충돌을 담당
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+
+	// 메시에 지정된 Physics Asset으로 물리 시뮬레이션을 시작
+	GetMesh()->SetSimulatePhysics(true);
+}
 
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
     : NormalSpeed(DefaultNormalSpeed)

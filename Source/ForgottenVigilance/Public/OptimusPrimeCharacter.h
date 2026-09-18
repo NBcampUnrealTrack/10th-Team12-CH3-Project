@@ -34,6 +34,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Transient, Category = "Animation|Death")
 	FOnDeathAnimationReady OnDeathAnimationReady;
+	UFUNCTION(BlueprintCallable, Category = "Animation|Death")
+	void EnableDeathRagdoll();
 	
 	AOptimusPrimeCharacter();
 
