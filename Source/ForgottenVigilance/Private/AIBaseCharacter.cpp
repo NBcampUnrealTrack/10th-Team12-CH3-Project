@@ -122,7 +122,7 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 	if (DeathMontage)
 	{
 		PlayAnimMontage(DeathMontage);
-		DeadDestoryTime = DeathMontage->GetPlayLength() - 0.2f;
+		DeadDestoryTime = DeathMontage->GetPlayLength() - 0.28f;
 		SetLifeSpan(DeadDestoryTime);
 	}
 	else

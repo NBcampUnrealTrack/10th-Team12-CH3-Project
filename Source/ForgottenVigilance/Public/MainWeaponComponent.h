@@ -4,6 +4,9 @@
 #include "Components/ActorComponent.h"
 #include "MainWeaponComponent.generated.h"
 
+class USoundBase;
+class USoundAttenuation;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHeatChanged, float, CurrentHeat, float, MaxHeat);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverheatStateChanged, bool, bIsOverheated);
@@ -74,6 +77,16 @@ private:
 	float CurrentHeat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = true))
 	bool bIsOverheated;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundBase> FireSound;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundBase> OverheatSound;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundAttenuation> SoundAttenuation;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
+	float NoiseLoudness;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
+	float NoiseRange;
 
 	FTimerHandle FireTimerHandle;
 };

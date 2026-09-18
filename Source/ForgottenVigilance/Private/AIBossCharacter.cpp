@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 namespace
 {
@@ -30,6 +31,7 @@ AAIBossCharacter::AAIBossCharacter()
 	BossPhase = EBossPhase::First;
 	CurrentPatternIndex = InvalidPatternIndex;
 	AttackCounter = 0;
+	GetCharacterMovement()->bUseRVOAvoidance = false;
 }
 
 void AAIBossCharacter::BeginPlay()
