@@ -26,6 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "AI") 
 	bool bLoseTargetOnHit = true;
 
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float DeadDestoryTime = 3.0f;
+
 protected:
 	virtual void BeginPlay() override;
 
