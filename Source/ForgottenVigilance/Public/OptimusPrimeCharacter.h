@@ -4,13 +4,16 @@
 #include "GameFramework/Character.h"
 #include "OptimusPrimeCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathAnimationReady);
+
 class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
 class UMainWeaponComponent;
 class UPawnSensingComponent;
 class UAnimMontage;
-	
+class UAnimSequence;
+
 struct FInputActionValue;
 
 UCLASS()
@@ -29,6 +32,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Camera|DeadZone")
 	float GetCameraDeadZoneHalfWidth() const;
 
+	UPROPERTY(BlueprintAssignable, Transient, Category = "Animation|Death")
+	FOnDeathAnimationReady OnDeathAnimationReady;
+	UFUNCTION(BlueprintCallable, Category = "Animation|Death")
+	void EnableDeathRagdoll();
+	
 	AOptimusPrimeCharacter();
 
 protected:
@@ -111,8 +119,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat",
 	    meta = (ClampMin = "0.01", UIMin = "0.1"))
 	float FireMontagePlayRate = 2.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Death")
+	TObjectPtr<UAnimSequence> ForwardDeathSequence = nullptr;
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Death")
+	TObjectPtr<UAnimSequence> BackwardDeathSequence = nullptr;
+	UPROPERTY(BlueprintReadOnly, Transient, Category = "Animation|Death",
+	    meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimSequence> SelectedDeathSequence = nullptr;
+	
 	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
 

@@ -1,4 +1,4 @@
-﻿#include "OptimusPrimeCharacter.h"
+#include "OptimusPrimeCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
@@ -9,6 +9,8 @@
 #include "HealthComponent.h"
 #include "MainWeaponComponent.h"
 #include "Animation/AnimMontage.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "ForgottenLever.h"
 
@@ -20,7 +22,7 @@ constexpr float DefaultNormalSpeed = 600.0f;
 constexpr float DefaultSprintMultiplier = 1.7f;
 
 FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
-	const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
+    const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
 {
 	// 실제 이동 중 좌우 성분만 제외해 앞뒤 이동과 높이 변화는 즉시 따라갑니다.
 	FVector Pivot = PreviousPivot + TargetMovement - CameraRight * FVector::DotProduct(TargetMovement, CameraRight);
@@ -31,13 +33,29 @@ FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& Targ
 }
 } // namespace
 
+void AOptimusPrimeCharacter::EnableDeathRagdoll()
+{
+	// 살아 있거나 이미 래그돌 상태라면 처리 x
+	if (!IsCharacterDead() || GetMesh()->IsSimulatingPhysics())
+	{
+		return;
+	}
+
+	// 이동용 캡슐 대신 메시의 물리 바디가 충돌을 담당
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+
+	// 메시에 지정된 Physics Asset으로 물리 시뮬레이션을 시작
+	GetMesh()->SetSimulatePhysics(true);
+}
+
 AOptimusPrimeCharacter::AOptimusPrimeCharacter()
-	: NormalSpeed(DefaultNormalSpeed)
-	  , NonForwardSpeedMultiplier(DefaultNonForwardSpeedMultiplier)
-	  , SprintMultiplier(DefaultSprintMultiplier)
-	  , bIsMovingSidewaysOrBackward(false)
-	  , bIsSprinting(false)
-	  , CameraPivotWorldLocation(FVector::ZeroVector)
+    : NormalSpeed(DefaultNormalSpeed)
+    , NonForwardSpeedMultiplier(DefaultNonForwardSpeedMultiplier)
+    , SprintMultiplier(DefaultSprintMultiplier)
+    , bIsMovingSidewaysOrBackward(false)
+    , bIsSprinting(false)
+    , CameraPivotWorldLocation(FVector::ZeroVector)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
@@ -52,6 +70,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	// C++ 기본값만 지정합니다. 이후 BP의 스프링암 설정을 그대로 사용합니다.
 	SpringArmComp->TargetArmLength = DefaultCharacterTargetArmLength;
 	SpringArmComp->bUsePawnControlRotation = true;
+	SpringArmComp->SocketOffset.Z = 60.0f;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
@@ -84,6 +103,30 @@ void AOptimusPrimeCharacter::UpdateSpeed()
 void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
 {
 	GetCharacterMovement()->DisableMovement();
+
+	if (MainWeaponComponent)
+	{
+		MainWeaponComponent->StopFire();
+	}
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		DisableInput(PlayerController);
+	}
+
+	if (FMath::RandBool())
+	{
+		SelectedDeathSequence = ForwardDeathSequence;
+	}
+	else
+	{
+		SelectedDeathSequence = BackwardDeathSequence;
+	}
+
+	if (SelectedDeathSequence)
+	{
+		OnDeathAnimationReady.Broadcast();
+	}
 }
 
 void AOptimusPrimeCharacter::HandleShotFired()
@@ -161,8 +204,7 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(RightDirection, MoveInput.Y);
 	}
-	if ((MoveInput.X < 0.0f && !FMath::IsNearlyZero(MoveInput.X))
-	    || !FMath::IsNearlyZero(MoveInput.Y))
+	if ((MoveInput.X < 0.0f && !FMath::IsNearlyZero(MoveInput.X)) || !FMath::IsNearlyZero(MoveInput.Y))
 	{
 		bIsMovingSidewaysOrBackward = true;
 	}
@@ -247,7 +289,7 @@ void AOptimusPrimeCharacter::UpdateCameraDeadZoneWidth(float DeltaTime)
 	const FIntRect ReferenceRect(0, 0, DeadZoneReferenceResolution.X, DeadZoneReferenceResolution.Y);
 	ReferenceProjection.SetViewRectangle(ReferenceRect);
 	FMinimalViewInfo::CalculateProjectionMatrixGivenViewRectangle(ReferenceView,
-		PlayerController->GetLocalPlayer()->AspectRatioAxisConstraint, ReferenceRect, ReferenceProjection);
+	    PlayerController->GetLocalPlayer()->AspectRatioAxisConstraint, ReferenceRect, ReferenceProjection);
 	const float HorizontalProjectionScale = ReferenceProjection.ProjectionMatrix.M[0][0];
 	if (HorizontalProjectionScale <= 0.0f)
 	{
@@ -281,7 +323,7 @@ void AOptimusPrimeCharacter::UpdateCameraFollow()
 	{
 		const FVector RightDirection = FRotationMatrix(CameraYaw).GetUnitAxis(EAxis::Y);
 		CameraPivotWorldLocation = CalculateDeadZonePivot(CameraPivotWorldLocation,
-			TargetLocation, TargetMovement, RightDirection, GetCameraDeadZoneHalfWidth());
+		    TargetLocation, TargetMovement, RightDirection, GetCameraDeadZoneHalfWidth());
 	}
 	// 부착된 스프링암의 이동을 보정해, 계산한 월드 기준점에서 카메라가 회전하게 합니다.
 	SpringArmComp->TargetOffset = CameraPivotWorldLocation - SpringArmComp->GetComponentLocation();
@@ -317,7 +359,7 @@ void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 	}
 	const FRotator TargetRotation(0.0f, AimDirection.Rotation().Yaw, 0.0f);
 	const FRotator NextRotation = FMath::RInterpConstantTo(GetActorRotation(), TargetRotation,
-		DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
+	    DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
 	SetActorRotation(NextRotation);
 }
 
@@ -336,82 +378,82 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		if (PlayerController->MoveAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->MoveAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::Move);
+			    PlayerController->MoveAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Move);
 		}
 		if (PlayerController->MoveAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->MoveAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::Move);
+			    PlayerController->MoveAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::Move);
 		}
 		if (PlayerController->LookAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->LookAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::Look);
+			    PlayerController->LookAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::Look);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->JumpAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::StartJump);
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartJump);
 		}
 		if (PlayerController->JumpAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->JumpAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopJump);
+			    PlayerController->JumpAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopJump);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->SprintAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::StartSprint);
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartSprint);
 		}
 		if (PlayerController->SprintAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->SprintAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopSprint);
+			    PlayerController->SprintAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopSprint);
 		}
 		if (PlayerController->ShootAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->ShootAction,
-				ETriggerEvent::Triggered,
-				this,
-				&AOptimusPrimeCharacter::FireWeapon);
+			    PlayerController->ShootAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::FireWeapon);
 		}
 		if (PlayerController->ShootAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->ShootAction,
-				ETriggerEvent::Completed,
-				this,
-				&AOptimusPrimeCharacter::StopFireWeapon);
+			    PlayerController->ShootAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopFireWeapon);
 		}
 		if (PlayerController->InteractAction)
 		{
 			EnhancedInput->BindAction(
-				PlayerController->InteractAction,
-				ETriggerEvent::Started,
-				this,
-				&AOptimusPrimeCharacter::Interact);
+			    PlayerController->InteractAction,
+			    ETriggerEvent::Started,
+			    this,
+			    &AOptimusPrimeCharacter::Interact);
 		}
 	}
 }
