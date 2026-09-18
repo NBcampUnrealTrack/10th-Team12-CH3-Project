@@ -1,4 +1,6 @@
 #include "HealthComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 namespace
 {
@@ -50,10 +52,38 @@ void UHealthComponent::HandleTakeAnyDamage(
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, HealthZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
-	if (!IsAlive())
+	if (IsAlive())
 	{
-		OnDeath.Broadcast(GetOwner());
+		PlayHealthSound(HitSound);
+		return;
 	}
+
+	PlayHealthSound(DeathSound);
+	OnDeath.Broadcast(GetOwner());
+}
+
+void UHealthComponent::PlayHealthSound(USoundBase* SoundToPlay) const
+{
+	if (!SoundToPlay)
+	{
+		return;
+	}
+
+	const AActor* OwnerActor = GetOwner();
+
+	if (!OwnerActor)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		SoundToPlay,
+		OwnerActor->GetActorLocation(),
+		1.0f,
+		1.0f,
+		0.0f,
+		SoundAttenuation);
 }
 
 void UHealthComponent::Heal(float HealAmount)

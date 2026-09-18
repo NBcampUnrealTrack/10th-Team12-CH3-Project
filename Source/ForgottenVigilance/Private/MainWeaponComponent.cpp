@@ -9,10 +9,12 @@
 #include "GameFramework/PlayerController.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Perception/AISense_Hearing.h"
+#include "Sound/SoundBase.h"
 
 namespace
 {
-constexpr float DefaultDamage = 1000.0f;
+constexpr float DefaultDamage = 35.0f;
 constexpr float DefaultFireInterval = 0.2f;
 constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
@@ -21,6 +23,8 @@ constexpr float DefaultCoolingRate = 30.0f;
 constexpr float MainWeaponZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
+constexpr float DefaultNoiseLoudness = 1.0f;
+constexpr float DefaultNoiseRange = 3000.0f;
 
 bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& MuzzleStart,
 	const FVector& TraceEnd, const FCollisionQueryParams& QueryParams, FHitResult& OutHit, bool& bMuzzleBlocked)
@@ -49,6 +53,9 @@ UMainWeaponComponent::UMainWeaponComponent()
 	CoolingRate = DefaultCoolingRate;
 	CurrentHeat = MainWeaponZeroThreshold;
 	bIsOverheated = false;
+	
+	NoiseLoudness = DefaultNoiseLoudness;
+	NoiseRange = DefaultNoiseRange;
 }
 
 void UMainWeaponComponent::BeginPlay()
@@ -139,6 +146,30 @@ void UMainWeaponComponent::Fire()
 		return;
 	}
 	OnShotFired.Broadcast();
+	
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			FireSound,
+			GetMuzzleLocation(),
+			1.0f,
+			1.0f,
+			0.0f,
+			SoundAttenuation);
+	}
+
+	APawn* NoiseInstigator = Cast<APawn>(GetOwner());
+
+	if (NoiseInstigator)
+	{
+		UAISense_Hearing::ReportNoiseEvent(
+			GetWorld(),
+			GetMuzzleLocation(),
+			NoiseLoudness,
+			NoiseInstigator,
+			NoiseRange);
+	}
 
 	FHitResult HitResult;
 	if (TraceForHit(HitResult))
@@ -197,6 +228,14 @@ void UMainWeaponComponent::SetOverheated(bool bNewOverheated)
 	if (bIsOverheated == bNewOverheated)
 	{
 		return;
+	}
+	
+	bIsOverheated = bNewOverheated;
+	OnOverheatStateChanged.Broadcast(bIsOverheated);
+
+	if (bIsOverheated && OverheatSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, OverheatSound, GetMuzzleLocation(), 1.0f, 1.0f, 0.0f, SoundAttenuation);
 	}
 
 	bIsOverheated = bNewOverheated;

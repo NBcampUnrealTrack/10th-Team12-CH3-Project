@@ -4,6 +4,9 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
+class USoundBase;
+class USoundAttenuation;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, CurrentHealth, float, MaxHealth);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadOwner);
@@ -39,9 +42,21 @@ private:
 		const UDamageType* DamageType,
 		AController* InstigatedBy,
 		AActor* DamageCauser);
+	
+	void PlayHealthSound(USoundBase* SoundToPlay) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = true))
 	float MaxHealth;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = true))
 	float CurrentHealth;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundBase> HitSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundBase> DeathSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundAttenuation> SoundAttenuation;
 };
