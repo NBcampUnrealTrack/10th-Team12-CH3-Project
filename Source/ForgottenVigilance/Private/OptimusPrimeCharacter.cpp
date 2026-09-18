@@ -1,4 +1,4 @@
-﻿#include "OptimusPrimeCharacter.h"
+#include "OptimusPrimeCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
@@ -70,6 +70,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	// C++ 기본값만 지정합니다. 이후 BP의 스프링암 설정을 그대로 사용합니다.
 	SpringArmComp->TargetArmLength = DefaultCharacterTargetArmLength;
 	SpringArmComp->bUsePawnControlRotation = true;
+	SpringArmComp->SocketOffset.Z = 60.0f;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
