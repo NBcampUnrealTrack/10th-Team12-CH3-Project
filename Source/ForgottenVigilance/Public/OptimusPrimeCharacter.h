@@ -8,6 +8,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
 class UMainWeaponComponent;
+class UPawnSensingComponent;
 class UAnimMontage;
 	
 struct FInputActionValue;
@@ -62,11 +63,14 @@ private:
 	void HandleDeath(AActor* DeadOwner);
 	UFUNCTION()
 	void HandleShotFired();
+	UFUNCTION()
+	void OnPawnDetected(APawn* DetectedPawn);
 
 	void UpdateSpeed();
 	void UpdateCameraDeadZoneWidth(float DeltaTime);
 	void UpdateCameraFollow();
 	void UpdateCrosshairRotation(float DeltaTime);
+	void CheckStaleTargets();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|DeadZone",
 		meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
@@ -92,7 +96,13 @@ private:
 	float NonForwardSpeedMultiplier;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
-	
+
+	UPROPERTY(VisibleAnywhere, Category = "Seeing")
+	TObjectPtr<UPawnSensingComponent> PawnSensingComp;
+	UPROPERTY()
+	TMap<TObjectPtr<AActor>, float> DetectedEnemies;
+
+
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat")
 	TObjectPtr<UAnimMontage> LeftFireMontage = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat")
@@ -101,6 +111,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat",
 	    meta = (ClampMin = "0.01", UIMin = "0.1"))
 	float FireMontagePlayRate = 2.0f;
+
 
 	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
