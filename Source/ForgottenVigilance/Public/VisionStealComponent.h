@@ -12,6 +12,19 @@ class APlayerController;
 class SWidget;
 class USceneCaptureComponent2D;
 class UTextureRenderTarget2D;
+class USceneComponent;
+
+// 정찰 중 화면 구성. 비교용 시험 설정입니다.
+UENUM()
+enum class EReconViewMode : uint8
+{
+	// 화면 전체가 적 시야
+	FullScreen UMETA(DisplayName="Full Screen"),
+	// 큰 화면은 내 시야, 작은 창은 적 시야
+	EnemyInset UMETA(DisplayName="My View Main, Enemy Inset"),
+	// 큰 화면은 적 시야, 작은 창은 내 시야
+	SelfInset UMETA(DisplayName="Enemy View Main, My Inset")
+};
 
 // Q로 정찰 감각을 검증하는 로컬 시제품. 입력 에셋이나 빙의를 변경하지 않습니다.
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -26,8 +39,8 @@ public:
 	void UpdateReconLook(const FVector2D& LookInput);
 	void EndVisionSteal();
 	bool IsReconActive() const { return bReconActive; }
-	// 화면 전체가 적 시점으로 바뀐 경우에만 참입니다. 화면 분할 중에는 평소처럼 조작합니다.
-	bool IsFullScreenRecon() const { return bReconActive && !bActiveSplitView; }
+	// 큰 화면이 적 시야일 때 참입니다. 이때는 마우스가 적 시야 둘러보기로 쓰이고 사격이 막힙니다.
+	bool IsFullScreenRecon() const { return bReconActive && ActiveViewMode != EReconViewMode::EnemyInset; }
 	FRotator GetReconViewRotation() const;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -39,9 +52,12 @@ private:
 	AAIBaseCharacter* FindReconTarget(const FVector& ViewLocation, const FVector& ViewDirection) const;
 	void UpdateReconCamera();
 	void ShowReconMessage(const FString& Message) const;
-	void ShowSplitView(AAIBaseCharacter* Target);
+	void ShowSplitView(USceneComponent* AttachParent, float FOV, AActor* ActorToHide);
 	void HideSplitView();
+	float GetCooldownRemaining() const;
 
+	UFUNCTION()
+	void HandlePlayerHealthChanged(float CurrentHealth, float MaxHealth);
 	UFUNCTION()
 	void HandleParticipantDeath(AActor* DeadOwner);
 	UFUNCTION()
@@ -62,10 +78,19 @@ private:
 	bool bFreezeTarget = true;
 	// 화면이 대상의 몸 방향을 따라가는 속도, 초당 각도. 0이면 즉시 따라갑니다.
 	UPROPERTY(EditAnywhere, Category="Recon", meta=(ClampMin="0.0"))
-	float ReconYawFollowSpeed = 120.0f;
-	// 비교용: 켜면 내 화면은 그대로 두고 오른쪽 위 작은 창에 적 시야를 띄웁니다.
+	float ReconYawFollowSpeed = 240.0f;
+	// 비교용: 정찰 중 화면 구성. Q를 누르는 순간의 값으로 정해집니다.
 	UPROPERTY(EditAnywhere, Category="Recon")
-	bool bSplitView = true;
+	EReconViewMode ReconViewMode = EReconViewMode::SelfInset;
+	// 정찰이 저절로 끝나기까지의 시간, 초. 0이면 끝나지 않습니다.
+	UPROPERTY(EditAnywhere, Category="Recon", meta=(ClampMin="0.0"))
+	float ReconDuration = 15.0f;
+	// 정찰이 끝난 뒤 다시 쓸 수 있을 때까지의 시간, 초.
+	UPROPERTY(EditAnywhere, Category="Recon", meta=(ClampMin="0.0"))
+	float ReconCooldown = 8.0f;
+	// 켜면 정찰 중 내가 피해를 입는 순간 정찰이 끝납니다.
+	UPROPERTY(EditAnywhere, Category="Recon")
+	bool bEndOnDamage = true;
 	// 작은 창이 화면에 표시되는 크기입니다.
 	UPROPERTY(EditAnywhere, Category="Recon")
 	FVector2D SplitViewSize = FVector2D(480.0, 270.0);
@@ -79,7 +104,10 @@ private:
 	TObjectPtr<UTextureRenderTarget2D> ReconRenderTarget;
 	FSlateBrush ReconBrush;
 	TSharedPtr<SWidget> ReconOverlay;
-	bool bActiveSplitView = false;
+	EReconViewMode ActiveViewMode = EReconViewMode::FullScreen;
+	float ReconElapsed = 0.0f;
+	float LastReconEndTime = -1000.0f;
+	float LastPlayerHealth = 0.0f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACameraActor> ReconCamera;

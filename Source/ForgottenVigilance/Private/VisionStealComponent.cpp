@@ -39,6 +39,12 @@ void UVisionStealComponent::ToggleVisionSteal()
 	{
 		return;
 	}
+	const float CooldownRemaining = GetCooldownRemaining();
+	if (CooldownRemaining > 0.0f)
+	{
+		ShowReconMessage(FString::Printf(TEXT("Recon cooldown: %.1fs"), CooldownRemaining));
+		return;
+	}
 	FVector ViewLocation;
 	FRotator ViewRotation;
 	PC->GetPlayerViewPoint(ViewLocation, ViewRotation);
@@ -100,13 +106,15 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 	ReconYawOffset = 0.0f;
 	ReconPitchOffset = 0.0f;
 	bReconActive = true;
-	bActiveSplitView = bSplitView;
+	ActiveViewMode = ReconViewMode;
+	ReconElapsed = 0.0f;
 
 	UCharacterMovementComponent* Movement = Player->GetCharacterMovement();
 	bPreviousOrientRotationToMovement = Movement->bOrientRotationToMovement;
-	if (!bActiveSplitView)
+	const bool bEnemyViewIsMain = ActiveViewMode != EReconViewMode::EnemyInset;
+	if (bEnemyViewIsMain)
 	{
-		// 화면 전체 전환일 때만: 내 몸은 이동 방향을 향하게 하고 사격을 중단합니다.
+		// 큰 화면이 적 시야일 때만: 내 몸은 이동 방향을 향하게 하고 사격을 중단합니다.
 		Movement->bOrientRotationToMovement = true;
 		if (UMainWeaponComponent* Weapon = Player->FindComponentByClass<UMainWeaponComponent>())
 		{
@@ -121,15 +129,14 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 	TargetHealth->OnDeath.AddUniqueDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
 	Player->FindComponentByClass<UHealthComponent>()->OnDeath.AddUniqueDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
 	Target->OnDestroyed.AddUniqueDynamic(this, &UVisionStealComponent::HandleTargetDestroyed);
+	if (UHealthComponent* PlayerHealth = Player->FindComponentByClass<UHealthComponent>())
+	{
+		LastPlayerHealth = PlayerHealth->GetCurrentHealth();
+		PlayerHealth->OnHealthChanged.AddUniqueDynamic(this, &UVisionStealComponent::HandlePlayerHealthChanged);
+	}
 
 	UpdateReconCamera();
-	if (bActiveSplitView)
-	{
-		// 내 화면은 그대로 두고, 작은 창에 적 시야를 띄웁니다.
-		ShowSplitView(Target);
-		ShowReconMessage(TEXT("RECON | Enemy view: top-right | Play normally | Q: return"));
-	}
-	else
+	if (bEnemyViewIsMain)
 	{
 		// 카메라 안쪽으로 보이는 대상 메시만 이 플레이어의 화면에서 숨깁니다.
 		bAddedHiddenTarget = !PC->HiddenActors.Contains(Target);
@@ -139,6 +146,25 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 		}
 		// 순간 전환으로 중간 경로의 벽을 통과하는 카메라 연출을 피합니다.
 		PC->SetViewTargetWithBlend(ReconCamera, 0.0f);
+	}
+	if (ActiveViewMode == EReconViewMode::EnemyInset)
+	{
+		// 큰 화면은 내 시야 그대로, 작은 창에 적 시야를 띄웁니다.
+		ShowSplitView(ReconCamera->GetRootComponent(), ReconFOV, Target);
+		ShowReconMessage(TEXT("RECON | Enemy view: top-right | Play normally | Q: return"));
+	}
+	else if (ActiveViewMode == EReconViewMode::SelfInset)
+	{
+		// 큰 화면은 적 시야, 작은 창에 내 카메라가 보는 내 모습을 띄웁니다.
+		UCameraComponent* MyCamera = Player->FindComponentByClass<UCameraComponent>();
+		if (MyCamera)
+		{
+			ShowSplitView(MyCamera, MyCamera->FieldOfView, nullptr);
+		}
+		ShowReconMessage(TEXT("RECON | Big: enemy view | Top-right: you | Mouse: look | WASD: move | Q: return"));
+	}
+	else
+	{
 		ShowReconMessage(TEXT("RECON | Mouse: look around | WASD: move YOUR body | Q: return"));
 	}
 	SetComponentTickEnabled(true);
@@ -193,6 +219,20 @@ void UVisionStealComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		EndVisionSteal();
 		return;
 	}
+	ReconElapsed += DeltaTime;
+	if (ReconDuration > 0.0f)
+	{
+		if (ReconElapsed >= ReconDuration)
+		{
+			EndVisionSteal();
+			return;
+		}
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(771046, 0.2f, FColor::Yellow,
+				FString::Printf(TEXT("Recon: %.1fs left"), ReconDuration - ReconElapsed));
+		}
+	}
 	// 숫자 Yaw 대신 회전끼리 보간해야 -180도와 180도 경계에서 가까운 쪽으로 돕니다.
 	const FRotator TargetFacing(0.0f, ReconTarget->GetActorRotation().Yaw, 0.0f);
 	SmoothedYaw = ReconYawFollowSpeed > 0.0f
@@ -226,7 +266,7 @@ void UVisionStealComponent::EndVisionSteal()
 		{
 			PC->HiddenActors.Remove(ReconTarget.Get(true));
 		}
-		if (!bActiveSplitView)
+		if (ActiveViewMode != EReconViewMode::EnemyInset)
 		{
 			PC->SetViewTargetWithBlend(PreviousViewTarget.IsValid() ? PreviousViewTarget.Get() : Player, 0.0f);
 		}
@@ -237,6 +277,7 @@ void UVisionStealComponent::EndVisionSteal()
 		if (UHealthComponent* Health = Player->FindComponentByClass<UHealthComponent>())
 		{
 			Health->OnDeath.RemoveDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
+			Health->OnHealthChanged.RemoveDynamic(this, &UVisionStealComponent::HandlePlayerHealthChanged);
 		}
 		// 이동 모드를 저장/덮어쓰지 않으므로 정찰 중 점프·낙하·사망 상태가 유지됩니다.
 		Player->GetCharacterMovement()->bOrientRotationToMovement = bPreviousOrientRotationToMovement;
@@ -250,9 +291,31 @@ void UVisionStealComponent::EndVisionSteal()
 	ReconController.Reset();
 	PreviousViewTarget.Reset();
 	bAddedHiddenTarget = false;
-	bActiveSplitView = false;
-	ShowReconMessage(TEXT("Recon ended. Aim at an enemy and press Q to try again."));
+	ActiveViewMode = EReconViewMode::FullScreen;
+	LastReconEndTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	ShowReconMessage(FString::Printf(TEXT("Recon ended. Ready again in %.0fs."), ReconCooldown));
 	UE_LOG(LogTemp, Display, TEXT("[Recon] Ended"));
+}
+
+float UVisionStealComponent::GetCooldownRemaining() const
+{
+	const UWorld* World = GetWorld();
+	if (!World || ReconCooldown <= 0.0f)
+	{
+		return 0.0f;
+	}
+	return FMath::Max(0.0f, LastReconEndTime + ReconCooldown - World->GetTimeSeconds());
+}
+
+void UVisionStealComponent::HandlePlayerHealthChanged(float CurrentHealth, float MaxHealth)
+{
+	// 체력이 줄었을 때만 끊습니다. 회복으로 늘어난 경우는 기준값만 갱신합니다.
+	if (bEndOnDamage && CurrentHealth < LastPlayerHealth)
+	{
+		EndVisionSteal();
+		return;
+	}
+	LastPlayerHealth = CurrentHealth;
 }
 
 void UVisionStealComponent::HandleParticipantDeath(AActor* DeadOwner)
@@ -279,10 +342,10 @@ void UVisionStealComponent::ShowReconMessage(const FString& Message) const
 	}
 }
 
-void UVisionStealComponent::ShowSplitView(AAIBaseCharacter* Target)
+void UVisionStealComponent::ShowSplitView(USceneComponent* AttachParent, float FOV, AActor* ActorToHide)
 {
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
-	if (!Viewport || !IsValid(ReconCamera))
+	if (!Viewport || !AttachParent || !AttachParent->GetOwner())
 	{
 		return;
 	}
@@ -294,15 +357,18 @@ void UVisionStealComponent::ShowSplitView(AAIBaseCharacter* Target)
 		ReconRenderTarget->UpdateResourceImmediate(true);
 	}
 
-	// 촬영 컴포넌트를 정찰 카메라 액터에 붙이면 매 프레임 따로 옮기지 않아도 따라갑니다.
-	ReconCapture = NewObject<USceneCaptureComponent2D>(ReconCamera);
-	ReconCapture->SetupAttachment(ReconCamera->GetRootComponent());
+	// 촬영 컴포넌트를 찍을 카메라에 붙이면 매 프레임 따로 옮기지 않아도 따라갑니다.
+	ReconCapture = NewObject<USceneCaptureComponent2D>(AttachParent->GetOwner());
+	ReconCapture->SetupAttachment(AttachParent);
 	ReconCapture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	ReconCapture->FOVAngle = ReconFOV;
+	ReconCapture->FOVAngle = FOV;
 	ReconCapture->TextureTarget = ReconRenderTarget;
 	ReconCapture->bCaptureEveryFrame = true;
-	// 대상의 머리 안쪽이 찍히지 않도록 대상은 이 촬영에서만 숨깁니다.
-	ReconCapture->HideActorComponents(Target);
+	// 적 시야를 찍을 때는 대상의 머리 안쪽이 찍히지 않도록 대상만 이 촬영에서 숨깁니다.
+	if (ActorToHide)
+	{
+		ReconCapture->HideActorComponents(ActorToHide);
+	}
 	ReconCapture->RegisterComponent();
 
 	ReconBrush = FSlateBrush();
