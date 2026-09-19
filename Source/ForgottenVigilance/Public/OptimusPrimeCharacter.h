@@ -85,6 +85,7 @@ protected:
 	void StopCrouch(const FInputActionValue& Value);
 	UFUNCTION()
 	void StartDash(const FInputActionValue& Value);
+	void UseVisionSteal(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;

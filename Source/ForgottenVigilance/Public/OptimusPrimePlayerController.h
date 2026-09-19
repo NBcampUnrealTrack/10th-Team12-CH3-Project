@@ -41,6 +41,7 @@ public:
 	TObjectPtr<UInputAction> CrouchAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> DashAction;
+	TObjectPtr<UInputAction> VisionStealAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<UForgottenHUDWidget> HUDWidgetClass;

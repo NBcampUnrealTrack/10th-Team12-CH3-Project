@@ -534,6 +534,13 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::StopCrouch);
+		if (PlayerController->VisionStealAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->VisionStealAction,
+			    ETriggerEvent::Started,
+			    this,
+			    &AOptimusPrimeCharacter::UseVisionSteal);
 		}
 	}
 }
@@ -612,6 +619,9 @@ void AOptimusPrimeCharacter::StartDash(const FInputActionValue& Value)
 		    DashCooldown,
 		    false);
 	}
+void AOptimusPrimeCharacter::UseVisionSteal(const FInputActionValue& Value)
+{
+	VisionStealComponent->ToggleVisionSteal();
 }
 
 void AOptimusPrimeCharacter::OnPawnDetected(APawn* DetectedPawn)
