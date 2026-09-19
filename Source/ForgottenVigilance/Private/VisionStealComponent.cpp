@@ -12,6 +12,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/InputSettings.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBox.h"
 
 UVisionStealComponent::UVisionStealComponent()
 {
@@ -95,16 +100,20 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 	ReconYawOffset = 0.0f;
 	ReconPitchOffset = 0.0f;
 	bReconActive = true;
+	bActiveSplitView = bSplitView;
 
-	// 이동은 계속 허용하고, 내 몸은 이동 방향을 향하게 합니다. 사격만 중단합니다.
 	UCharacterMovementComponent* Movement = Player->GetCharacterMovement();
 	bPreviousOrientRotationToMovement = Movement->bOrientRotationToMovement;
-	Movement->bOrientRotationToMovement = true;
-	if (UMainWeaponComponent* Weapon = Player->FindComponentByClass<UMainWeaponComponent>())
+	if (!bActiveSplitView)
 	{
-		Weapon->StopFire();
+		// 화면 전체 전환일 때만: 내 몸은 이동 방향을 향하게 하고 사격을 중단합니다.
+		Movement->bOrientRotationToMovement = true;
+		if (UMainWeaponComponent* Weapon = Player->FindComponentByClass<UMainWeaponComponent>())
+		{
+			Weapon->StopFire();
+		}
+		Player->StopAnimMontage();
 	}
-	Player->StopAnimMontage();
 	if (bFreezeTarget)
 	{
 		Target->SetReconSuppressed(true);
@@ -113,17 +122,26 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 	Player->FindComponentByClass<UHealthComponent>()->OnDeath.AddUniqueDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
 	Target->OnDestroyed.AddUniqueDynamic(this, &UVisionStealComponent::HandleTargetDestroyed);
 
-	// 카메라 안쪽으로 보이는 대상 메시만 이 플레이어의 화면에서 숨깁니다.
-	bAddedHiddenTarget = !PC->HiddenActors.Contains(Target);
-	if (bAddedHiddenTarget)
-	{
-		PC->HiddenActors.Add(Target);
-	}
 	UpdateReconCamera();
-	// 순간 전환으로 중간 경로의 벽을 통과하는 카메라 연출을 피합니다.
-	PC->SetViewTargetWithBlend(ReconCamera, 0.0f);
+	if (bActiveSplitView)
+	{
+		// 내 화면은 그대로 두고, 작은 창에 적 시야를 띄웁니다.
+		ShowSplitView(Target);
+		ShowReconMessage(TEXT("RECON | Enemy view: top-right | Play normally | Q: return"));
+	}
+	else
+	{
+		// 카메라 안쪽으로 보이는 대상 메시만 이 플레이어의 화면에서 숨깁니다.
+		bAddedHiddenTarget = !PC->HiddenActors.Contains(Target);
+		if (bAddedHiddenTarget)
+		{
+			PC->HiddenActors.Add(Target);
+		}
+		// 순간 전환으로 중간 경로의 벽을 통과하는 카메라 연출을 피합니다.
+		PC->SetViewTargetWithBlend(ReconCamera, 0.0f);
+		ShowReconMessage(TEXT("RECON | Mouse: look around | WASD: move YOUR body | Q: return"));
+	}
 	SetComponentTickEnabled(true);
-	ShowReconMessage(TEXT("RECON | Mouse: look around | WASD: move YOUR body | Q: return"));
 	UE_LOG(LogTemp, Display, TEXT("[Recon] Started: %s"), *Target->GetName());
 	return true;
 }
@@ -208,8 +226,12 @@ void UVisionStealComponent::EndVisionSteal()
 		{
 			PC->HiddenActors.Remove(ReconTarget.Get(true));
 		}
-		PC->SetViewTargetWithBlend(PreviousViewTarget.IsValid() ? PreviousViewTarget.Get() : Player, 0.0f);
+		if (!bActiveSplitView)
+		{
+			PC->SetViewTargetWithBlend(PreviousViewTarget.IsValid() ? PreviousViewTarget.Get() : Player, 0.0f);
+		}
 	}
+	HideSplitView();
 	if (Player)
 	{
 		if (UHealthComponent* Health = Player->FindComponentByClass<UHealthComponent>())
@@ -228,6 +250,7 @@ void UVisionStealComponent::EndVisionSteal()
 	ReconController.Reset();
 	PreviousViewTarget.Reset();
 	bAddedHiddenTarget = false;
+	bActiveSplitView = false;
 	ShowReconMessage(TEXT("Recon ended. Aim at an enemy and press Q to try again."));
 	UE_LOG(LogTemp, Display, TEXT("[Recon] Ended"));
 }
@@ -254,4 +277,66 @@ void UVisionStealComponent::ShowReconMessage(const FString& Message) const
 	{
 		GEngine->AddOnScreenDebugMessage(771045, 8.0f, FColor::Cyan, Message);
 	}
+}
+
+void UVisionStealComponent::ShowSplitView(AAIBaseCharacter* Target)
+{
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+	if (!Viewport || !IsValid(ReconCamera))
+	{
+		return;
+	}
+	// 시험용이라 에셋 없이 실행 중에 렌더 타깃을 한 번만 만들어 재사용합니다.
+	if (!ReconRenderTarget)
+	{
+		ReconRenderTarget = NewObject<UTextureRenderTarget2D>(this);
+		ReconRenderTarget->InitAutoFormat(SplitViewResolution.X, SplitViewResolution.Y);
+		ReconRenderTarget->UpdateResourceImmediate(true);
+	}
+
+	// 촬영 컴포넌트를 정찰 카메라 액터에 붙이면 매 프레임 따로 옮기지 않아도 따라갑니다.
+	ReconCapture = NewObject<USceneCaptureComponent2D>(ReconCamera);
+	ReconCapture->SetupAttachment(ReconCamera->GetRootComponent());
+	ReconCapture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	ReconCapture->FOVAngle = ReconFOV;
+	ReconCapture->TextureTarget = ReconRenderTarget;
+	ReconCapture->bCaptureEveryFrame = true;
+	// 대상의 머리 안쪽이 찍히지 않도록 대상은 이 촬영에서만 숨깁니다.
+	ReconCapture->HideActorComponents(Target);
+	ReconCapture->RegisterComponent();
+
+	ReconBrush = FSlateBrush();
+	ReconBrush.SetResourceObject(ReconRenderTarget);
+	ReconBrush.ImageSize = SplitViewSize;
+	ReconOverlay = SNew(SBox)
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(FMargin(0.0f, 32.0f, 32.0f, 0.0f))
+		[
+			SNew(SBox)
+			.WidthOverride(SplitViewSize.X)
+			.HeightOverride(SplitViewSize.Y)
+			[
+				SNew(SImage).Image(&ReconBrush)
+			]
+		];
+	Viewport->AddViewportWidgetContent(ReconOverlay.ToSharedRef(), 10);
+}
+
+void UVisionStealComponent::HideSplitView()
+{
+	if (ReconOverlay.IsValid())
+	{
+		UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+		if (Viewport)
+		{
+			Viewport->RemoveViewportWidgetContent(ReconOverlay.ToSharedRef());
+		}
+		ReconOverlay.Reset();
+	}
+	if (IsValid(ReconCapture))
+	{
+		ReconCapture->DestroyComponent();
+	}
+	ReconCapture = nullptr;
 }

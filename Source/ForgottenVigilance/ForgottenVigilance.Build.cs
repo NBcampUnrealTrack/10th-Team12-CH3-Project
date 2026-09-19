@@ -18,6 +18,6 @@ public class ForgottenVigilance : ModuleRules
             "NavigationSystem"
         });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 	}
 }

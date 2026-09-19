@@ -238,7 +238,7 @@ void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookInput = Value.Get<FVector2D>();
-	if (VisionStealComponent->IsReconActive())
+	if (VisionStealComponent->IsFullScreenRecon())
 	{
 		VisionStealComponent->UpdateReconLook(LookInput);
 		return;
@@ -262,7 +262,7 @@ void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& Value)
 
 void AOptimusPrimeCharacter::FireWeapon(const FInputActionValue& Value)
 {
-	if (VisionStealComponent->IsReconActive()) return;
+	if (VisionStealComponent->IsFullScreenRecon()) return;
 	MainWeaponComponent->StartFire();
 }
 
@@ -351,7 +351,7 @@ void AOptimusPrimeCharacter::Tick(float DeltaTime)
 
 void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 {
-	if (VisionStealComponent->IsReconActive()) return;
+	if (VisionStealComponent->IsFullScreenRecon()) return;
 	const AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController());
 	if (!IsLocallyControlled() || !PlayerController || !MainWeaponComponent || IsCharacterDead())
 	{
@@ -473,7 +473,7 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 void AOptimusPrimeCharacter::Interact(const FInputActionValue& Value)
 {
-	if (VisionStealComponent->IsReconActive()) return;
+	if (VisionStealComponent->IsFullScreenRecon()) return;
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, AForgottenLever::StaticClass());
 

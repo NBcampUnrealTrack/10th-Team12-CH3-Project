@@ -3,11 +3,15 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Styling/SlateBrush.h"
 #include "VisionStealComponent.generated.h"
 
 class AAIBaseCharacter;
 class ACameraActor;
 class APlayerController;
+class SWidget;
+class USceneCaptureComponent2D;
+class UTextureRenderTarget2D;
 
 // Q로 정찰 감각을 검증하는 로컬 시제품. 입력 에셋이나 빙의를 변경하지 않습니다.
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -22,6 +26,8 @@ public:
 	void UpdateReconLook(const FVector2D& LookInput);
 	void EndVisionSteal();
 	bool IsReconActive() const { return bReconActive; }
+	// 화면 전체가 적 시점으로 바뀐 경우에만 참입니다. 화면 분할 중에는 평소처럼 조작합니다.
+	bool IsFullScreenRecon() const { return bReconActive && !bActiveSplitView; }
 	FRotator GetReconViewRotation() const;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -33,6 +39,8 @@ private:
 	AAIBaseCharacter* FindReconTarget(const FVector& ViewLocation, const FVector& ViewDirection) const;
 	void UpdateReconCamera();
 	void ShowReconMessage(const FString& Message) const;
+	void ShowSplitView(AAIBaseCharacter* Target);
+	void HideSplitView();
 
 	UFUNCTION()
 	void HandleParticipantDeath(AActor* DeadOwner);
@@ -55,6 +63,23 @@ private:
 	// 화면이 대상의 몸 방향을 따라가는 속도, 초당 각도. 0이면 즉시 따라갑니다.
 	UPROPERTY(EditAnywhere, Category="Recon", meta=(ClampMin="0.0"))
 	float ReconYawFollowSpeed = 120.0f;
+	// 비교용: 켜면 내 화면은 그대로 두고 오른쪽 위 작은 창에 적 시야를 띄웁니다.
+	UPROPERTY(EditAnywhere, Category="Recon")
+	bool bSplitView = true;
+	// 작은 창이 화면에 표시되는 크기입니다.
+	UPROPERTY(EditAnywhere, Category="Recon")
+	FVector2D SplitViewSize = FVector2D(480.0, 270.0);
+	// 적 시야를 촬영하는 해상도입니다. 클수록 선명하지만 무거워집니다.
+	UPROPERTY(EditDefaultsOnly, Category="Recon")
+	FIntPoint SplitViewResolution = FIntPoint(640, 360);
+
+	UPROPERTY(Transient)
+	TObjectPtr<USceneCaptureComponent2D> ReconCapture;
+	UPROPERTY(Transient)
+	TObjectPtr<UTextureRenderTarget2D> ReconRenderTarget;
+	FSlateBrush ReconBrush;
+	TSharedPtr<SWidget> ReconOverlay;
+	bool bActiveSplitView = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACameraActor> ReconCamera;
