@@ -1,4 +1,5 @@
 #include "MeleeAttackComponent.h"
+#include "AIBaseCharacter.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
@@ -12,7 +13,8 @@ UMeleeAttackComponent::UMeleeAttackComponent()
 
 bool UMeleeAttackComponent::CanAttack() const
 {
-	return !bIsAttackOnCooldown;
+	const AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(GetOwner());
+	return !bIsAttackOnCooldown && (!AI || !AI->IsReconSuppressed());
 }
 
 void UMeleeAttackComponent::PerformAttack(AActor* TargetActor)
@@ -60,6 +62,11 @@ void UMeleeAttackComponent::ApplyCachedDamage()
 
 void UMeleeAttackComponent::ApplyDamage(AActor* TargetActor)
 {
+	// 공격 시작 후 정찰 상태가 된 경우 남은 피해 노티파이도 무시합니다.
+	if (const AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(GetOwner()); AI && AI->IsReconSuppressed())
+	{
+		return;
+	}
 	AActor* OwnerActor = GetOwner();
 
 	if (!OwnerActor || !TargetActor)

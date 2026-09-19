@@ -1,4 +1,5 @@
 #include "AIRangeWeaponComponent.h"
+#include "AIBaseCharacter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,6 +14,11 @@ UAIRangeWeaponComponent::UAIRangeWeaponComponent()
 
 void UAIRangeWeaponComponent::FireGun()
 {
+	// 정찰 중에는 BP 타이머나 노티파이에서 들어오는 발사 요청도 차단합니다.
+	if (const AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(GetOwner()); AI && AI->IsReconSuppressed())
+	{
+		return;
+	}
 	FHitResult HitResult;
 
 	if (!AITraceForHit(HitResult))

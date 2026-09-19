@@ -7,6 +7,8 @@
 class UHealthComponent;
 class UScoreOnDeathComponent;
 class UAnimMontage;
+class UBrainComponent;
+class AAIController;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AAIBaseCharacter : public ACharacter
@@ -16,6 +18,8 @@ class FORGOTTENVIGILANCE_API AAIBaseCharacter : public ACharacter
 public:
 	AAIBaseCharacter();
 	void SetMovementSpeed(float NewSpeed);
+	void SetReconSuppressed(bool bSuppressed);
+	bool IsReconSuppressed() const { return bReconSuppressed; }
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float WalkSpeed = 300.0f;
@@ -52,4 +56,14 @@ private:
 	TObjectPtr<UScoreOnDeathComponent> ScoreOnDeathComponent;
 
 	float PreviousHealth = 0.0f;
+
+	// 정찰 시 변경한 상태만 복구하며, 사망 후에는 AI/이동을 재개하지 않습니다.
+	bool bReconSuppressed = false;
+	bool bReconPausedBrain = false;
+	bool bReconControllerTickEnabled = false;
+	bool bReconUseControllerRotationYaw = false;
+	uint8 ReconPreviousMovementMode = 0;
+	uint8 ReconPreviousCustomMovementMode = 0;
+	TWeakObjectPtr<UBrainComponent> ReconPausedBrain;
+	TWeakObjectPtr<AAIController> ReconAIController;
 };

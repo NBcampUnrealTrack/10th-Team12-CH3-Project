@@ -13,6 +13,7 @@ class UMainWeaponComponent;
 class UPawnSensingComponent;
 class UAnimMontage;
 class UAnimSequence;
+class UVisionStealComponent;
 
 struct FInputActionValue;
 
@@ -79,6 +80,10 @@ private:
 	void UpdateCameraFollow();
 	void UpdateCrosshairRotation(float DeltaTime);
 	void CheckStaleTargets();
+	void ToggleVisionSteal();
+
+	UPROPERTY(VisibleAnywhere, Category = "Recon")
+	TObjectPtr<UVisionStealComponent> VisionStealComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|DeadZone",
 		meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
@@ -135,4 +140,7 @@ private:
 	FVector PreviousCameraTargetLocation = FVector::ZeroVector;
 	FVector InitialCameraPivotOffset = FVector::ZeroVector;
 	bool bDeadZoneWidthInitialized = false;
+#if WITH_DEV_AUTOMATION_TESTS
+	friend class FVisionStealLifecycleTest;
+#endif
 };

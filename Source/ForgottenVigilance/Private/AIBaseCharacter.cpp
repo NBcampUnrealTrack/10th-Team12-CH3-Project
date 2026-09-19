@@ -6,6 +6,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BrainComponent.h"
+#include "Animation/AnimInstance.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -37,6 +39,65 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 
 	Movement->MaxWalkSpeed = NewSpeed;
 	UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
+}
+
+void AAIBaseCharacter::SetReconSuppressed(bool bSuppressed)
+{
+	if (bReconSuppressed == bSuppressed)
+	{
+		return;
+	}
+	if (bSuppressed && (!HealthComponent || !HealthComponent->IsAlive()))
+	{
+		return;
+	}
+	bReconSuppressed = bSuppressed;
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (bSuppressed)
+	{
+		ReconPreviousMovementMode = Movement->MovementMode;
+		ReconPreviousCustomMovementMode = Movement->CustomMovementMode;
+		bReconUseControllerRotationYaw = bUseControllerRotationYaw;
+		bUseControllerRotationYaw = false;
+		ReconAIController = Cast<AAIController>(GetController());
+		if (AAIController* AI = ReconAIController.Get())
+		{
+			ReconPausedBrain = AI->GetBrainComponent();
+			bReconPausedBrain = ReconPausedBrain.IsValid() && ReconPausedBrain->IsRunning() && !ReconPausedBrain->IsPaused();
+			if (bReconPausedBrain)
+			{
+				ReconPausedBrain->PauseLogic(TEXT("Vision steal"));
+			}
+			AI->StopMovement();
+			bReconControllerTickEnabled = AI->IsActorTickEnabled();
+			AI->SetActorTickEnabled(false);
+		}
+		Movement->StopMovementImmediately();
+		Movement->DisableMovement();
+		// 기존 공격 몽타주의 남은 노티파이를 취소합니다. 피해 함수에도 상태 검사를 둡니다.
+		if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+		{
+			Anim->Montage_Stop(0.0f);
+		}
+		return;
+	}
+
+	if (HealthComponent && HealthComponent->IsAlive())
+	{
+		bUseControllerRotationYaw = bReconUseControllerRotationYaw;
+		Movement->SetMovementMode(static_cast<EMovementMode>(ReconPreviousMovementMode), ReconPreviousCustomMovementMode);
+		if (AAIController* AI = ReconAIController.Get(); AI && AI == GetController())
+		{
+			AI->SetActorTickEnabled(bReconControllerTickEnabled);
+			if (bReconPausedBrain && ReconPausedBrain.IsValid() && ReconPausedBrain->IsPaused())
+			{
+				ReconPausedBrain->ResumeLogic(TEXT("Vision steal ended"));
+			}
+		}
+	}
+	ReconPausedBrain.Reset();
+	ReconAIController.Reset();
+	bReconPausedBrain = false;
 }
 
 void AAIBaseCharacter::BeginPlay()

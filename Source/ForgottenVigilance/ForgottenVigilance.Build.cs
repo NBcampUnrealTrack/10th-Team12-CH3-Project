@@ -14,6 +14,7 @@ public class ForgottenVigilance : ModuleRules
 			"InputCore", 
 			"EnhancedInput",
 			"UMG",
+			"AIModule",
             "NavigationSystem"
         });
 

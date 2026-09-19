@@ -140,7 +140,7 @@ int32 AAIBossCharacter::SelectPatternIndex(float DistanceToTarget) const
 
 float AAIBossCharacter::ExecuteAttackPattern(AActor* TargetActor)
 {
-	if (!TargetActor || BossPhase == EBossPhase::Defeated)
+	if (!TargetActor || BossPhase == EBossPhase::Defeated || IsReconSuppressed())
 	{
 		return BossZeroThreshold;
 	}
@@ -161,6 +161,10 @@ float AAIBossCharacter::ExecuteAttackPattern(AActor* TargetActor)
 
 void AAIBossCharacter::ApplyCurrentPatternDamage()
 {
+	if (IsReconSuppressed())
+	{
+		return;
+	}
 	if (!AttackPatterns.IsValidIndex(CurrentPatternIndex))
 	{
 		return;

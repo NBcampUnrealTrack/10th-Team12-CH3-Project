@@ -1,4 +1,6 @@
 #include "OptimusPrimeCharacter.h"
+#include "VisionStealComponent.h"
+#include "InputCoreTypes.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
@@ -64,6 +66,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 	MainWeaponComponent = CreateDefaultSubobject<UMainWeaponComponent>(TEXT("MainWeapon"));
+	VisionStealComponent = CreateDefaultSubobject<UVisionStealComponent>(TEXT("VisionSteal"));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -102,6 +105,7 @@ void AOptimusPrimeCharacter::UpdateSpeed()
 
 void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
 {
+	VisionStealComponent->EndVisionSteal();
 	GetCharacterMovement()->DisableMovement();
 
 	if (MainWeaponComponent)
@@ -191,7 +195,9 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 	}
 
 	const FVector2D MoveInput = Value.Get<FVector2D>();
-	const FRotator ControlRotation = Controller->GetControlRotation();
+	// 정찰 중 W는 적 카메라가 보는 수평 방향으로 내 캐릭터를 이동시킵니다.
+	const FRotator ControlRotation = VisionStealComponent->IsReconActive()
+		? VisionStealComponent->GetReconViewRotation() : Controller->GetControlRotation();
 	const FRotator YawRotation = FRotator(0.0f, ControlRotation.Yaw, 0.0f);
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
@@ -234,6 +240,11 @@ void AOptimusPrimeCharacter::StopJump(const FInputActionValue& Value)
 void AOptimusPrimeCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookInput = Value.Get<FVector2D>();
+	if (VisionStealComponent->IsReconActive())
+	{
+		VisionStealComponent->UpdateReconLook(LookInput);
+		return;
+	}
 
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
@@ -253,6 +264,7 @@ void AOptimusPrimeCharacter::StopSprint(const FInputActionValue& Value)
 
 void AOptimusPrimeCharacter::FireWeapon(const FInputActionValue& Value)
 {
+	if (VisionStealComponent->IsReconActive()) return;
 	MainWeaponComponent->StartFire();
 }
 
@@ -341,6 +353,7 @@ void AOptimusPrimeCharacter::Tick(float DeltaTime)
 
 void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 {
+	if (VisionStealComponent->IsReconActive()) return;
 	const AOptimusPrimePlayerController* PlayerController = Cast<AOptimusPrimePlayerController>(GetController());
 	if (!IsLocallyControlled() || !PlayerController || !MainWeaponComponent || IsCharacterDead())
 	{
@@ -366,6 +379,8 @@ void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	// 시제품 전용 Q 바인딩. 정식 능력 채택 시 Enhanced Input 에셋으로 옮깁니다.
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AOptimusPrimeCharacter::ToggleVisionSteal);
 
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (!EnhancedInput)
@@ -460,6 +475,7 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 void AOptimusPrimeCharacter::Interact(const FInputActionValue& Value)
 {
+	if (VisionStealComponent->IsReconActive()) return;
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, AForgottenLever::StaticClass());
 
@@ -504,4 +520,9 @@ void AOptimusPrimeCharacter::CheckStaleTargets()
 	{
 		DetectedEnemies.Remove(StaleTarget);
 	}
+}
+
+void AOptimusPrimeCharacter::ToggleVisionSteal()
+{
+	VisionStealComponent->ToggleVisionSteal();
 }
