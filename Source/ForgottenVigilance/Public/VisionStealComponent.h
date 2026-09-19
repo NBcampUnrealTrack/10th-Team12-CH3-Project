@@ -49,6 +49,9 @@ private:
 	float ReconLookSensitivity = 1.0f;
 	UPROPERTY(EditDefaultsOnly, Category="Recon", meta=(ClampMin="30.0", ClampMax="120.0"))
 	float ReconFOV = 90.0f;
+	// 비교용: 끄면 정찰 중에도 대상 AI가 계속 움직이고 공격합니다.
+	UPROPERTY(EditAnywhere, Category="Recon")
+	bool bFreezeTarget = true;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACameraActor> ReconCamera;

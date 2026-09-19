@@ -104,7 +104,10 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 		Weapon->StopFire();
 	}
 	Player->StopAnimMontage();
-	Target->SetReconSuppressed(true);
+	if (bFreezeTarget)
+	{
+		Target->SetReconSuppressed(true);
+	}
 	TargetHealth->OnDeath.AddUniqueDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
 	Player->FindComponentByClass<UHealthComponent>()->OnDeath.AddUniqueDynamic(this, &UVisionStealComponent::HandleParticipantDeath);
 	Target->OnDestroyed.AddUniqueDynamic(this, &UVisionStealComponent::HandleTargetDestroyed);
