@@ -1,4 +1,4 @@
-// VisionStealComponent.cpp
+﻿// VisionStealComponent.cpp
 #include "VisionStealComponent.h"
 #include "AIBaseCharacter.h"
 #include "OptimusPrimeCharacter.h"
@@ -91,6 +91,7 @@ bool UVisionStealComponent::StartVisionSteal(AAIBaseCharacter* Target, APlayerCo
 	ReconController = PC;
 	PreviousViewTarget = PC->GetViewTarget();
 	StartingYaw = Target->GetActorRotation().Yaw;
+	SmoothedYaw = StartingYaw;
 	ReconYawOffset = 0.0f;
 	ReconPitchOffset = 0.0f;
 	bReconActive = true;
@@ -144,7 +145,8 @@ void UVisionStealComponent::UpdateReconLook(const FVector2D& LookInput)
 
 FRotator UVisionStealComponent::GetReconViewRotation() const
 {
-	return FRotator(ReconPitchOffset, StartingYaw + ReconYawOffset, 0.0f);
+	// 대상의 몸 방향은 TickComponent에서 SmoothedYaw로 부드럽게 따라갑니다.
+	return FRotator(ReconPitchOffset, SmoothedYaw + ReconYawOffset, 0.0f);
 }
 
 void UVisionStealComponent::UpdateReconCamera()
@@ -173,6 +175,11 @@ void UVisionStealComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		EndVisionSteal();
 		return;
 	}
+	// 숫자 Yaw 대신 회전끼리 보간해야 -180도와 180도 경계에서 가까운 쪽으로 돕니다.
+	const FRotator TargetFacing(0.0f, ReconTarget->GetActorRotation().Yaw, 0.0f);
+	SmoothedYaw = ReconYawFollowSpeed > 0.0f
+		? FMath::RInterpConstantTo(FRotator(0.0f, SmoothedYaw, 0.0f), TargetFacing, DeltaTime, ReconYawFollowSpeed).Yaw
+		: TargetFacing.Yaw;
 	UpdateReconCamera();
 }
 

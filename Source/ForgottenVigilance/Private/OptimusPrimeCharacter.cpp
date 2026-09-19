@@ -1,4 +1,4 @@
-#include "OptimusPrimeCharacter.h"
+﻿#include "OptimusPrimeCharacter.h"
 #include "VisionStealComponent.h"
 #include "InputCoreTypes.h"
 #include "Engine/LocalPlayer.h"
@@ -195,9 +195,7 @@ void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
 	}
 
 	const FVector2D MoveInput = Value.Get<FVector2D>();
-	// 정찰 중 W는 적 카메라가 보는 수평 방향으로 내 캐릭터를 이동시킵니다.
-	const FRotator ControlRotation = VisionStealComponent->IsReconActive()
-		? VisionStealComponent->GetReconViewRotation() : Controller->GetControlRotation();
+	const FRotator ControlRotation = Controller->GetControlRotation();
 	const FRotator YawRotation = FRotator(0.0f, ControlRotation.Yaw, 0.0f);
 
 	if (!FMath::IsNearlyZero(MoveInput.X))

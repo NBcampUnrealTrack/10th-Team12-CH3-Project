@@ -52,6 +52,9 @@ private:
 	// 비교용: 끄면 정찰 중에도 대상 AI가 계속 움직이고 공격합니다.
 	UPROPERTY(EditAnywhere, Category="Recon")
 	bool bFreezeTarget = true;
+	// 화면이 대상의 몸 방향을 따라가는 속도, 초당 각도. 0이면 즉시 따라갑니다.
+	UPROPERTY(EditAnywhere, Category="Recon", meta=(ClampMin="0.0"))
+	float ReconYawFollowSpeed = 120.0f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACameraActor> ReconCamera;
@@ -59,6 +62,8 @@ private:
 	TWeakObjectPtr<APlayerController> ReconController;
 	TWeakObjectPtr<AActor> PreviousViewTarget;
 	float StartingYaw = 0.0f;
+	// 대상의 몸 방향을 부드럽게 따라가는 화면 기준 Yaw입니다.
+	float SmoothedYaw = 0.0f;
 	float ReconYawOffset = 0.0f;
 	float ReconPitchOffset = 0.0f;
 	bool bPreviousOrientRotationToMovement = false;
