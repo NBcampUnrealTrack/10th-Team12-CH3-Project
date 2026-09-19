@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDamaged);
 class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
+class UVisionStealComponent;
 class UMainWeaponComponent;
 class UPawnSensingComponent;
 class UAnimMontage;
@@ -131,6 +132,8 @@ private:
 	TObjectPtr<UHealthComponent> HealthComp;
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	TObjectPtr<UMainWeaponComponent> MainWeaponComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Ability|VisionSteal")
+	TObjectPtr<UVisionStealComponent> VisionStealComponent;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float NormalSpeed;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")

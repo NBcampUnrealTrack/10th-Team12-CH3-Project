@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HealthComponent.h"
+#include "VisionStealComponent.h"
 #include "MainWeaponComponent.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
@@ -74,6 +75,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 	MainWeaponComponent = CreateDefaultSubobject<UMainWeaponComponent>(TEXT("MainWeapon"));
+	VisionStealComponent = CreateDefaultSubobject<UVisionStealComponent>(TEXT("VisionSteal"));
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
