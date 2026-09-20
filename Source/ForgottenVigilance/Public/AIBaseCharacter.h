@@ -25,6 +25,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "AI") 
 	bool bLoseTargetOnHit = true;
+	
+	UPROPERTY(EditAnywhere, Category = "AI")
+	bool bStunOnHit = true;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float StunDuration = 0.3f;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float DeadDestoryTime = 3.0f;
@@ -44,6 +50,9 @@ private:
 
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
+	
+	UFUNCTION()
+	void ClearStun();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
@@ -52,4 +61,6 @@ private:
 	TObjectPtr<UScoreOnDeathComponent> ScoreOnDeathComponent;
 
 	float PreviousHealth = 0.0f;
+	
+	FTimerHandle StunTimerHandle;
 };

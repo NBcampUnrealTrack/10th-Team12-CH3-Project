@@ -10,6 +10,7 @@
 #include "Engine/GameViewportClient.h"
 #include "Engine/LocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
+#include "ForgottenGameClear.h"
 
 namespace
 {
@@ -32,6 +33,8 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
 	  , GameOverWidgetInstance(nullptr)
 	  , InitialCameraPitch(DefaultInitialCameraPitch)
 	  , AimRotationSpeed(DefaultAimRotationSpeed)
+	  , GameClearWidgetClass(nullptr)
+	  , GameClearWidgetInstance(nullptr)
 {
 }
 
@@ -54,7 +57,7 @@ void AOptimusPrimePlayerController::BeginPlay()
 	{
 		return;
 	}
-	
+
 	if (UGameViewportClient* ViewportClient = LocalPlayer->ViewportClient)
 	{
 		ViewportClient->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
@@ -75,40 +78,28 @@ void AOptimusPrimePlayerController::BeginPlay()
 void AOptimusPrimePlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	if (AOptimusPrimeCharacter* PossessedCharacter = Cast<AOptimusPrimeCharacter>(InPawn))
-	{
-		if (UHealthComponent* HealthComp = PossessedCharacter->FindComponentByClass<UHealthComponent>())
-		{
-			HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimePlayerController::HandlePlayerDeath);
-		}
-	}
-}
-
-void AOptimusPrimePlayerController::HandlePlayerDeath(AActor* DeadOwner)
-{
-	ShowGameOver();
 }
 
 void AOptimusPrimePlayerController::ShowMainMenu()
 {
 	if (!MainMenuWidgetClass)
-	{ 
+	{
 		return;
 	}
 
-	UForgottenMain* MainMenuWidget = CreateWidget<UForgottenMain>(this, MainMenuWidgetClass);
+	ClearAllWidgets();
 
-	if (MainMenuWidget)
+	MainMenuWidgetInstance = CreateWidget<UForgottenMain>(this, MainMenuWidgetClass);
+
+	if (MainMenuWidgetInstance)
 	{
-		MainMenuWidget->AddToViewport();
+		MainMenuWidgetInstance->AddToViewport();
 	}
 
 	bShowMouseCursor = true;
 	SetShowMouseCursor(true);
 
 	FInputModeUIOnly InputMode;
-	
 	SetInputMode(InputMode);
 }
 
@@ -119,13 +110,16 @@ void AOptimusPrimePlayerController::ShowHUD()
 		return;
 	}
 
-	UForgottenHUDWidget* HUDWidget = CreateWidget<UForgottenHUDWidget>(this, HUDWidgetClass);
+	ClearAllWidgets();
 
-	if (HUDWidget)
+	HUDWidgetInstance = CreateWidget<UForgottenHUDWidget>(this, HUDWidgetClass);
+
+	if (HUDWidgetInstance)
 	{
-		HUDWidget->AddToViewport();
+		HUDWidgetInstance->AddToViewport();
 	}
 
+	bShowMouseCursor = false;
 	SetShowMouseCursor(false);
 
 	FInputModeGameOnly InputMode;
@@ -138,12 +132,37 @@ void AOptimusPrimePlayerController::ShowGameOver()
 	{
 		return;
 	}
+	
+	ClearAllWidgets();
 
 	UForgottenGameOver* GameOverWidget = CreateWidget<UForgottenGameOver>(this, GameOverWidgetClass);
 
 	if (GameOverWidget)
 	{
 		GameOverWidget->AddToViewport();
+	}
+
+	bShowMouseCursor = true;
+	SetShowMouseCursor(true);
+
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+}
+
+void AOptimusPrimePlayerController::ShowGameClear()
+{
+	if (!GameClearWidgetClass)
+	{
+		return;
+	}
+
+	ClearAllWidgets();
+
+	GameClearWidgetInstance = CreateWidget<UForgottenGameClear>(this, GameClearWidgetClass);
+
+	if (GameClearWidgetInstance)
+	{
+		GameClearWidgetInstance->AddToViewport();
 	}
 
 	SetShowMouseCursor(true);
@@ -170,6 +189,12 @@ void AOptimusPrimePlayerController::ClearAllWidgets()
 	{
 		GameOverWidgetInstance->RemoveFromParent();
 		GameOverWidgetInstance = nullptr;
+	}
+	
+	if (GameClearWidgetInstance)
+	{
+		GameClearWidgetInstance->RemoveFromParent();
+		GameClearWidgetInstance = nullptr;
 	}
 }
 
