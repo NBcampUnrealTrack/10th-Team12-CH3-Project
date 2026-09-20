@@ -12,6 +12,7 @@ class UForgottenMain;
 class UForgottenHUDWidget;
 class UForgottenGameOver;
 class UHealthComponent;
+class UForgottenGameClear;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AOptimusPrimePlayerController : public APlayerController
@@ -51,6 +52,11 @@ public:
 	TSubclassOf<UForgottenGameOver> GameOverWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Over")
 	TObjectPtr<UForgottenGameOver> GameOverWidgetInstance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Clear")
+	TSubclassOf<UForgottenGameClear> GameClearWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Clear")
+	TObjectPtr<UForgottenGameClear> GameClearWidgetInstance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	FName MainMenuLevelName; 
@@ -63,6 +69,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowGameOver();
+	
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowGameClear();
 
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void StartGame();
@@ -74,9 +83,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnPossess(APawn* InPawn) override;
-
-	UFUNCTION()
-	void HandlePlayerDeath(AActor* DeadOwner);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")

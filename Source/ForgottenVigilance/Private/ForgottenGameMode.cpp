@@ -122,10 +122,16 @@ void AForgottenGameMode::FinishGame(bool bCleared)
 	}
 
 	AOptimusPrimePlayerController* ForgottenController =
-		GetWorld()->GetFirstPlayerController<AOptimusPrimePlayerController>();
+	GetWorld()->GetFirstPlayerController<AOptimusPrimePlayerController>();
 
 	if (!ForgottenController)
 	{
+		return;
+	}
+
+	if (bCleared)
+	{
+		ForgottenController->ShowGameClear();
 		return;
 	}
 

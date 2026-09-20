@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "TimerManager.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -83,12 +84,29 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 		}
 		if (HitMontage)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AI HIT!"));
 			PlayAnimMontage(HitMontage);
 		}
-		else
+
+		if (bStunOnHit)
 		{
-			UE_LOG(LogTemp, Error, TEXT("HitMontage is NULL!"));
+			AAIBaseController* StunController = Cast<AAIBaseController>(GetController());
+
+			if (StunController)
+			{
+				UBlackboardComponent* StunBlackboard = StunController->GetBlackboardComponent();
+
+				if (StunBlackboard)
+				{
+					StunBlackboard->SetValueAsBool(TEXT("IsStunned"), true);
+				}
+			}
+
+			GetWorldTimerManager().SetTimer(
+				StunTimerHandle,
+				this,
+				&AAIBaseCharacter::ClearStun,
+				StunDuration,
+				false);
 		}
 	}
 
@@ -98,6 +116,25 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 	    MaxHealth);
 
 	PreviousHealth = CurrentHealth;
+}
+
+void AAIBaseCharacter::ClearStun()
+{
+	AAIBaseController* StunController = Cast<AAIBaseController>(GetController());
+
+	if (!StunController)
+	{
+		return;
+	}
+
+	UBlackboardComponent* StunBlackboard = StunController->GetBlackboardComponent();
+
+	if (!StunBlackboard)
+	{
+		return;
+	}
+
+	StunBlackboard->SetValueAsBool(TEXT("IsStunned"), false);
 }
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)

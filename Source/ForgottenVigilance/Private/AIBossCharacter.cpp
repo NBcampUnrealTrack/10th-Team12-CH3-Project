@@ -32,6 +32,7 @@ AAIBossCharacter::AAIBossCharacter()
 	CurrentPatternIndex = InvalidPatternIndex;
 	AttackCounter = 0;
 	GetCharacterMovement()->bUseRVOAvoidance = false;
+	StunDuration = 0.1f;
 }
 
 void AAIBossCharacter::BeginPlay()
