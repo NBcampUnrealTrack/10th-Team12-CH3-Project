@@ -17,6 +17,10 @@ public:
 
 	UFUNCTION()
 	void ToggleVisionSteal();
+	UFUNCTION()
+	bool StartVisionSteal(AActor* Target);
+	UFUNCTION()
+	void EndVisionSteal();
 
 	UVisionStealComponent();
 
@@ -28,4 +32,10 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "VisionSteal")
 	float MaxTargetDistance = 3000.0f;
+	UPROPERTY(EditAnywhere, Category = "VisionSteal")
+	float ViewTargetBlendTime = 0.05f;
+
+	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
+	bool bVisionStealActive = false;
+	FTimerHandle VisionStealTimerHandle;
 };

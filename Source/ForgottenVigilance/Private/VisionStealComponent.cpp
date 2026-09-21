@@ -5,7 +5,76 @@
 
 void UVisionStealComponent::ToggleVisionSteal()
 {
-	FindTargetByCrosshair();
+	if (!bVisionStealActive)
+	{
+		AAIBaseCharacter* TargetAIBaseCharacter = FindTargetByCrosshair();
+		StartVisionSteal(TargetAIBaseCharacter);
+	}
+	else
+	{
+		EndVisionSteal();
+	}
+}
+
+bool UVisionStealComponent::StartVisionSteal(AActor* Target)
+{
+	if (!IsValid(Target))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: invalid target"));
+		return false;
+	}
+
+	if (bVisionStealActive)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: already active"));
+		return false;
+	}
+
+	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: owner is not a pawn"));
+		return false;
+	}
+
+	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+	if (!PlayerController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: player controller not found"));
+		return false;
+	}
+
+	PlayerController->SetViewTargetWithBlend(Target, ViewTargetBlendTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: view switched to %s"), *GetNameSafe(Target));
+
+	bVisionStealActive = true;
+	return true;
+}
+
+void UVisionStealComponent::EndVisionSteal()
+{
+	if (!bVisionStealActive)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EndVisionSteal: not active"));
+		return;
+	}
+
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+	{
+		return;
+	}
+	
+	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	PlayerController->SetViewTargetWithBlend(OwnerPawn, ViewTargetBlendTime);
+	
+	bVisionStealActive = false;
 }
 
 UVisionStealComponent::UVisionStealComponent()
