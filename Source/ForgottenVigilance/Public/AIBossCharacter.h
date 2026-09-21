@@ -57,6 +57,7 @@ public:
 	EBossPhase GetBossPhase() const;
 	float GetMeleeRange() const;
 	float GetDashRange() const;
+	float GetStaggerRatio() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Boss")
 	FOnBossPhaseChanged OnBossPhaseChanged;
@@ -76,6 +77,8 @@ private:
 
 	void EnterBossPhase(EBossPhase NewPhase);
 	int32 SelectPatternIndex(float DistanceToTarget) const;
+	void AccumulateStagger(float DamageAmount);
+	void ClearStaggerImmunity();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	TArray<FBossAttackPattern> AttackPatterns;
@@ -103,4 +106,24 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	int32 AttackCounter;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	float StaggerThreshold;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	float StaggerDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	float StaggerImmunityDuration;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	float StaggerGauge;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	float LastBossHealth;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
+	bool bStaggerImmune;
+	
+	FTimerHandle StaggerImmunityHandle;
 };

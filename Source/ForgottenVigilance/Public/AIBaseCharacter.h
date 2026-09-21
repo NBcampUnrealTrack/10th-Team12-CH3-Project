@@ -24,7 +24,7 @@ public:
 	float RunSpeed = 600.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "AI") 
-	bool bLoseTargetOnHit = true;
+	bool bLoseTargetOnHit = false;
 	
 	UPROPERTY(EditAnywhere, Category = "AI")
 	bool bStunOnHit = true;
@@ -37,6 +37,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	void ApplyStun(float Duration);
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	TObjectPtr<UAnimMontage> HitMontage;
