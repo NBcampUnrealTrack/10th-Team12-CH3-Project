@@ -38,4 +38,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "MiniMap")
 	float CaptureHeight = 2048.0f;
+
+protected:
+	virtual void BeginPlay() override;
 };
