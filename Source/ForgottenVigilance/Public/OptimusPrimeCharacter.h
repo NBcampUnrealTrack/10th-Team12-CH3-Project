@@ -5,6 +5,8 @@
 #include "OptimusPrimeCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathAnimationReady);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetDetercted, AActor*, Target);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetLost, AActor*, Target);
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -36,6 +38,17 @@ public:
 	FOnDeathAnimationReady OnDeathAnimationReady;
 	UFUNCTION(BlueprintCallable, Category = "Animation|Death")
 	void EnableDeathRagdoll();
+
+	UPROPERTY(BlueprintAssignable, Category = "Target")
+	FOnTargetDetercted OnTargetDetected;
+	UPROPERTY(BlueprintAssignable, Category = "Target")
+	FOnTargetLost OnTargetLost;
+	UFUNCTION(BlueprintPure, Category = "Target")
+	AActor* GetCurrentTarget() const;
+	UFUNCTION(BlueprintCallable, Category = "Target")
+	void ClearCurrentTarget();
+
+	void GetDetectedTargets(TArray<AActor*>& OutDetectedTargets) const;
 	
 	AOptimusPrimeCharacter();
 
@@ -108,8 +121,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Seeing")
 	TObjectPtr<UPawnSensingComponent> PawnSensingComp;
 	UPROPERTY()
-	TMap<TObjectPtr<AActor>, float> DetectedEnemies;
+	TObjectPtr<AActor> CurrentTarget;
 
+	TMap <TWeakObjectPtr<APawn>, float> DetectedEnemies;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sensing")
+	float TargetLostTime = 1.5f;
+
+	FTimerHandle LostCheckTimer;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat")
 	TObjectPtr<UAnimMontage> LeftFireMontage = nullptr;

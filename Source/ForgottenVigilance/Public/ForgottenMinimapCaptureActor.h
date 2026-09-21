@@ -21,11 +21,6 @@ public:
 
 	AForgottenMinimapCaptureActor();
 
-
-protected:
-	virtual void BeginPlay() override;
-
-public:
 	UPROPERTY(VisibleAnywhere, Category = "Minimap")
 	TObjectPtr<USceneCaptureComponent2D> CaptureComponent;
 
@@ -37,4 +32,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "MiniMap")
 	float CaptureHeight = 2048.0f;
+
+protected:
+	virtual void BeginPlay() override;
 };
