@@ -22,6 +22,7 @@ constexpr float DefaultStaggerThreshold = 200.0f;
 constexpr float DefaultStaggerDuration = 1.5f;
 constexpr float DefaultStaggerImmunityDuration = 6.0f;
 constexpr float StaggerRatioMax = 1.0f;
+constexpr int32 OutlineStencilValue = 1;
 }
 
 AAIBossCharacter::AAIBossCharacter()
@@ -44,6 +45,7 @@ AAIBossCharacter::AAIBossCharacter()
 	StaggerGauge = BossZeroThreshold;
 	LastBossHealth = BossZeroThreshold;
 	bStaggerImmune = false;
+	
 }
 
 void AAIBossCharacter::BeginPlay()
@@ -144,12 +146,17 @@ void AAIBossCharacter::EnterBossPhase(EBossPhase NewPhase)
 	}
 
 	SetMovementSpeed(RunSpeed * SecondPhaseSpeedMultiplier);
+	
+	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
+	GetMesh()->SetRenderCustomDepth(true);
 }
 
 void AAIBossCharacter::HandleBossDeath(AActor* DeadOwner)
 {
 	EnterBossPhase(EBossPhase::Defeated);
 
+	GetMesh()->SetRenderCustomDepth(false);
+	
 	if (!bIsFinalBoss)
 	{
 		return;
