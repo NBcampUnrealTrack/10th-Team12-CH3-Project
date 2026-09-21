@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "TimerManager.h"
+#include "Animation/AnimInstance.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -86,31 +87,9 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 				}
 			}
 		}
-		if (HitMontage)
-		{
-			PlayAnimMontage(HitMontage);
-		}
-
 		if (bStunOnHit)
 		{
-			AAIBaseController* StunController = Cast<AAIBaseController>(GetController());
-
-			if (StunController)
-			{
-				UBlackboardComponent* StunBlackboard = StunController->GetBlackboardComponent();
-
-				if (StunBlackboard)
-				{
-					StunBlackboard->SetValueAsBool(TEXT("IsStunned"), true);
-				}
-			}
-
-			GetWorldTimerManager().SetTimer(
-				StunTimerHandle,
-				this,
-				&AAIBaseCharacter::ClearStun,
-				StunDuration,
-				false);
+			ApplyStun(StunDuration);
 		}
 	}
 
@@ -120,6 +99,49 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 	    MaxHealth);
 
 	PreviousHealth = CurrentHealth;
+}
+
+void AAIBaseCharacter::ApplyStun(float Duration)
+{
+	if (Duration <= 0.0f)
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (HitMontage)
+	{
+		if (AnimInstance && !AnimInstance->Montage_IsPlaying(HitMontage))
+		{
+			PlayAnimMontage(HitMontage);
+		}
+	}
+	else
+	{
+		StopAnimMontage();
+	}
+
+	AAIBaseController* StunController = Cast<AAIBaseController>(GetController());
+
+	if (StunController)
+	{
+		StunController->StopMovement();
+
+		UBlackboardComponent* StunBlackboard = StunController->GetBlackboardComponent();
+
+		if (StunBlackboard)
+		{
+			StunBlackboard->SetValueAsBool(TEXT("IsStunned"), true);
+		}
+	}
+
+	GetWorldTimerManager().SetTimer(
+		StunTimerHandle,
+		this,
+		&AAIBaseCharacter::ClearStun,
+		Duration,
+		false);
 }
 
 void AAIBaseCharacter::ClearStun()

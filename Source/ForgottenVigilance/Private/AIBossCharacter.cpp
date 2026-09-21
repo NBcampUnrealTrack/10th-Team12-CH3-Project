@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 
 namespace
 {
@@ -17,6 +18,10 @@ constexpr float DefaultDashRange = 900.0f;
 constexpr float BossZeroThreshold = 0.0f;
 constexpr int32 InvalidPatternIndex = -1;
 constexpr int32 PatternSingleStep = 1;
+constexpr float DefaultStaggerThreshold = 200.0f;
+constexpr float DefaultStaggerDuration = 1.5f;
+constexpr float DefaultStaggerImmunityDuration = 6.0f;
+constexpr float StaggerRatioMax = 1.0f;
 }
 
 AAIBossCharacter::AAIBossCharacter()
@@ -32,7 +37,17 @@ AAIBossCharacter::AAIBossCharacter()
 	CurrentPatternIndex = InvalidPatternIndex;
 	AttackCounter = 0;
 	GetCharacterMovement()->bUseRVOAvoidance = false;
+<<<<<<< Updated upstream
 	StunDuration = 0.35f;
+=======
+	StunDuration = 1.0f;
+	StaggerThreshold = DefaultStaggerThreshold;
+	StaggerDuration = DefaultStaggerDuration;
+	StaggerImmunityDuration = DefaultStaggerImmunityDuration;
+	StaggerGauge = BossZeroThreshold;
+	LastBossHealth = BossZeroThreshold;
+	bStaggerImmune = false;
+>>>>>>> Stashed changes
 }
 
 void AAIBossCharacter::BeginPlay()
@@ -45,6 +60,8 @@ void AAIBossCharacter::BeginPlay()
 	{
 		return;
 	}
+	
+	LastBossHealth = BossHealth->GetCurrentHealth();
 
 	BossHealth->OnHealthChanged.AddDynamic(this, &AAIBossCharacter::HandleBossHealthChanged);
 	BossHealth->OnDeath.AddDynamic(this, &AAIBossCharacter::HandleBossDeath);
@@ -57,17 +74,62 @@ void AAIBossCharacter::HandleBossHealthChanged(float CurrentHealth, float MaxHea
 {
 	OnBossHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
+	const float DamageTaken = LastBossHealth - CurrentHealth;
+	LastBossHealth = CurrentHealth;
+
+	if (CurrentHealth > BossZeroThreshold)
+	{
+		AccumulateStagger(DamageTaken);
+	}
+
 	if (MaxHealth <= BossZeroThreshold)
 	{
 		return;
 	}
 
-	if (CurrentHealth / MaxHealth > SecondPhaseHealthRatio)
+	EnterBossPhase(EBossPhase::Second);
+}
+
+void AAIBossCharacter::AccumulateStagger(float DamageAmount)
+{
+	if (DamageAmount <= BossZeroThreshold || bStaggerImmune || BossPhase == EBossPhase::Defeated)
 	{
 		return;
 	}
 
-	EnterBossPhase(EBossPhase::Second);
+	StaggerGauge += DamageAmount;
+
+	if (StaggerGauge < StaggerThreshold)
+	{
+		return;
+	}
+
+	StaggerGauge = BossZeroThreshold;
+	bStaggerImmune = true;
+
+	ApplyStun(StaggerDuration);
+
+	GetWorldTimerManager().SetTimer(
+		StaggerImmunityHandle,
+		this,
+		&AAIBossCharacter::ClearStaggerImmunity,
+		StaggerImmunityDuration,
+		false);
+}
+
+void AAIBossCharacter::ClearStaggerImmunity()
+{
+	bStaggerImmune = false;
+}
+
+float AAIBossCharacter::GetStaggerRatio() const
+{
+	if (StaggerThreshold <= BossZeroThreshold)
+	{
+		return BossZeroThreshold;
+	}
+
+	return FMath::Clamp(StaggerGauge / StaggerThreshold, BossZeroThreshold, StaggerRatioMax);
 }
 
 void AAIBossCharacter::EnterBossPhase(EBossPhase NewPhase)
