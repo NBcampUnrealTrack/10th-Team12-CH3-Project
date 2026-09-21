@@ -8,6 +8,8 @@
 #include "Perception/AISense_Hearing.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Sound/SoundBase.h"
+
 
 AAIBaseController::AAIBaseController()
 {
@@ -73,6 +75,8 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
+			PlayAIPerceptionSound(DetectbySightSound);
+
 			GetWorld()->GetTimerManager().ClearTimer(LoseSightTimer);
 
 			BlackboardComp->SetValueAsObject(TEXT("TargetActor"), Actor);
@@ -107,6 +111,30 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 			BlackboardComp->SetValueAsVector(TEXT("LastKnownLocation"), Stimulus.StimulusLocation);
 		}
 	}
+}
+
+void AAIBaseController::PlayAIPerceptionSound(USoundBase* SoundToPlay) const
+{
+	if (!SoundToPlay)
+	{
+		return;
+	}
+
+	const APawn* thisPawn = GetPawn();
+
+	if (!thisPawn)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(
+	    this,
+	    SoundToPlay,
+	    thisPawn->GetActorLocation(),
+	    1.0f,
+	    1.0f,
+	    0.0f,
+	    AISoundAttenuation);
 }
 
 void AAIBaseController::StopChasing()

@@ -31,12 +31,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundBase> DetectbySightSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI|Sound", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USoundAttenuation> AISoundAttenuation;
+
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float LoseSightDelay = 10.0f;
 
 	virtual void BeginPlay() override;
 
 	FTimerHandle LoseSightTimer;
+
+	void PlayAIPerceptionSound(USoundBase* SoundToPlay) const;
 
 	void StopChasing();
 
