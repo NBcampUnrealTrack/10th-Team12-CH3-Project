@@ -12,6 +12,7 @@ constexpr float DefaultTriggerRadius = 350.0f;
 constexpr float PromptHeightOffset = 150.0f;
 constexpr float PromptWorldSize = 48.0f;
 const FName PlayerTagName(TEXT("Player"));
+constexpr int32 LeverOutlineStencilValue = 1;
 }
 
 AForgottenLever::AForgottenLever()
@@ -21,6 +22,8 @@ AForgottenLever::AForgottenLever()
 	LeverMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeverMesh"));
 	SetRootComponent(LeverMesh);
 	LeverMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	LeverMesh->SetCustomDepthStencilValue(LeverOutlineStencilValue);
+	LeverMesh->SetRenderCustomDepth(false);
 
 	TriggerSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerSphere"));
 	TriggerSphere->SetupAttachment(LeverMesh);
@@ -154,7 +157,10 @@ void AForgottenLever::ActivateLever()
 
 void AForgottenLever::UpdatePromptVisibility()
 {
-	PromptText->SetVisibility(CanInteract());
+	const bool bInteractable = CanInteract();
+
+	PromptText->SetVisibility(bInteractable);
+	LeverMesh->SetRenderCustomDepth(bInteractable);
 }
 
 bool AForgottenLever::IsActivated() const
