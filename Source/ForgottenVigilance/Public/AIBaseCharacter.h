@@ -35,6 +35,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float DeadDestoryTime = 3.0f;
 
+	UPROPERTY(VisibleAnywhere, Category = "AI")
+	FVector SpawnLocation;
+
 protected:
 	virtual void BeginPlay() override;
 

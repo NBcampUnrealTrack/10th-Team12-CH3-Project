@@ -3,7 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
-
+#include "AIBaseCharacter.h"
 
 
 UBTTask_FindRandomLocation::UBTTask_FindRandomLocation()
@@ -34,9 +34,16 @@ EBTNodeResult::Type UBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 		return EBTNodeResult::Failed;
 	}
 
+	AAIBaseCharacter* AIChracter = Cast<AAIBaseCharacter>(MyPawn);
+
+	if (!AIChracter)
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	FNavLocation RandomLocation;
 	bool bFound = NavSystem->GetRandomReachablePointInRadius(
-	    MyPawn->GetActorLocation(),
+	    AIChracter->SpawnLocation,
 	    SearchRadius,
 	    RandomLocation);
 
