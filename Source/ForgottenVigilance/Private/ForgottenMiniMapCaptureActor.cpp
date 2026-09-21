@@ -48,3 +48,14 @@ FVector2D AForgottenMiniMapCaptureActor::WorldToMiniMapUV(const FVector& WorldLo
 	return FVector2D(FMath::Clamp(U, 0.f, 1.f), FMath::Clamp(V, 0.f, 1.f));
 }
 
+bool AForgottenMiniMapCaptureActor::WorldToMiniMap(const FVector& WorldLocation, const FVector2D& MapSize, FVector2D& OutMapPosition) const
+{
+	const FVector Delta = WorldLocation - GetActorLocation();
+	const FVector Local = FRotator(0.f, GetActorRotation().Yaw, 0.f).UnrotateVector(Delta);
+
+	const float PixelsPerUnit = MapSize.X / CaptureComponent->OrthoWidth;
+	const FVector2D Center = MapSize * 0.5f;
+	OutMapPosition = Center + FVector2D(Local.Y, -Local.X) * PixelsPerUnit;
+
+	return FVector2D::Distance(OutMapPosition, Center) <= MapSize.X * 0.5f;
+}

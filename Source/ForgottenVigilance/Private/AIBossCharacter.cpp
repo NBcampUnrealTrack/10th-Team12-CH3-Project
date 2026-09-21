@@ -37,17 +37,14 @@ AAIBossCharacter::AAIBossCharacter()
 	CurrentPatternIndex = InvalidPatternIndex;
 	AttackCounter = 0;
 	GetCharacterMovement()->bUseRVOAvoidance = false;
-<<<<<<< Updated upstream
 	StunDuration = 0.35f;
-=======
-	StunDuration = 1.0f;
+
 	StaggerThreshold = DefaultStaggerThreshold;
 	StaggerDuration = DefaultStaggerDuration;
 	StaggerImmunityDuration = DefaultStaggerImmunityDuration;
 	StaggerGauge = BossZeroThreshold;
 	LastBossHealth = BossZeroThreshold;
 	bStaggerImmune = false;
->>>>>>> Stashed changes
 }
 
 void AAIBossCharacter::BeginPlay()

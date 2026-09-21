@@ -6,8 +6,8 @@
 
 class UCanvasPanel;
 class UImage;
-class AMinimapCaptureActor;
-class AOptimusPlayerCharacter;
+class AForgottenMiniMapCaptureActor;
+class AOptimusPrimeCharacter;
 class UForgottenTargetMarker;
 
 UCLASS()
@@ -23,9 +23,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Minimap")
 	TSubclassOf<UForgottenTargetMarker> MarkerClass;
 
-	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	void InitMiniMap(AForgottenMiniMapCaptureActor* AOptimusPrimeCharacter* InPlayer);
+	void InitMiniMap(AForgottenMiniMapCaptureActor* InCapture, AOptimusPrimeCharacter* InPlayer);
 
+private:
+	UFUNCTION()
+	void HandleTargetDetected(AActor* Target);
+	UFUNCTION()
+	void HandleTargetLost(AActor* Target);
+
+	void UnbindPlayerEvents();
+
+	TMap<TWeakObjectPtr<AActor>, TObjectPtr<UForgottenTargetMarker>> Markers;
+
+	TWeakObjectPtr<AForgottenMiniMapCaptureActor> Capture;
+	TWeakObjectPtr<AOptimusPrimeCharacter> Player;
 };
