@@ -484,24 +484,58 @@ void AOptimusPrimeCharacter::OnPawnDetected(APawn* DetectedPawn)
 		return;
 	}
 
+	const bool bIsNew = !DetectedEnemies.Contains(DetectedPawn);
+
 	DetectedEnemies.Add(DetectedPawn, GetWorld()->GetTimeSeconds());
+
+	if (bIsNew)
+	{
+		OnTargetDetected.Broadcast(DetectedPawn);
+	}
+}
+
+AActor* AOptimusPrimeCharacter::GetCurrentTarget() const
+{
+	return CurrentTarget;
+}
+
+void AOptimusPrimeCharacter::ClearCurrentTarget()
+{
+	CurrentTarget = nullptr;
+}
+
+void AOptimusPrimeCharacter::GetDetectedTargets(TArray<AActor*>& OutTargets) const
+{
+	for (const TPair<TWeakObjectPtr<APawn>, float>& Pair : DetectedEnemies)
+	{
+		if (APawn* Pawn = Pair.Key.Get())
+		{
+			OutTargets.Add(Pawn);
+		}
+	}
 }
 
 void AOptimusPrimeCharacter::CheckStaleTargets()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
-	TArray<TObjectPtr<AActor>> StaleTargets;
 
-	for (const auto& Pair : DetectedEnemies)
+	TArray<TWeakObjectPtr<APawn>> StaleTargets;
+
+	for (const TPair<TWeakObjectPtr<APawn>, float>& Pair : DetectedEnemies)
 	{
-		if (CurrentTime - Pair.Value > 5.0f) // 5 seconds stale time
+		if (!Pair.Key.IsValid() || CurrentTime - Pair.Value > 5.0f)
 		{
 			StaleTargets.Add(Pair.Key);
 		}
 	}
 
-	for (TObjectPtr<AActor> StaleTarget : StaleTargets)
+
+	for (const TWeakObjectPtr<APawn>& StaleTarget : StaleTargets)
 	{
+		if (APawn* Pawn = StaleTarget.Get())
+		{
+			OnTargetLost.Broadcast(Pawn);
+		}
 		DetectedEnemies.Remove(StaleTarget);
 	}
 }
