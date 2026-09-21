@@ -1,9 +1,9 @@
-#include "ForgottenMinimapCaptureActor.h"
+#include "ForgottenMiniMapCaptureActor.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
 
-AForgottenMinimapCaptureActor::AForgottenMinimapCaptureActor()
+AForgottenMiniMapCaptureActor::AForgottenMiniMapCaptureActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -22,7 +22,7 @@ AForgottenMinimapCaptureActor::AForgottenMinimapCaptureActor()
 }
 
 
-void AForgottenMinimapCaptureActor::BeginPlay()
+void AForgottenMiniMapCaptureActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -37,7 +37,7 @@ void AForgottenMinimapCaptureActor::BeginPlay()
 }
 
 
-FVector2D AForgottenMinimapCaptureActor::WorldToMiniMapUV(const FVector& WorldLocation) const
+FVector2D AForgottenMiniMapCaptureActor::WorldToMiniMapUV(const FVector& WorldLocation) const
 {
 	const FVector CaptureOrigin = GetActorLocation();
 	const float HalfWidth = OrthoWidth * 0.5f;
