@@ -30,7 +30,7 @@ public:
 	bool bStunOnHit = true;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	float StunDuration = 0.3f;
+	float StunDuration = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float DeadDestoryTime = 3.0f;
