@@ -44,6 +44,8 @@ void AAIBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SpawnLocation = GetActorLocation();
+	
 	PreviousHealth = HealthComponent->GetCurrentHealth();
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
@@ -52,6 +54,8 @@ void AAIBaseCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+
+
 }
 
 void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
