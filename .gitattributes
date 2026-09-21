@@ -18,8 +18,8 @@ Content/** binary
 # 나중에 켜는 건 `git lfs migrate import` 로 가능하지만,
 # 켰다가 끄는 건 히스토리 재작성이 필요하다. 기본값은 끈 쪽이 안전.
 # ─────────────────────────────────────────────
-*.uasset filter=lfs diff=lfs merge=lfs -text
-*.umap filter=lfs diff=lfs merge=lfs -text
+*.uasset filter=lfs diff=lfs merge=binary -text
+*.umap filter=lfs diff=lfs merge=binary -text
 *.ubulk filter=lfs diff=lfs merge=lfs -text
 *.uexp filter=lfs diff=lfs merge=lfs -text
 *.fbx filter=lfs diff=lfs merge=lfs -text
