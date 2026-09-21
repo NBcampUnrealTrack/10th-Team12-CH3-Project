@@ -1,9 +1,9 @@
-#include "ForgottenMinimapCaptureActor.h"
+#include "ForgottenMiniMapCaptureActor.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
 
-AForgottenMinimapCaptureActor::AForgottenMinimapCaptureActor()
+AForgottenMiniMapCaptureActor::AForgottenMiniMapCaptureActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -22,7 +22,7 @@ AForgottenMinimapCaptureActor::AForgottenMinimapCaptureActor()
 }
 
 
-void AForgottenMinimapCaptureActor::BeginPlay()
+void AForgottenMiniMapCaptureActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -37,7 +37,7 @@ void AForgottenMinimapCaptureActor::BeginPlay()
 }
 
 
-FVector2D AForgottenMinimapCaptureActor::WorldToMiniMapUV(const FVector& WorldLocation) const
+FVector2D AForgottenMiniMapCaptureActor::WorldToMiniMapUV(const FVector& WorldLocation) const
 {
 	const FVector CaptureOrigin = GetActorLocation();
 	const float HalfWidth = OrthoWidth * 0.5f;
@@ -48,3 +48,14 @@ FVector2D AForgottenMinimapCaptureActor::WorldToMiniMapUV(const FVector& WorldLo
 	return FVector2D(FMath::Clamp(U, 0.f, 1.f), FMath::Clamp(V, 0.f, 1.f));
 }
 
+bool AForgottenMiniMapCaptureActor::WorldToMiniMap(const FVector& WorldLocation, const FVector2D& MapSize, FVector2D& OutMapPosition) const
+{
+	const FVector Delta = WorldLocation - GetActorLocation();
+	const FVector Local = FRotator(0.f, GetActorRotation().Yaw, 0.f).UnrotateVector(Delta);
+
+	const float PixelsPerUnit = MapSize.X / CaptureComponent->OrthoWidth;
+	const FVector2D Center = MapSize * 0.5f;
+	OutMapPosition = Center + FVector2D(Local.Y, -Local.X) * PixelsPerUnit;
+
+	return FVector2D::Distance(OutMapPosition, Center) <= MapSize.X * 0.5f;
+}

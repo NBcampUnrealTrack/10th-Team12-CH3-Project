@@ -47,7 +47,7 @@ public:
 	AActor* GetCurrentTarget() const;
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void ClearCurrentTarget();
-
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void GetDetectedTargets(TArray<AActor*>& OutDetectedTargets) const;
 	
 	AOptimusPrimeCharacter();
