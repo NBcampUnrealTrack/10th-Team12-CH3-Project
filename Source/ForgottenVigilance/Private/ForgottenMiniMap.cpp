@@ -5,6 +5,8 @@
 #include "ForgottenMiniMapCaptureActor.h"
 #include "ForgottenTargetMarker.h"
 #include "OptimusPrimeCharacter.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Styling/SlateBrush.h"
 
 void UForgottenMiniMap::InitMiniMap(AForgottenMiniMapCaptureActor* InCapture, AOptimusPrimeCharacter* InPlayer)
 {
@@ -34,6 +36,19 @@ void UForgottenMiniMap::InitMiniMap(AForgottenMiniMapCaptureActor* InCapture, AO
 	for (AActor* Target : ExistingTargets)
 	{
 		HandleTargetDetected(Target);
+	}
+}
+
+void UForgottenMiniMap::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (MiniMap && MiniMapRenderTarget)
+	{
+		FSlateBrush MiniMapBrush;
+		MiniMapBrush.SetResourceObject(MiniMapRenderTarget);
+
+		MiniMap->SetBrush(MiniMapBrush);
 	}
 }
 

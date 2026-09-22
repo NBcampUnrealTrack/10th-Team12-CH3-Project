@@ -14,7 +14,9 @@ public class ForgottenVigilance : ModuleRules
 			"InputCore", 
 			"EnhancedInput",
 			"UMG",
-            "NavigationSystem"
+            "NavigationSystem",
+			"Slate",
+			"SlateCore"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

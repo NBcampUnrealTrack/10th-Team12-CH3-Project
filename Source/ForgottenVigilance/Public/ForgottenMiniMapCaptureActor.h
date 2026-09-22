@@ -6,6 +6,7 @@
 
 class USceneCaptureComponent2D;
 class UTextureRenderTarget2D;
+class APawn;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API AForgottenMiniMapCaptureActor : public AActor
@@ -17,6 +18,8 @@ public:
 	bool WorldToMiniMap(const FVector& WorldLocation, const FVector2D& MapSize, FVector2D& OutMapPosition) const;
 
 	virtual void BeginPlay() override;
+
+	    virtual void Tick(float DeltaTime) override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "MiniMap")
@@ -38,4 +41,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "MiniMap")
 	float CaptureHeight = 2048.0f;
+
+private:
+	UPROPERTY()
+	TObjectPtr<APawn> TargetPlayer;
 };
