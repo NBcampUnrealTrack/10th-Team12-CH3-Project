@@ -46,6 +46,13 @@ EBTNodeResult::Type UBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	{
 		return EBTNodeResult::Failed;
 	}
+	
+	AAIBaseCharacter* AlertCharacter = Cast<AAIBaseCharacter>(AICharacter);
+
+	if (AlertCharacter)
+	{
+		AlertCharacter->SetAlertAttacking();
+	}
 
 	MeleeAttackComponent->PerformAttack(TargetActor);
 

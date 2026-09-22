@@ -88,6 +88,7 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 			if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
 			{
 				AICharacter->SetMovementSpeed(AICharacter->RunSpeed);
+				AICharacter->SetAlertChasing(true);
 			}
 		}
 		else
@@ -153,6 +154,7 @@ void AAIBaseController::StopChasing()
 	if (AAIBaseCharacter* AICharacter = Cast<AAIBaseCharacter>(GetPawn()))
 	{
 		AICharacter->SetMovementSpeed(AICharacter->WalkSpeed);
+		AICharacter->SetAlertChasing(false);
 	}
 
 	UE_LOG(

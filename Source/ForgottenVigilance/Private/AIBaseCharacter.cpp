@@ -8,6 +8,11 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
+#include "Components/TextRenderComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/WidgetComponent.h"
+#include "Components/Image.h"
+#include "Blueprint/UserWidget.h"
 
 AAIBaseCharacter::AAIBaseCharacter()
 {
@@ -26,6 +31,17 @@ AAIBaseCharacter::AAIBaseCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	ScoreOnDeathComponent = CreateDefaultSubobject<UScoreOnDeathComponent>(TEXT("ScoreOnDeathComponent"));
+	
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	AlertWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("AlertWidget"));
+	AlertWidget->SetupAttachment(GetRootComponent());
+	AlertWidget->SetRelativeLocation(FVector(0.0f, 0.0f, AlertHeightOffset));
+	AlertWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	AlertWidget->SetDrawSize(AlertDrawSize);
+	AlertWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AlertWidget->SetVisibility(false);
 }
 
 void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
@@ -55,8 +71,10 @@ void AAIBaseCharacter::BeginPlay()
 	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-
-
+	
+	AlertWidget->SetRelativeLocation(FVector(0.0f, 0.0f, AlertHeightOffset));
+	AlertWidget->SetDrawSize(AlertDrawSize);
+	UpdateAlertVisual();
 }
 
 void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
@@ -165,6 +183,8 @@ void AAIBaseCharacter::ClearStun()
 
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
+	SetAlertChasing(false);
+	
 	AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
 
 	if (AIController)
@@ -193,3 +213,81 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 		SetLifeSpan(DeadDestoryTime);
 	}
 }
+
+void AAIBaseCharacter::SetAlertChasing(bool bIsChasing)
+{
+	if (bAlertChasing == bIsChasing)
+	{
+		return;
+	}
+
+	bAlertChasing = bIsChasing;
+
+	if (!bIsChasing)
+	{
+		bAlertAttacking = false;
+		GetWorldTimerManager().ClearTimer(AttackAlertTimerHandle);
+	}
+
+	UpdateAlertVisual();
+}
+
+void AAIBaseCharacter::SetAlertAttacking()
+{
+	bAlertAttacking = true;
+	UpdateAlertVisual();
+
+	GetWorldTimerManager().SetTimer(
+		AttackAlertTimerHandle,
+		this,
+		&AAIBaseCharacter::ClearAttackAlert,
+		AttackAlertDuration,
+		false);
+}
+
+void AAIBaseCharacter::ClearAttackAlert()
+{
+	bAlertAttacking = false;
+	UpdateAlertVisual();
+}
+
+void AAIBaseCharacter::UpdateAlertVisual()
+{
+	if (!AlertWidget)
+	{
+		return;
+	}
+
+	const bool bShowAlert = bAlertChasing || bAlertAttacking;
+
+	AlertWidget->SetVisibility(bShowAlert);
+
+	if (!bShowAlert)
+	{
+		return;
+	}
+
+	UUserWidget* AlertUserWidget = AlertWidget->GetUserWidgetObject();
+
+	if (!AlertUserWidget)
+	{
+		return;
+	}
+
+	UImage* AlertImage = Cast<UImage>(AlertUserWidget->GetWidgetFromName(TEXT("AlertImage")));
+
+	if (!AlertImage)
+	{
+		return;
+	}
+
+	UTexture2D* AlertTexture = bAlertAttacking ? AttackAlertTexture : ChaseAlertTexture;
+
+	if (!AlertTexture)
+	{
+		return;
+	}
+
+	AlertImage->SetBrushFromTexture(AlertTexture, true);
+}
+

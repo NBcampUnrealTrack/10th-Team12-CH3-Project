@@ -114,6 +114,13 @@ void UBTTask_RangeAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 
 		if (Weapon)
 		{
+			AAIBaseCharacter* AlertCharacter = Cast<AAIBaseCharacter>(AICharacter);
+
+			if (AlertCharacter)
+			{
+				AlertCharacter->SetAlertAttacking();
+			}
+
 			Weapon->FireGun();
 		}
 
