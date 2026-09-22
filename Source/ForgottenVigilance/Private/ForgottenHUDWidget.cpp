@@ -5,6 +5,12 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "ForgottenGameState.h"
+#include "TimerManager.h"
+
+namespace
+{
+constexpr float DefaultKillMarkerDuration = 0.5f;
+}
 
 void UForgottenHUDWidget::NativeConstruct()
 {
@@ -60,6 +66,7 @@ void UForgottenHUDWidget::NativeConstruct()
 	}
 
 	ForgottenGameState->OnScoreChanged.AddDynamic(this, &UForgottenHUDWidget::HandleScoreChanged);
+	ForgottenGameState->OnKillCountChanged.AddDynamic(this, &UForgottenHUDWidget::HandleKillCountChanged);
 	ForgottenGameState->OnObjectiveProgressChanged.AddDynamic(this, &UForgottenHUDWidget::HandleObjectiveChanged);
 	ForgottenGameState->OnRemainingTimeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleRemainingTimeChanged);
 
@@ -67,11 +74,52 @@ void UForgottenHUDWidget::NativeConstruct()
 	HandleObjectiveChanged(
 		ForgottenGameState->GetObjectiveProgress(),
 		ForgottenGameState->GetRequiredObjectiveProgress());
+	
+	KillMarkerDuration = DefaultKillMarkerDuration;
+
+	if (KillMarkerImage)
+	{
+		KillMarkerImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UForgottenHUDWidget::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 {
 	HealthBar->SetPercent(CurrentHealth / MaxHealth);
+}
+
+void UForgottenHUDWidget::HandleKillCountChanged(int32 NewKillCount)
+{
+	if (!KillMarkerImage)
+	{
+		return;
+	}
+
+	KillMarkerImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		KillMarkerTimerHandle,
+		this,
+		&UForgottenHUDWidget::HideKillMarker,
+		KillMarkerDuration,
+		false);
+}
+
+void UForgottenHUDWidget::HideKillMarker()
+{
+	if (!KillMarkerImage)
+	{
+		return;
+	}
+
+	KillMarkerImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UForgottenHUDWidget::HandleHeatChanged(

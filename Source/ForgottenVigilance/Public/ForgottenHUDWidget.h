@@ -39,6 +39,12 @@ protected:
 
 	UFUNCTION()
 	void HandleRemainingTimeChanged(float RemainingTime);
+	
+	UFUNCTION()
+	void HandleKillCountChanged(int32 NewKillCount);
+
+	UFUNCTION()
+	void HideKillMarker();
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -63,4 +69,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UForgottenMiniMap> MiniMap;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> KillMarkerImage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	float KillMarkerDuration;
+	
+private:
+	FTimerHandle KillMarkerTimerHandle;
 };
