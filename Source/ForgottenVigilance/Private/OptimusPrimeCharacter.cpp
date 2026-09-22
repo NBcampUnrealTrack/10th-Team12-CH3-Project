@@ -20,6 +20,7 @@ constexpr float DefaultCharacterTargetArmLength = 300.0f;
 constexpr float DefaultNonForwardSpeedMultiplier = 0.5f;
 constexpr float DefaultNormalSpeed = 600.0f;
 constexpr float DefaultSprintMultiplier = 1.7f;
+constexpr int32 RightHandMuzzleIndex = 0;
 
 FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
     const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
@@ -129,17 +130,9 @@ void AOptimusPrimeCharacter::HandleDeath(AActor* DeadOwner)
 	}
 }
 
-void AOptimusPrimeCharacter::HandleShotFired()
+void AOptimusPrimeCharacter::HandleShotFired(int32 MuzzleIndex)
 {
-	UAnimMontage* SelectedMontage = nullptr;
-	if (FMath::RandBool())
-	{
-		SelectedMontage = LeftFireMontage;
-	}
-	else
-	{
-		SelectedMontage = RightFireMontage;
-	}
+	UAnimMontage* SelectedMontage = MuzzleIndex == RightHandMuzzleIndex ? RightFireMontage : LeftFireMontage;
 
 	if (!SelectedMontage)
 	{

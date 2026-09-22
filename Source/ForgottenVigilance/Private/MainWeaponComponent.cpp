@@ -11,6 +11,11 @@
 #include "DrawDebugHelpers.h"
 #include "Perception/AISense_Hearing.h"
 #include "Sound/SoundBase.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 namespace
 {
@@ -22,9 +27,14 @@ constexpr float DefaultHeatPerShot = 3.5f;
 constexpr float DefaultCoolingRate = 30.0f;
 constexpr float MainWeaponZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
-const FName DefaultMuzzleSocketName(TEXT("Muzzle"));
+const FName DefaultRightMuzzleSocket(TEXT("Muzzle_01"));
+const FName DefaultLeftMuzzleSocket(TEXT("Muzzle_02"));
+const FName DefaultTracerEndParameter(TEXT("BeamEnd"));
+constexpr int32 FirstMuzzleIndex = 0;
+constexpr int32 MuzzleIndexStep = 1;
 constexpr float DefaultNoiseLoudness = 1.0f;
 constexpr float DefaultNoiseRange = 3000.0f;
+constexpr float DefaultMuzzleEffectLifetime = 0.08f;
 
 bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& MuzzleStart,
 	const FVector& TraceEnd, const FCollisionQueryParams& QueryParams, FHitResult& OutHit, bool& bMuzzleBlocked)
@@ -43,7 +53,6 @@ UMainWeaponComponent::UMainWeaponComponent()
 	WeaponMesh = nullptr;
 	WeaponMeshComponent = nullptr;
 	AttachSocketName = DefaultAttachSocketName;
-	MuzzleSocketName = DefaultMuzzleSocketName;
 
 	Damage = DefaultDamage;
 	FireInterval = DefaultFireInterval;
@@ -56,6 +65,19 @@ UMainWeaponComponent::UMainWeaponComponent()
 	
 	NoiseLoudness = DefaultNoiseLoudness;
 	NoiseRange = DefaultNoiseRange;
+	
+	MuzzleSocketNames.Add(DefaultRightMuzzleSocket);
+	MuzzleSocketNames.Add(DefaultLeftMuzzleSocket);
+	bRandomizeMuzzle = true;
+	CurrentMuzzleIndex = FirstMuzzleIndex;
+	MuzzleEffect = nullptr;
+	ImpactWorldEffect = nullptr;
+	ImpactCharacterEffect = nullptr;
+	TracerEffect = nullptr;
+	TracerEndParameterName = DefaultTracerEndParameter;
+	MuzzleEffectScale = FVector::OneVector;
+	MuzzleEffectLifetime = DefaultMuzzleEffectLifetime;
+	ActiveMuzzleComponent = nullptr;
 }
 
 void UMainWeaponComponent::BeginPlay()
@@ -73,10 +95,16 @@ void UMainWeaponComponent::BeginPlay()
 	}
 
 	AttachToCharacterMesh(OwnerCharacter->GetMesh());
-	if (!WeaponMeshComponent || !WeaponMeshComponent->DoesSocketExist(MuzzleSocketName))
+
+	for (const FName& SocketName : MuzzleSocketNames)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: muzzle socket '%s' is unavailable; firing from pawn view location."),
-			*GetNameSafe(GetOwner()), *MuzzleSocketName.ToString());
+		if (GetMuzzleMesh(SocketName))
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("%s: muzzle socket '%s' is unavailable."),
+			*GetNameSafe(GetOwner()), *SocketName.ToString());
 	}
 }
 
@@ -121,6 +149,7 @@ void UMainWeaponComponent::StopFire()
 	}
 
 	World->GetTimerManager().ClearTimer(FireTimerHandle);
+	StopMuzzleEffect();
 }
 
 bool UMainWeaponComponent::IsOverheated() const
@@ -145,7 +174,8 @@ void UMainWeaponComponent::Fire()
 		StopFire();
 		return;
 	}
-	OnShotFired.Broadcast();
+	SelectMuzzleForShot();
+	OnShotFired.Broadcast(CurrentMuzzleIndex);
 	
 	if (FireSound)
 	{
@@ -172,17 +202,26 @@ void UMainWeaponComponent::Fire()
 	}
 
 	FHitResult HitResult;
-	if (TraceForHit(HitResult))
+	FVector ShotEnd = FVector::ZeroVector;
+	const bool bHit = TraceForHit(HitResult, ShotEnd);
+
+	PlayShotEffects(bHit, HitResult, ShotEnd);
+	AddHeat();
+
+	if (!bHit)
 	{
-		AActor* HitActor = HitResult.GetActor();
-		APawn* OwnerPawn = Cast<APawn>(GetOwner());
-		if (HitActor != nullptr && OwnerPawn != nullptr)
-		{
-			UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerPawn->GetController(), GetOwner(), nullptr);
-		}
+		return;
 	}
 
-	AddHeat();
+	AActor* HitActor = HitResult.GetActor();
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!HitActor || !OwnerPawn)
+	{
+		return;
+	}
+
+	UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerPawn->GetController(), GetOwner(), nullptr);
 }
 
 void UMainWeaponComponent::AddHeat()
@@ -281,37 +320,37 @@ bool UMainWeaponComponent::GetAimTarget(FVector& OutTarget) const
 	return true;
 }
 
-bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit) const
+bool UMainWeaponComponent::TraceForHit(FHitResult& OutHit, FVector& OutShotEnd) const
 {
 	UWorld* World = GetWorld();
 	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	FVector AimTarget;
+	OutShotEnd = GetMuzzleLocation();
+
 	if (!World || !OwnerPawn || !GetAimTarget(AimTarget))
 	{
 		return false;
 	}
+
 	const FVector TraceStart = GetMuzzleLocation();
 	const FVector ShotDirection = (AimTarget - TraceStart).GetSafeNormal();
+
 	if (ShotDirection.IsNearlyZero())
 	{
 		return false;
 	}
+
 	const FVector TraceEnd = TraceStart + ShotDirection * TraceDistance;
+
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(GetOwner());
 
-	// 총구가 벽을 뚫고 나갔을 때도 캐릭터와 총구 사이의 장애물에 막히게 합니다.
 	const FVector GuardStart = OwnerPawn->GetActorLocation();
 	bool bMuzzleBlocked = false;
-	const bool bHit = TraceMuzzlePath(World, GuardStart, TraceStart, TraceEnd, QueryParams,
-		OutHit, bMuzzleBlocked);
-	DrawDebugLine(World, bMuzzleBlocked ? GuardStart : TraceStart,
-		bHit ? OutHit.ImpactPoint : TraceEnd, bHit ? FColor::Red : FColor::Green, false, 1.0f, 0, 1.0f);
+	const bool bHit = TraceMuzzlePath(World, GuardStart, TraceStart, TraceEnd, QueryParams, OutHit, bMuzzleBlocked);
 
-	if (bHit)
-	{
-		DrawDebugSphere(World, OutHit.ImpactPoint, 8.0f, 12, FColor::Red, false, 1.0f);
-	}
+	OutShotEnd = bHit ? OutHit.ImpactPoint : TraceEnd;
+
 	return bHit;
 }
 
@@ -351,11 +390,219 @@ void UMainWeaponComponent::AttachToCharacterMesh(USkeletalMeshComponent* ParentM
 
 FVector UMainWeaponComponent::GetMuzzleLocation() const
 {
-	if (!WeaponMeshComponent || !WeaponMeshComponent->DoesSocketExist(MuzzleSocketName))
+	const FName SocketName = GetCurrentMuzzleSocket();
+	USkeletalMeshComponent* MuzzleMesh = GetMuzzleMesh(SocketName);
+
+	if (!MuzzleMesh)
 	{
 		const APawn* OwnerPawn = Cast<APawn>(GetOwner());
 		return OwnerPawn ? OwnerPawn->GetPawnViewLocation() : FVector::ZeroVector;
 	}
 
-	return WeaponMeshComponent->GetSocketLocation(MuzzleSocketName);
+	return MuzzleMesh->GetSocketLocation(SocketName);
+}
+
+FName UMainWeaponComponent::GetCurrentMuzzleSocket() const
+{
+	if (!MuzzleSocketNames.IsValidIndex(CurrentMuzzleIndex))
+	{
+		return NAME_None;
+	}
+
+	return MuzzleSocketNames[CurrentMuzzleIndex];
+}
+
+void UMainWeaponComponent::SelectMuzzleForShot()
+{
+	const int32 MuzzleCount = MuzzleSocketNames.Num();
+
+	if (MuzzleCount <= MuzzleIndexStep)
+	{
+		CurrentMuzzleIndex = FirstMuzzleIndex;
+		return;
+	}
+
+	if (bRandomizeMuzzle)
+	{
+		CurrentMuzzleIndex = FMath::RandRange(FirstMuzzleIndex, MuzzleCount - MuzzleIndexStep);
+		return;
+	}
+
+	CurrentMuzzleIndex = (CurrentMuzzleIndex + MuzzleIndexStep) % MuzzleCount;
+}
+
+USkeletalMeshComponent* UMainWeaponComponent::GetMuzzleMesh(FName SocketName) const
+{
+	if (SocketName.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (WeaponMeshComponent && WeaponMeshComponent->DoesSocketExist(SocketName))
+	{
+		return WeaponMeshComponent;
+	}
+
+	const ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
+	{
+		return nullptr;
+	}
+
+	if (!OwnerCharacter->GetMesh()->DoesSocketExist(SocketName))
+	{
+		return nullptr;
+	}
+
+	return OwnerCharacter->GetMesh();
+}
+
+void UMainWeaponComponent::PlayShotEffects(bool bHit, const FHitResult& HitResult, const FVector& ShotEnd)
+{
+	PlayMuzzleFlash();
+	PlayTracer(GetMuzzleLocation(), ShotEnd);
+
+	if (!bHit)
+	{
+		return;
+	}
+
+	PlayImpact(HitResult);
+}
+
+void UMainWeaponComponent::PlayMuzzleFlash()
+{
+	StopMuzzleEffect();
+
+	const FName SocketName = GetCurrentMuzzleSocket();
+	ActiveMuzzleComponent = SpawnEffectAttached(MuzzleEffect, GetMuzzleMesh(SocketName), SocketName);
+
+	if (!ActiveMuzzleComponent)
+	{
+		return;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		MuzzleStopTimerHandle,
+		this,
+		&UMainWeaponComponent::StopMuzzleEffect,
+		MuzzleEffectLifetime,
+		false);
+}
+
+void UMainWeaponComponent::StopMuzzleEffect()
+{
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(MuzzleStopTimerHandle);
+	}
+
+	if (!ActiveMuzzleComponent)
+	{
+		return;
+	}
+
+	ActiveMuzzleComponent->Deactivate();
+	ActiveMuzzleComponent = nullptr;
+}
+
+void UMainWeaponComponent::PlayTracer(const FVector& TracerStart, const FVector& TracerEnd) const
+{
+	UFXSystemComponent* TracerComponent = SpawnEffectAtLocation(
+		TracerEffect,
+		TracerStart,
+		(TracerEnd - TracerStart).Rotation());
+
+	if (!TracerComponent)
+	{
+		return;
+	}
+
+	TracerComponent->SetVectorParameter(TracerEndParameterName, TracerEnd);
+}
+
+void UMainWeaponComponent::PlayImpact(const FHitResult& HitResult) const
+{
+	const bool bHitCharacter = Cast<APawn>(HitResult.GetActor()) != nullptr;
+	UFXSystemAsset* ImpactEffect = bHitCharacter ? ImpactCharacterEffect : ImpactWorldEffect;
+
+	SpawnEffectAtLocation(ImpactEffect, HitResult.ImpactPoint, HitResult.ImpactNormal.Rotation());
+}
+
+UFXSystemComponent* UMainWeaponComponent::SpawnEffectAttached(
+	UFXSystemAsset* Effect,
+	USceneComponent* Parent,
+	FName SocketName) const
+{
+	if (!Effect || !Parent)
+	{
+		return nullptr;
+	}
+
+	if (UNiagaraSystem* NiagaraEffect = Cast<UNiagaraSystem>(Effect))
+	{
+		return UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraEffect,
+			Parent,
+			SocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			MuzzleEffectScale,
+			EAttachLocation::SnapToTarget,
+			true,
+			ENCPoolMethod::AutoRelease);
+	}
+
+	UParticleSystem* CascadeEffect = Cast<UParticleSystem>(Effect);
+
+	if (!CascadeEffect)
+	{
+		return nullptr;
+	}
+
+	return UGameplayStatics::SpawnEmitterAttached(
+		CascadeEffect,
+		Parent,
+		SocketName,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		MuzzleEffectScale,
+		EAttachLocation::SnapToTarget,
+		true);
+}
+
+UFXSystemComponent* UMainWeaponComponent::SpawnEffectAtLocation(
+	UFXSystemAsset* Effect,
+	const FVector& Location,
+	const FRotator& Rotation) const
+{
+	if (!Effect)
+	{
+		return nullptr;
+	}
+
+	if (UNiagaraSystem* NiagaraEffect = Cast<UNiagaraSystem>(Effect))
+	{
+		return UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			this,
+			NiagaraEffect,
+			Location,
+			Rotation,
+			FVector::OneVector,
+			true,
+			true,
+			ENCPoolMethod::AutoRelease);
+	}
+
+	UParticleSystem* CascadeEffect = Cast<UParticleSystem>(Effect);
+
+	if (!CascadeEffect)
+	{
+		return nullptr;
+	}
+
+	return UGameplayStatics::SpawnEmitterAtLocation(this, CascadeEffect, Location, Rotation, true);
 }
