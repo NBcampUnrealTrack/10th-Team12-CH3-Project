@@ -83,7 +83,7 @@ private:
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
 	UFUNCTION()
-	void HandleShotFired();
+	void HandleShotFired(int32 MuzzleIndex);
 	UFUNCTION()
 	void OnPawnDetected(APawn* DetectedPawn);
 

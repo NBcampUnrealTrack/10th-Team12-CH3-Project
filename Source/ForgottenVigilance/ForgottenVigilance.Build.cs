@@ -16,9 +16,10 @@ public class ForgottenVigilance : ModuleRules
 			"UMG",
             "NavigationSystem",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"Niagara"
         });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara" });
 	}
 }
