@@ -6,6 +6,7 @@
 #include "ForgottenLever.generated.h"
 
 class AForgottenSpawnGroup;
+class USceneComponent;
 class USphereComponent;
 class UStaticMeshComponent;
 class UTextRenderComponent;
@@ -17,6 +18,8 @@ class FORGOTTENVIGILANCE_API AForgottenLever : public AActor
 
 public:
 	AForgottenLever();
+
+	virtual void Tick(float DeltaTime) override;
 
 	void TryInteract();
 	bool CanInteract() const;
@@ -47,9 +50,20 @@ private:
 
 	void ActivateLever();
 	void UpdatePromptVisibility();
+	void SetOutlineEnabled(bool bEnabled);
+	void StartHandleRotation();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
-	TObjectPtr<UStaticMeshComponent> LeverMesh;
+	TObjectPtr<USceneComponent> LeverRoot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UStaticMeshComponent> BodyMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USceneComponent> HandlePivot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UStaticMeshComponent> HandleMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	TObjectPtr<USphereComponent> TriggerSphere;
@@ -66,6 +80,12 @@ private:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bActivateGuardianOnApproach;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Lever|Animation", meta = (AllowPrivateAccess = true))
+	FRotator ActivatedRotationOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Lever|Animation", meta = (AllowPrivateAccess = true))
+	float RotateDuration;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bGuardianDefeated;
 
@@ -74,4 +94,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever", meta = (AllowPrivateAccess = true))
 	bool bActivated;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever|Animation", meta = (AllowPrivateAccess = true))
+	FRotator HandleStartRotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever|Animation", meta = (AllowPrivateAccess = true))
+	float RotateElapsed;
 };
