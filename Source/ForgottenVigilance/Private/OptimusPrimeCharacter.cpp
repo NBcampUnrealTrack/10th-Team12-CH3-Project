@@ -1,4 +1,4 @@
-#include "OptimusPrimeCharacter.h"
+﻿#include "OptimusPrimeCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
 #include "OptimusPrimePlayerController.h"
@@ -92,6 +92,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	PawnSensingComp->bOnlySensePlayers = false;      
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AOptimusPrimeCharacter::OnPawnDetected);
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch= true;
 }
 
 void AOptimusPrimeCharacter::UpdateSpeed()
@@ -457,6 +458,22 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    this,
 			    &AOptimusPrimeCharacter::Interact);
 		}
+		if (PlayerController->CrouchAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->CrouchAction,
+			    ETriggerEvent::Triggered,
+			    this,
+			    &AOptimusPrimeCharacter::StartCrouch);
+		}
+		if (PlayerController->CrouchAction)
+		{
+			EnhancedInput->BindAction(
+			    PlayerController->CrouchAction,
+			    ETriggerEvent::Completed,
+			    this,
+			    &AOptimusPrimeCharacter::StopCrouch);
+		}
 	}
 }
 
@@ -477,6 +494,16 @@ void AOptimusPrimeCharacter::Interact(const FInputActionValue& Value)
 		Lever->TryInteract();
 		return;
 	}
+}
+
+void AOptimusPrimeCharacter::StartCrouch(const FInputActionValue& Value)
+{
+	Crouch();
+}
+
+void AOptimusPrimeCharacter::StopCrouch(const FInputActionValue& Value)
+{
+	UnCrouch();
 }
 
 void AOptimusPrimeCharacter::OnPawnDetected(APawn* DetectedPawn)

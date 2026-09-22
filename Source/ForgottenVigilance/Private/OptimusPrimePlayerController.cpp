@@ -1,4 +1,4 @@
-#include "OptimusPrimePlayerController.h"
+﻿#include "OptimusPrimePlayerController.h"
 #include "OptimusPrimeCharacter.h"
 #include "Blueprint/UserWidget.h"
 #include "ForgottenMain.h"
@@ -21,22 +21,24 @@ constexpr float DefaultAimRotationSpeed = 540.0f;
 } // namespace
 
 AOptimusPrimePlayerController::AOptimusPrimePlayerController()
-	: InputMappingContext(nullptr)
-	  , MoveAction(nullptr)
-	  , LookAction(nullptr)
-	  , JumpAction(nullptr)
-	  , SprintAction(nullptr)
-	  , ShootAction(nullptr)
-	  , HUDWidgetClass(nullptr)
-	  , HUDWidgetInstance(nullptr)
-	  , MainMenuWidgetClass(nullptr)
-	  , MainMenuWidgetInstance(nullptr)
-	  , GameOverWidgetClass(nullptr)
-	  , GameOverWidgetInstance(nullptr)
-	  , InitialCameraPitch(DefaultInitialCameraPitch)
-	  , AimRotationSpeed(DefaultAimRotationSpeed)
-	  , GameClearWidgetClass(nullptr)
-	  , GameClearWidgetInstance(nullptr)
+    : InputMappingContext(nullptr)
+    , MoveAction(nullptr)
+    , LookAction(nullptr)
+    , JumpAction(nullptr)
+    , SprintAction(nullptr)
+    , ShootAction(nullptr)
+    , InteractAction(nullptr)
+    , CrouchAction(nullptr)
+    , HUDWidgetClass(nullptr)
+    , HUDWidgetInstance(nullptr)
+    , MainMenuWidgetClass(nullptr)
+    , MainMenuWidgetInstance(nullptr)
+    , GameOverWidgetClass(nullptr)
+    , GameOverWidgetInstance(nullptr)
+    , InitialCameraPitch(DefaultInitialCameraPitch)
+    , AimRotationSpeed(DefaultAimRotationSpeed)
+    , GameClearWidgetClass(nullptr)
+    , GameClearWidgetInstance(nullptr)
 {
 }
 
@@ -52,7 +54,7 @@ void AOptimusPrimePlayerController::BeginPlay()
 		PlayerCameraManager->ViewPitchMax = MaxPitch;
 	}
 	SetControlRotation(FRotator(FMath::Clamp(InitialCameraPitch, MinPitch, MaxPitch),
-		GetControlRotation().Yaw, 0.0f));
+	    GetControlRotation().Yaw, 0.0f));
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer)
@@ -152,7 +154,7 @@ void AOptimusPrimePlayerController::ShowGameOver()
 	{
 		return;
 	}
-	
+
 	ClearAllWidgets();
 
 	UForgottenGameOver* GameOverWidget = CreateWidget<UForgottenGameOver>(this, GameOverWidgetClass);
@@ -210,7 +212,7 @@ void AOptimusPrimePlayerController::ClearAllWidgets()
 		GameOverWidgetInstance->RemoveFromParent();
 		GameOverWidgetInstance = nullptr;
 	}
-	
+
 	if (GameClearWidgetInstance)
 	{
 		GameClearWidgetInstance->RemoveFromParent();
@@ -221,15 +223,15 @@ void AOptimusPrimePlayerController::ClearAllWidgets()
 void AOptimusPrimePlayerController::StartGame()
 {
 	UGameplayStatics::OpenLevel(
-		GetWorld(),
-		FName(TEXT("MainMap")));
+	    GetWorld(),
+	    FName(TEXT("MainMap")));
 }
 
 void AOptimusPrimePlayerController::RetryGame()
 {
 	UGameplayStatics::OpenLevel(
-		GetWorld(),
-		FName(TEXT("MainMap")));
+	    GetWorld(),
+	    FName(TEXT("MainMap")));
 }
 
 float AOptimusPrimePlayerController::GetAimRotationSpeed() const
