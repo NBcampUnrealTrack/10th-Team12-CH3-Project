@@ -7,6 +7,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "ForgottenHUDWidget.generated.h"
 
+class UForgottenMiniMap;
 class UProgressBar;
 class UTextBlock;
 
@@ -14,6 +15,9 @@ UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	FORCEINLINE UForgottenMiniMap* GetMiniMapWidget() const { return MiniMap; }
 
 protected:
 	virtual void NativeConstruct() override;
@@ -56,4 +60,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TimerText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UForgottenMiniMap> MiniMap;
 };
