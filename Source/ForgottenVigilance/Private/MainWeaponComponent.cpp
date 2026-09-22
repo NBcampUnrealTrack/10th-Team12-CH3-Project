@@ -521,7 +521,15 @@ void UMainWeaponComponent::PlayTracer(const FVector& TracerStart, const FVector&
 		return;
 	}
 
-	TracerComponent->SetVectorParameter(TracerEndParameterName, TracerEnd);
+	UNiagaraComponent* NiagaraTracer = Cast<UNiagaraComponent>(TracerComponent);
+
+	if (!NiagaraTracer)
+	{
+		TracerComponent->SetVectorParameter(TracerEndParameterName, TracerEnd);
+		return;
+	}
+
+	NiagaraTracer->SetVariableVec3(TracerEndParameterName, TracerEnd);
 }
 
 void UMainWeaponComponent::PlayImpact(const FHitResult& HitResult) const
