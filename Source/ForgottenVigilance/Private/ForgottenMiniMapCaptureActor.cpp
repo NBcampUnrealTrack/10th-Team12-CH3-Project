@@ -1,11 +1,13 @@
 #include "ForgottenMiniMapCaptureActor.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Pawn.h"
 
 
 AForgottenMiniMapCaptureActor::AForgottenMiniMapCaptureActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	CaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("CaptureComponent"));
 	RootComponent = CaptureComponent;
@@ -31,11 +33,31 @@ void AForgottenMiniMapCaptureActor::BeginPlay()
 		CaptureComponent->TextureTarget = MiniMapRenderTarget;
 	}
 
-	FVector Location = GetActorLocation();
-	Location.Z = CaptureHeight;
-	SetActorLocation(Location);
+	 TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	 if (TargetPlayer)
+	 {
+		 FVector Location = TargetPlayer->GetActorLocation();
+		 Location.Z += CaptureHeight;
+
+		 SetActorLocation(Location);
+	 }
+
 }
 
+void AForgottenMiniMapCaptureActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!TargetPlayer)
+	{
+		return;
+	}
+
+	FVector Location = TargetPlayer->GetActorLocation();
+	Location.Z += CaptureHeight;
+	SetActorLocation(Location);
+}
 
 FVector2D AForgottenMiniMapCaptureActor::WorldToMiniMapUV(const FVector& WorldLocation) const
 {

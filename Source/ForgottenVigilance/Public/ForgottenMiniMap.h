@@ -6,6 +6,7 @@
 
 class UCanvasPanel;
 class UImage;
+class UTextureRenderTarget2D;
 class AForgottenMiniMapCaptureActor;
 class AOptimusPrimeCharacter;
 class UForgottenTargetMarker;
@@ -20,9 +21,14 @@ public:
 	TObjectPtr<UCanvasPanel> MarkerCanvas;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> PlayerIcon;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> MiniMap;
 	UPROPERTY(EditDefaultsOnly, Category = "Minimap")
 	TSubclassOf<UForgottenTargetMarker> MarkerClass;
+	UPROPERTY(EditAnywhere, Category = "MiniMap")
+	TObjectPtr<UTextureRenderTarget2D> MiniMapRenderTarget;
 
+	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
