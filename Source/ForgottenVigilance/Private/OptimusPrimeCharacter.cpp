@@ -11,6 +11,7 @@
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Perception/PawnSensingComponent.h"
 
 #include "ForgottenLever.h"
 
@@ -82,6 +83,14 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+
+	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
+	PawnSensingComp->SightRadius = 3000.0f;           
+	PawnSensingComp->SetPeripheralVisionAngle(60.0f); 
+	PawnSensingComp->HearingThreshold = 1200.0f;     
+	PawnSensingComp->bOnlySensePlayers = false;      
+
+	PawnSensingComp->OnSeePawn.AddDynamic(this, &AOptimusPrimeCharacter::OnPawnDetected);
 }
 
 void AOptimusPrimeCharacter::UpdateSpeed()

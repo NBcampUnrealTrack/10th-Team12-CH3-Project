@@ -4,6 +4,8 @@
 #include "ForgottenMain.h"
 #include "ForgottenHUDWidget.h"
 #include "ForgottenGameOver.h"
+#include "ForgottenMiniMap.h"
+#include "ForgottenMiniMapCaptureActor.h"
 #include "HealthComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/PlayerCameraManager.h"
@@ -117,6 +119,24 @@ void AOptimusPrimePlayerController::ShowHUD()
 	if (HUDWidgetInstance)
 	{
 		HUDWidgetInstance->AddToViewport();
+	}
+
+	if (UForgottenMiniMap* MiniMapWidget = HUDWidgetInstance->GetMiniMapWidget())
+	{
+		AOptimusPrimeCharacter* MyCharacter = Cast<AOptimusPrimeCharacter>(GetPawn());
+
+		AForgottenMiniMapCaptureActor* CaptureActor = Cast<AForgottenMiniMapCaptureActor>(
+		    UGameplayStatics::GetActorOfClass(GetWorld(), AForgottenMiniMapCaptureActor::StaticClass()));
+
+		if (MyCharacter && CaptureActor)
+		{
+			MiniMapWidget->InitMiniMap(CaptureActor, MyCharacter);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ShowHUD: MiniMap init failed. Character=%s Capture=%s"),
+			    *GetNameSafe(MyCharacter), *GetNameSafe(CaptureActor));
+		}
 	}
 
 	bShowMouseCursor = false;
