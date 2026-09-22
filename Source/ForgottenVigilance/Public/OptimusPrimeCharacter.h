@@ -49,7 +49,7 @@ public:
 	void ClearCurrentTarget();
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void GetDetectedTargets(TArray<AActor*>& OutDetectedTargets) const;
-	
+
 	AOptimusPrimeCharacter();
 
 protected:
@@ -77,6 +77,8 @@ protected:
 	void StartCrouch(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopCrouch(const FInputActionValue& Value);
+	UFUNCTION()
+	void StartDash(const FInputActionValue& Value);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
@@ -88,6 +90,9 @@ private:
 	void HandleDeath(AActor* DeadOwner);
 	UFUNCTION()
 	void HandleShotFired(int32 MuzzleIndex);
+
+	void UpdateDash(float DeltaTime);
+	void EndDash();
 	UFUNCTION()
 	void OnPawnDetected(APawn* DetectedPawn);
 
@@ -98,8 +103,8 @@ private:
 	void CheckStaleTargets();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|DeadZone",
-		meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
-			ToolTip = "Width relative to the reference screen: 0.1 = 10%, 1 = 100%. Values above 1 are allowed. Follows Target Arm Length and camera FOV changes, independently of viewport resizing and spring arm collision."))
+	    meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
+	        ToolTip = "Width relative to the reference screen: 0.1 = 10%, 1 = 100%. Values above 1 are allowed. Follows Target Arm Length and camera FOV changes, independently of viewport resizing and spring arm collision."))
 	float DeadZoneWidthFraction = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone", meta = (ClampMin = "1.0", Units = "cm"))
@@ -122,12 +127,28 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash", meta = (ClampMin = "0.0"))
+	float DashDistance = 200.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash",
+	    meta = (ClampMin = "0.01", ToolTip = "Time to travel the distance above. Shorter means a faster dash."))
+	float DashDuration = 0.25f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash", meta = (ClampMin = "0.0"))
+	float DashCooldown = 2.0f;
+
+	bool bIsDashing = false;
+	bool bDashOnCooldown = false;
+	float DashElapsedTime = 0.0f;
+	FVector DashDirection = FVector::ZeroVector;
+	FVector2D CurrentMoveInput = FVector2D::ZeroVector;
+	ECollisionResponse SavedPawnCollisionResponse = ECR_Block;
+	FTimerHandle DashCooldownTimer;
+
 	UPROPERTY(VisibleAnywhere, Category = "Seeing")
 	TObjectPtr<UPawnSensingComponent> PawnSensingComp;
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentTarget;
 
-	TMap <TWeakObjectPtr<APawn>, float> DetectedEnemies;
+	TMap<TWeakObjectPtr<APawn>, float> DetectedEnemies;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Sensing")
 	float TargetLostTime = 1.5f;
@@ -150,7 +171,7 @@ private:
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Animation|Death",
 	    meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimSequence> SelectedDeathSequence = nullptr;
-	
+
 	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
 
