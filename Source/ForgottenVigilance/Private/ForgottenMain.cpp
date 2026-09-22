@@ -29,21 +29,6 @@ void UForgottenMain::NativeConstruct()
 		    &UForgottenMain::OnStartButtonClicked);
 	}
 
-	if (LoadButton)
-	{
-		LoadButton->OnHovered.AddDynamic(
-			this,
-		    &UForgottenMain::OnLoadButtonHovered);
-
-		LoadButton->OnUnhovered.AddDynamic(
-			this,
-		    &UForgottenMain::OnLoadButtonUnhovered);
-
-		LoadButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenMain::OnLoadButtonClicked);
-	}
-
 	if (ExitButton)
 	{
 		ExitButton->OnHovered.AddDynamic(
@@ -77,22 +62,6 @@ void UForgottenMain::OnStartButtonUnhovered()
 	Start_Cyan->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UForgottenMain::OnLoadButtonHovered()
-{
-	Load_Red->SetVisibility(ESlateVisibility::Visible);
-	Load_Cyan->SetVisibility(ESlateVisibility::Visible);
-	
-	if (Anim_LoadHover)
-	{
-		PlayAnimation(Anim_LoadHover);
-	}
-}
-
-void UForgottenMain::OnLoadButtonUnhovered()
-{
-	Load_Red->SetVisibility(ESlateVisibility::Hidden);
-	Load_Cyan->SetVisibility(ESlateVisibility::Hidden);
-}
 
 void UForgottenMain::OnExitButtonHovered()
 {
@@ -118,12 +87,6 @@ void UForgottenMain::OnStartButtonClicked()
 	    FName(TEXT("MainLevel")));
 }
 
-void UForgottenMain::OnLoadButtonClicked()
-{
-	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("MainLevel")));
-}
 
 void UForgottenMain::OnExitButtonClicked()
 {

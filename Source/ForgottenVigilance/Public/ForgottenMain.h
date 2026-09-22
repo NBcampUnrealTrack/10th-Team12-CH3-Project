@@ -20,9 +20,6 @@ protected:
 	TObjectPtr<UButton> StartButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> LoadButton;
-
-	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ExitButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -30,12 +27,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Start_Cyan;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> Load_Red;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> Load_Cyan;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Exit_Red;
@@ -49,9 +40,6 @@ protected:
     UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_StartHover;
 
-	UPROPERTY(Transient, meta = (BindWidgetAnim))
-	TObjectPtr<UWidgetAnimation> Anim_LoadHover;
-
     UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_ExitHover;
 
@@ -63,12 +51,6 @@ protected:
 	void OnStartButtonUnhovered();
 
 	UFUNCTION()
-	void OnLoadButtonHovered();
-
-	UFUNCTION()
-	void OnLoadButtonUnhovered();
-
-	UFUNCTION()
 	void OnExitButtonHovered();
 
 	UFUNCTION()
@@ -77,9 +59,6 @@ protected:
 
 	UFUNCTION()
 	void OnStartButtonClicked();
-
-	UFUNCTION()
-	void OnLoadButtonClicked();
 
 	UFUNCTION()
 	void OnExitButtonClicked();
