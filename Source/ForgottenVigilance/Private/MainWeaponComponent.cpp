@@ -293,7 +293,7 @@ bool UMainWeaponComponent::GetAimTarget(FVector& OutTarget) const
 	FVector RayStart;
 	FVector RayDirection;
 	const APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
-	if (PlayerController && PlayerController->IsLocalController())
+	if (PlayerController && PlayerController->IsLocalController() && PlayerController->GetViewTarget() == OwnerPawn)
 	{
 		int32 ViewportWidth = 0;
 		int32 ViewportHeight = 0;
