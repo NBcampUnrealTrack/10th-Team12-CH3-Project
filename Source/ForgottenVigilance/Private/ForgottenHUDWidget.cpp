@@ -10,6 +10,7 @@
 namespace
 {
 constexpr float DefaultKillMarkerDuration = 0.5f;
+constexpr float DefaultHitMarkerDuration = 0.15f;
 }
 
 void UForgottenHUDWidget::NativeConstruct()
@@ -21,6 +22,13 @@ void UForgottenHUDWidget::NativeConstruct()
 		HeatBarMaterial = HeatBarImage->GetDynamicMaterial();
 	}
 
+	HitMarkerDuration = DefaultHitMarkerDuration;
+
+	if (HitMarkerImage)
+	{
+		HitMarkerImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	APawn* OwningPawn = GetOwningPlayerPawn();
 	if (!OwningPawn)
 	{
@@ -30,34 +38,35 @@ void UForgottenHUDWidget::NativeConstruct()
 	if (UHealthComponent* HealthComp = OwningPawn->FindComponentByClass<UHealthComponent>())
 	{
 		HealthComp->OnHealthChanged.AddDynamic(
-		    this,
-		    &UForgottenHUDWidget::HandleHealthChanged);
+			this,
+			&UForgottenHUDWidget::HandleHealthChanged);
 
 		HandleHealthChanged(
-		    HealthComp->GetCurrentHealth(),
-		    HealthComp->GetMaxHealth());
+			HealthComp->GetCurrentHealth(),
+			HealthComp->GetMaxHealth());
 	}
 
 	if (UMainWeaponComponent* WeaponComp = OwningPawn->FindComponentByClass<UMainWeaponComponent>())
 	{
 		WeaponComp->OnHeatChanged.AddDynamic(
-		    this,
-		    &UForgottenHUDWidget::HandleHeatChanged);
+			this,
+			&UForgottenHUDWidget::HandleHeatChanged);
 
 		WeaponComp->OnOverheatStateChanged.AddDynamic(
-		    this,
-		    &UForgottenHUDWidget::HandleOverheatChanged);
+			this,
+			&UForgottenHUDWidget::HandleOverheatChanged);
 
 		if (HeatBarMaterial)
 		{
 			HeatBarMaterial->SetScalarParameterValue(
-			    FName("Percent"),
-			    WeaponComp->GetHeatRatio());
+				FName("Percent"),
+				WeaponComp->GetHeatRatio());
 		}
 
 		HandleOverheatChanged(WeaponComp->IsOverheated());
+		WeaponComp->OnShotHit.AddDynamic(this, &UForgottenHUDWidget::HandleShotHit);
 	}
-	
+
 	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
 
 	if (!ForgottenGameState)
@@ -74,7 +83,7 @@ void UForgottenHUDWidget::NativeConstruct()
 	HandleObjectiveChanged(
 		ForgottenGameState->GetObjectiveProgress(),
 		ForgottenGameState->GetRequiredObjectiveProgress());
-	
+
 	KillMarkerDuration = DefaultKillMarkerDuration;
 
 	if (KillMarkerImage)
@@ -95,6 +104,7 @@ void UForgottenHUDWidget::HandleKillCountChanged(int32 NewKillCount)
 		return;
 	}
 
+	HideHitMarker();
 	KillMarkerImage->SetVisibility(ESlateVisibility::HitTestInvisible);
 
 	UWorld* World = GetWorld();
@@ -123,8 +133,8 @@ void UForgottenHUDWidget::HideKillMarker()
 }
 
 void UForgottenHUDWidget::HandleHeatChanged(
-    float CurrentHeat,
-    float MaxHeat)
+	float CurrentHeat,
+	float MaxHeat)
 {
 	if (HeatBarMaterial && MaxHeat > 0.0f)
 	{
@@ -172,4 +182,38 @@ void UForgottenHUDWidget::HandleRemainingTimeChanged(float RemainingTime)
 
 	TimerText->SetText(FText::FromString(
 		FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds)));
+}
+
+void UForgottenHUDWidget::HandleShotHit(bool bHitCharacter)
+{
+	if (!bHitCharacter || !HitMarkerImage)
+	{
+		return;
+	}
+
+	HitMarkerImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		HitMarkerTimerHandle,
+		this,
+		&UForgottenHUDWidget::HideHitMarker,
+		HitMarkerDuration,
+		false);
+}
+
+void UForgottenHUDWidget::HideHitMarker()
+{
+	if (!HitMarkerImage)
+	{
+		return;
+	}
+
+	HitMarkerImage->SetVisibility(ESlateVisibility::Collapsed);
 }

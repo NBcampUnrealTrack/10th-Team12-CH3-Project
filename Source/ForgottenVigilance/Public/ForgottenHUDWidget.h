@@ -45,6 +45,12 @@ protected:
 
 	UFUNCTION()
 	void HideKillMarker();
+	
+	UFUNCTION()
+	void HandleShotHit(bool bHitCharacter);
+
+	UFUNCTION()
+	void HideHitMarker();
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -76,6 +82,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float KillMarkerDuration;
 	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> HitMarkerImage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	float HitMarkerDuration;
+	
 private:
 	FTimerHandle KillMarkerTimerHandle;
+	FTimerHandle HitMarkerTimerHandle;
 };

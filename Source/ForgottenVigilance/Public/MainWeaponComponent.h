@@ -15,6 +15,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverheatStateChanged, bool, bIsOv
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShotFired, int32, MuzzleIndex);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShotHit, bool, bHitCharacter);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORGOTTENVIGILANCE_API UMainWeaponComponent : public UActorComponent
 {
@@ -38,6 +40,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Transient, Category = "Weapon")
 	FOnShotFired OnShotFired;
+	
+		UPROPERTY(BlueprintAssignable, Category = "Weapon")
+    	FOnShotHit OnShotHit;
 
 protected:
 	virtual void BeginPlay() override;

@@ -206,6 +206,7 @@ void UMainWeaponComponent::Fire()
 	const bool bHit = TraceForHit(HitResult, ShotEnd);
 
 	PlayShotEffects(bHit, HitResult, ShotEnd);
+	OnShotHit.Broadcast(bHit && Cast<APawn>(HitResult.GetActor()) != nullptr);
 	AddHeat();
 
 	if (!bHit)
