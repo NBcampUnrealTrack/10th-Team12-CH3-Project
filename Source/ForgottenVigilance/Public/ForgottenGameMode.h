@@ -27,6 +27,8 @@ private:
 	void TickMissionTimer();
 	void FinishGame(bool bCleared);
 	AForgottenGameState* GetForgottenGameState() const;
+	void ScheduleFreeze();
+	void FreezeWorld();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rule", meta = (AllowPrivateAccess = true))
 	float MissionTimeLimit;
@@ -36,7 +38,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rule", meta = (AllowPrivateAccess = true))
 	bool bGameFinished;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rule", meta = (AllowPrivateAccess = true))
+	float FreezeDelay;
 
 	FTimerHandle MissionTimerHandle;
 	FTimerHandle BindRetryHandle;
+	FTimerHandle FreezeTimerHandle;
 };

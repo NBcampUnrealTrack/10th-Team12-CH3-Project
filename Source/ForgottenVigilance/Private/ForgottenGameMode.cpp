@@ -13,6 +13,7 @@ constexpr float DefaultMissionTimeLimit = 600.0f;
 constexpr float MissionTickInterval = 1.0f;
 constexpr float BindRetryInterval = 0.2f;
 constexpr float TimeZeroThreshold = 0.0f;
+constexpr float DefaultFreezeDelay = 0.0f;
 }
 
 AForgottenGameMode::AForgottenGameMode()
@@ -100,12 +101,6 @@ void AForgottenGameMode::NotifyFinalBossDefeated()
 
 void AForgottenGameMode::FinishGame(bool bCleared)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red,
-			FString::Printf(TEXT("FinishGame bCleared=%d"), bCleared ? 1 : 0));
-	}
-	
 	if (bGameFinished)
 	{
 		return;
@@ -121,8 +116,10 @@ void AForgottenGameMode::FinishGame(bool bCleared)
 		ForgottenGameState->EnterPhase(bCleared ? EForgottenPhase::Cleared : EForgottenPhase::Failed);
 	}
 
+	ScheduleFreeze();
+
 	AOptimusPrimePlayerController* ForgottenController =
-	GetWorld()->GetFirstPlayerController<AOptimusPrimePlayerController>();
+		GetWorld()->GetFirstPlayerController<AOptimusPrimePlayerController>();
 
 	if (!ForgottenController)
 	{
@@ -136,6 +133,27 @@ void AForgottenGameMode::FinishGame(bool bCleared)
 	}
 
 	ForgottenController->ShowGameOver();
+}
+
+void AForgottenGameMode::ScheduleFreeze()
+{
+	if (FreezeDelay <= TimeZeroThreshold)
+	{
+		FreezeWorld();
+		return;
+	}
+
+	GetWorldTimerManager().SetTimer(
+		FreezeTimerHandle,
+		this,
+		&AForgottenGameMode::FreezeWorld,
+		FreezeDelay,
+		false);
+}
+
+void AForgottenGameMode::FreezeWorld()
+{
+	UGameplayStatics::SetGamePaused(this, true);
 }
 
 AForgottenGameState* AForgottenGameMode::GetForgottenGameState() const
