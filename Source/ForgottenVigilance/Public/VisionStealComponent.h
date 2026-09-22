@@ -23,6 +23,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void EndVisionSteal();
 
+	bool IsVisionStealActive() const { return bVisionStealActive; }
+
 	UVisionStealComponent();
 
 protected:
@@ -43,11 +45,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal|Camera")
 	TObjectPtr<ACameraActor> SpawnedVisionCameraActor;
 	UPROPERTY(EditAnywhere, Category = "VisionSteal|Camera")
-	FName CameraAttachSocketName = TEXT("head");
+	FName CameraAttachSocketName = NAME_None;
 	UPROPERTY(EditAnywhere, Category = "VisionSteal|Camera")
-	FVector CameraRelativeLocation;
+	FVector CameraRelativeLocation = FVector(50.0f, 0.0f, 70.0f);
 	UPROPERTY(EditAnywhere, Category = "VisionSteal|Camera")
-	FRotator CameraRelativeRotation;
+	FRotator CameraRelativeRotation = FRotator::ZeroRotator;
 
 	FTimerHandle VisionStealTimerHandle;
 };

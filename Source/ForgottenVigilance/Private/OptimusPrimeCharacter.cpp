@@ -402,18 +402,27 @@ void AOptimusPrimeCharacter::UpdateCrosshairRotation(float DeltaTime)
 	{
 		return;
 	}
-	FVector AimTarget;
-	if (!MainWeaponComponent->GetAimTarget(AimTarget))
+	FRotator TargetRotation;
+	if (VisionStealComponent && VisionStealComponent->IsVisionStealActive())
 	{
-		return;
+		// 시야를 훔치는 동안에는 화면 중앙이 적 시야라, 조준 기준을 컨트롤 회전으로 바꿉니다.
+		TargetRotation = FRotator(0.0f, PlayerController->GetControlRotation().Yaw, 0.0f);
 	}
-	FVector AimDirection = AimTarget - GetActorLocation();
-	AimDirection.Z = 0.0f;
-	if (AimDirection.IsNearlyZero())
+	else
 	{
-		return;
+		FVector AimTarget;
+		if (!MainWeaponComponent->GetAimTarget(AimTarget))
+		{
+			return;
+		}
+		FVector AimDirection = AimTarget - GetActorLocation();
+		AimDirection.Z = 0.0f;
+		if (AimDirection.IsNearlyZero())
+		{
+			return;
+		}
+		TargetRotation = FRotator(0.0f, AimDirection.Rotation().Yaw, 0.0f);
 	}
-	const FRotator TargetRotation(0.0f, AimDirection.Rotation().Yaw, 0.0f);
 	const FRotator NextRotation = FMath::RInterpConstantTo(GetActorRotation(), TargetRotation,
 	    DeltaTime, FMath::Max(0.0f, PlayerController->GetAimRotationSpeed()));
 	SetActorRotation(NextRotation);

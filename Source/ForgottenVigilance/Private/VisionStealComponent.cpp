@@ -1,6 +1,8 @@
 ﻿
 #include "VisionStealComponent.h"
 #include "AIBaseCharacter.h"
+#include "Camera/CameraActor.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 
 void UVisionStealComponent::ToggleVisionSteal()
@@ -44,12 +46,77 @@ bool UVisionStealComponent::StartVisionSteal(AActor* Target)
 		return false;
 	}
 
-	PlayerController->SetViewTargetWithBlend(Target, ViewTargetBlendTime);
+	AActor* ViewTarget = Target;
+	if (AAIBaseCharacter* TargetCharacter = Cast<AAIBaseCharacter>(Target))
+	{
+		if (ACameraActor* CameraActor = SpawnCameraActor(TargetCharacter))
+		{
+			SpawnedVisionCameraActor = CameraActor;
+			ViewTarget = CameraActor;
+		}
+	}
 
-	UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: view switched to %s"), *GetNameSafe(Target));
+	PlayerController->SetViewTargetWithBlend(ViewTarget, ViewTargetBlendTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: view switched to %s"), *GetNameSafe(ViewTarget));
 
 	bVisionStealActive = true;
 	return true;
+}
+
+ACameraActor* UVisionStealComponent::SpawnCameraActor(AAIBaseCharacter* Target)
+{
+	if (!IsValid(Target))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: invalid target"));
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: world not found"));
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = Target;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	ACameraActor* CameraActor = World->SpawnActor<ACameraActor>(
+	    ACameraActor::StaticClass(), Target->GetActorTransform(), SpawnParams);
+	if (!CameraActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: spawn failed"));
+		return nullptr;
+	}
+
+	USkeletalMeshComponent* TargetMesh = Target->GetMesh();
+	USceneComponent* AttachParent = Target->GetRootComponent();
+	FName AttachSocket = NAME_None;
+
+	if (!CameraAttachSocketName.IsNone())
+	{
+		if (TargetMesh && TargetMesh->DoesSocketExist(CameraAttachSocketName))
+		{
+			AttachParent = TargetMesh;
+			AttachSocket = CameraAttachSocketName;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: socket %s not found on %s, falling back to root"),
+			    *CameraAttachSocketName.ToString(), *GetNameSafe(Target));
+		}
+	}
+
+	CameraActor->AttachToComponent(AttachParent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocket);
+	CameraActor->SetActorRelativeLocation(CameraRelativeLocation);
+	CameraActor->SetActorRelativeRotation(CameraRelativeRotation);
+
+	UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: attached to %s socket %s"),
+	    *GetNameSafe(Target), *AttachSocket.ToString());
+
+	return CameraActor;
 }
 
 void UVisionStealComponent::EndVisionSteal()
@@ -73,7 +140,13 @@ void UVisionStealComponent::EndVisionSteal()
 	}
 
 	PlayerController->SetViewTargetWithBlend(OwnerPawn, ViewTargetBlendTime);
-	
+
+	if (IsValid(SpawnedVisionCameraActor))
+	{
+		SpawnedVisionCameraActor->Destroy();
+	}
+	SpawnedVisionCameraActor = nullptr;
+
 	bVisionStealActive = false;
 }
 
