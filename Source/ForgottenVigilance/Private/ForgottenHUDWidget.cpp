@@ -11,11 +11,14 @@ namespace
 {
 constexpr float DefaultKillMarkerDuration = 0.5f;
 constexpr float DefaultHitMarkerDuration = 0.15f;
+constexpr float BossHealthZeroThreshold = 0.0f;
 }
 
 void UForgottenHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
+	HandleBossActiveChanged(false);
 
 	if (HeatBarImage)
 	{
@@ -78,7 +81,9 @@ void UForgottenHUDWidget::NativeConstruct()
 	ForgottenGameState->OnKillCountChanged.AddDynamic(this, &UForgottenHUDWidget::HandleKillCountChanged);
 	ForgottenGameState->OnObjectiveProgressChanged.AddDynamic(this, &UForgottenHUDWidget::HandleObjectiveChanged);
 	ForgottenGameState->OnRemainingTimeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleRemainingTimeChanged);
-
+	ForgottenGameState->OnBossHealthUpdated.AddDynamic(this, &UForgottenHUDWidget::HandleBossHealthUpdated);
+	ForgottenGameState->OnBossActiveChanged.AddDynamic(this, &UForgottenHUDWidget::HandleBossActiveChanged);
+	
 	HandleScoreChanged(ForgottenGameState->GetScore());
 	HandleObjectiveChanged(
 		ForgottenGameState->GetObjectiveProgress(),
@@ -216,4 +221,36 @@ void UForgottenHUDWidget::HideHitMarker()
 	}
 
 	HitMarkerImage->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UForgottenHUDWidget::HandleBossHealthUpdated(float CurrentHealth, float MaxHealth)
+{
+	if (!BossHealthBar || MaxHealth <= BossHealthZeroThreshold)
+	{
+		return;
+	}
+
+	BossHealthBar->SetPercent(CurrentHealth / MaxHealth);
+}
+
+void UForgottenHUDWidget::HandleBossActiveChanged(bool bIsActive)
+{
+	const ESlateVisibility BossVisibility = bIsActive
+		? ESlateVisibility::HitTestInvisible
+		: ESlateVisibility::Collapsed;
+
+	if (BossHealthBar)
+	{
+		BossHealthBar->SetVisibility(BossVisibility);
+	}
+
+	if (BossHealthFrameImage)
+	{
+		BossHealthFrameImage->SetVisibility(BossVisibility);
+	}
+
+	if (BossNameText)
+	{
+		BossNameText->SetVisibility(BossVisibility);
+	}
 }

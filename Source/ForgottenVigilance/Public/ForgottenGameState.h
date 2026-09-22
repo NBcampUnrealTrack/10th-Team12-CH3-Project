@@ -26,6 +26,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EForgottenPhase, Ne
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemainingTimeChanged, float, RemainingTime);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBossHealthUpdated, float, CurrentHealth, float, MaxHealth);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossActiveChanged, bool, bIsActive);
+
 UCLASS()
 class FORGOTTENVIGILANCE_API AForgottenGameState : public AGameState
 {
@@ -44,6 +48,8 @@ public:
 	int32 GetObjectiveProgress() const;
 	int32 GetRequiredObjectiveProgress() const;
 	EForgottenPhase GetPhase() const;
+	void NotifyBossActive(bool bIsActive);
+	void NotifyBossHealth(float CurrentHealth, float MaxHealth);
 
 	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
 	FOnScoreChanged OnScoreChanged;
@@ -59,6 +65,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
 	FOnRemainingTimeChanged OnRemainingTimeChanged;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
+	FOnBossHealthUpdated OnBossHealthUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
+	FOnBossActiveChanged OnBossActiveChanged;
 
 protected:
 	virtual void BeginPlay() override;

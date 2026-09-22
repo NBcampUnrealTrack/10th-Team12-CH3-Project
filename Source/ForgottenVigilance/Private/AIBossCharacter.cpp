@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
+#include "ForgottenGameState.h"
 
 namespace
 {
@@ -45,7 +46,7 @@ AAIBossCharacter::AAIBossCharacter()
 	StaggerGauge = BossZeroThreshold;
 	LastBossHealth = BossZeroThreshold;
 	bStaggerImmune = false;
-	
+	bShowHealthBar = true;
 }
 
 void AAIBossCharacter::BeginPlay()
@@ -58,7 +59,7 @@ void AAIBossCharacter::BeginPlay()
 	{
 		return;
 	}
-	
+
 	LastBossHealth = BossHealth->GetCurrentHealth();
 
 	BossHealth->OnHealthChanged.AddDynamic(this, &AAIBossCharacter::HandleBossHealthChanged);
@@ -66,10 +67,41 @@ void AAIBossCharacter::BeginPlay()
 
 	OnBossHealthChanged.Broadcast(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
 	OnBossPhaseChanged.Broadcast(BossPhase);
+
+	OnBossHealthChanged.Broadcast(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
+	OnBossPhaseChanged.Broadcast(BossPhase);
+
+	if (!bShowHealthBar)
+	{
+		return;
+	}
+
+	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (!ForgottenGameState)
+	{
+		return;
+	}
+
+	ForgottenGameState->NotifyBossHealth(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
+	ForgottenGameState->NotifyBossActive(true);
 }
+
 
 void AAIBossCharacter::HandleBossHealthChanged(float CurrentHealth, float MaxHealth)
 {
+	OnBossHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+
+	if (bShowHealthBar)
+	{
+		AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+		if (ForgottenGameState)
+		{
+			ForgottenGameState->NotifyBossHealth(CurrentHealth, MaxHealth);
+		}
+	}
+
 	OnBossHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
 	const float DamageTaken = LastBossHealth - CurrentHealth;
@@ -146,17 +178,27 @@ void AAIBossCharacter::EnterBossPhase(EBossPhase NewPhase)
 	}
 
 	SetMovementSpeed(RunSpeed * SecondPhaseSpeedMultiplier);
-	
+
 	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
 	GetMesh()->SetRenderCustomDepth(true);
 }
 
 void AAIBossCharacter::HandleBossDeath(AActor* DeadOwner)
 {
+	if (bShowHealthBar)
+	{
+		AForgottenGameState* DeathGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+		if (DeathGameState)
+		{
+			DeathGameState->NotifyBossActive(false);
+		}
+	}
+
 	EnterBossPhase(EBossPhase::Defeated);
 
 	GetMesh()->SetRenderCustomDepth(false);
-	
+
 	if (!bIsFinalBoss)
 	{
 		return;

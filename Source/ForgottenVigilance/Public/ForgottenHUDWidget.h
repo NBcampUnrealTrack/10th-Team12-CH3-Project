@@ -51,6 +51,12 @@ protected:
 
 	UFUNCTION()
 	void HideHitMarker();
+	
+	UFUNCTION()
+	void HandleBossHealthUpdated(float CurrentHealth, float MaxHealth);
+
+	UFUNCTION()
+	void HandleBossActiveChanged(bool bIsActive);
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -87,6 +93,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float HitMarkerDuration;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UProgressBar> BossHealthBar;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> BossNameText;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> BossHealthFrameImage;
 	
 private:
 	FTimerHandle KillMarkerTimerHandle;

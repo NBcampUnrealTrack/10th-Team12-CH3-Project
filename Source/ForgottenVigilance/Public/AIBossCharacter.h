@@ -125,5 +125,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
 	bool bStaggerImmune;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
+	bool bShowHealthBar;
+	
 	FTimerHandle StaggerImmunityHandle;
 };

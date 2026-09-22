@@ -121,3 +121,13 @@ EForgottenPhase AForgottenGameState::GetPhase() const
 {
 	return Phase;
 }
+
+void AForgottenGameState::NotifyBossActive(bool bIsActive)
+{
+	OnBossActiveChanged.Broadcast(bIsActive);
+}
+
+void AForgottenGameState::NotifyBossHealth(float CurrentHealth, float MaxHealth)
+{
+	OnBossHealthUpdated.Broadcast(CurrentHealth, MaxHealth);
+}
