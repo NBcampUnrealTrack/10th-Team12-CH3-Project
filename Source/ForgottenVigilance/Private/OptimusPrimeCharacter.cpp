@@ -233,6 +233,9 @@ void AOptimusPrimeCharacter::BeginPlay()
 	PlayerPreviousHealth = HealthComp->GetCurrentHealth();
 	HealthComp->OnHealthChanged.AddDynamic(this, &AOptimusPrimeCharacter::HandleHealthChanged);
 	MainWeaponComponent->OnShotFired.AddDynamic(this, &AOptimusPrimeCharacter::HandleShotFired);
+	
+	DashCooldownElapsed = DashCooldown;
+	OnDashCooldownChanged.Broadcast(1.0f);
 }
 
 void AOptimusPrimeCharacter::Move(const FInputActionValue& Value)
@@ -388,6 +391,11 @@ void AOptimusPrimeCharacter::Tick(float DeltaTime)
 
 	// 대시 이동 후 카메라가 변경된 위치를 따라가도록 먼저 갱신.
 	UpdateDash(DeltaTime);
+	if (bDashOnCooldown)
+	{
+		DashCooldownElapsed = FMath::Min(DashCooldownElapsed + DeltaTime, DashCooldown);
+		OnDashCooldownChanged.Broadcast(GetDashCooldownRatio());
+	}
 
 	UpdateCameraDeadZoneWidth(DeltaTime);
 
@@ -614,12 +622,17 @@ void AOptimusPrimeCharacter::StartDash(const FInputActionValue& Value)
 	if (DashCooldown > 0.0f)
 	{
 		bDashOnCooldown = true;
+		DashCooldownElapsed = 0.0f;
+		OnDashCooldownChanged.Broadcast(0.0f);
+
 		GetWorldTimerManager().SetTimer(
 			DashCooldownTimer,
-			FTimerDelegate::CreateWeakLambda(this, [this]()
+			[this]()
 			{
 				bDashOnCooldown = false;
-			}),
+				DashCooldownElapsed = DashCooldown;
+				OnDashCooldownChanged.Broadcast(1.0f);
+			},
 			DashCooldown,
 			false);
 	}
@@ -730,4 +743,14 @@ void AOptimusPrimeCharacter::HandleHealthChanged(float CurrentHealth, float MaxH
 void AOptimusPrimeCharacter::EndHitStop()
 {
 	UGameplayStatics::SetGlobalTimeDilation(this, NormalTimeDilation);
+}
+
+float AOptimusPrimeCharacter::GetDashCooldownRatio() const
+{
+	if (DashCooldown <= 0.0f)
+	{
+		return 1.0f;
+	}
+
+	return FMath::Clamp(DashCooldownElapsed / DashCooldown, 0.0f, 1.0f);
 }

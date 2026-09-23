@@ -70,6 +70,9 @@ protected:
 
 	UFUNCTION()
 	void HandleVisionStealStateChanged(bool bIsActive);
+	
+	UFUNCTION()
+	void HandleDashCooldownChanged(float RemainingRatio);
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -133,6 +136,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> VisionStealActiveOverlay;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DashIconImage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	float DashIconMinAlpha;
 
 private:
 	FTimerHandle KillMarkerTimerHandle;

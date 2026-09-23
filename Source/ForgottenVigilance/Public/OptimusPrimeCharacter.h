@@ -12,6 +12,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetLost, AActor*, Target);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDamaged);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDashCooldownChanged, float, RemainingRatio);
+
 class USpringArmComponent;
 class UCameraComponent;
 class UHealthComponent;
@@ -58,6 +60,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Damage Feedback")
 	FOnPlayerDamaged OnPlayerDamaged;
+	
+		UPROPERTY(BlueprintAssignable, Category = "Movement|Dash")
+    	FOnDashCooldownChanged OnDashCooldownChanged;
+    
+    	float GetDashCooldownRatio() const;
 
 	AOptimusPrimeCharacter();
 
@@ -208,4 +215,5 @@ private:
 	bool bDeadZoneWidthInitialized = false;
 	float PlayerPreviousHealth;
 	FTimerHandle HitStopTimerHandle;
+		float DashCooldownElapsed = 0.0f;
 };

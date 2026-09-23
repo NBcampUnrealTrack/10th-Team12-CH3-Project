@@ -16,6 +16,7 @@ constexpr float DefaultKillMarkerDuration = 0.5f;
 constexpr float DefaultHitMarkerDuration = 0.15f;
 constexpr float BossHealthZeroThreshold = 0.0f;
 constexpr float DefaultDamageOverlayDuration = 0.35f;
+constexpr float DefaultDashIconMinAlpha = 0.25f;
 }
 
 void UForgottenHUDWidget::NativeConstruct()
@@ -53,6 +54,9 @@ void UForgottenHUDWidget::NativeConstruct()
 	if (AOptimusPrimeCharacter* PlayerCharacter = Cast<AOptimusPrimeCharacter>(OwningPawn))
 	{
 		PlayerCharacter->OnPlayerDamaged.AddDynamic(this, &UForgottenHUDWidget::HandlePlayerDamaged);
+		PlayerCharacter->OnDashCooldownChanged.AddDynamic(this, &UForgottenHUDWidget::HandleDashCooldownChanged);
+
+		HandleDashCooldownChanged(PlayerCharacter->GetDashCooldownRatio());
 	}
 
 	if (UVisionStealComponent* VisionSteal = OwningPawn->FindComponentByClass<UVisionStealComponent>())
@@ -345,4 +349,16 @@ void UForgottenHUDWidget::HandleVisionStealStateChanged(bool bIsActive)
 	VisionStealActiveOverlay->SetVisibility(bIsActive
 		                                        ? ESlateVisibility::HitTestInvisible
 		                                        : ESlateVisibility::Collapsed);
+}
+
+void UForgottenHUDWidget::HandleDashCooldownChanged(float RemainingRatio)
+{
+	if (!DashIconImage)
+	{
+		return;
+	}
+
+	const float IconAlpha = FMath::Lerp(DashIconMinAlpha, 1.0f, RemainingRatio);
+
+	DashIconImage->SetRenderOpacity(IconAlpha);
 }
