@@ -6,13 +6,14 @@
 #include "Components/TextBlock.h"
 #include "ForgottenGameState.h"
 #include "TimerManager.h"
-#include "Animation/WidgetAnimation.h"
+#include "OptimusPrimeCharacter.h"
 
 namespace
 {
 constexpr float DefaultKillMarkerDuration = 0.5f;
 constexpr float DefaultHitMarkerDuration = 0.15f;
 constexpr float BossHealthZeroThreshold = 0.0f;
+constexpr float DefaultDamageOverlayDuration = 0.35f;
 }
 
 void UForgottenHUDWidget::NativeConstruct()
@@ -20,6 +21,13 @@ void UForgottenHUDWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	HandleBossActiveChanged(false);
+	
+	DamageOverlayDuration = DefaultDamageOverlayDuration;
+
+	if (DamageNoiseOverlay)
+	{
+		DamageNoiseOverlay->SetVisibility(ESlateVisibility::Collapsed);
+	}
 
 	if (HeatBarImage)
 	{
@@ -37,6 +45,11 @@ void UForgottenHUDWidget::NativeConstruct()
 	if (!OwningPawn)
 	{
 		return;
+	}
+	
+	if (AOptimusPrimeCharacter* PlayerCharacter = Cast<AOptimusPrimeCharacter>(OwningPawn))
+	{
+		PlayerCharacter->OnPlayerDamaged.AddDynamic(this, &UForgottenHUDWidget::HandlePlayerDamaged);
 	}
 
 	if (UHealthComponent* HealthComp = OwningPawn->FindComponentByClass<UHealthComponent>())
@@ -167,24 +180,6 @@ void UForgottenHUDWidget::HandleOverheatChanged(bool bIsOverheated)
 			OverheatWarningText->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
-
-	if (Anim_Warning)
-	{
-		if (bIsOverheated)
-		{
-			PlayAnimation(
-			    Anim_Warning,
-			    0.0f,
-			    1,
-			    EUMGSequencePlayMode::Forward,
-			    1.0f,
-			    false);
-		}
-		else
-		{
-			StopAnimation(Anim_Warning);
-		}
-	}
 }
 
 void UForgottenHUDWidget::HandleScoreChanged(int32 NewScore)
@@ -272,4 +267,38 @@ void UForgottenHUDWidget::HandleBossActiveChanged(bool bIsActive)
 	{
 		BossNameText->SetVisibility(BossVisibility);
 	}
+}
+
+void UForgottenHUDWidget::HandlePlayerDamaged()
+{
+	if (!DamageNoiseOverlay)
+	{
+		return;
+	}
+
+	DamageNoiseOverlay->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		DamageOverlayTimerHandle,
+		this,
+		&UForgottenHUDWidget::HideDamageOverlay,
+		DamageOverlayDuration,
+		false);
+}
+
+void UForgottenHUDWidget::HideDamageOverlay()
+{
+	if (!DamageNoiseOverlay)
+	{
+		return;
+	}
+
+	DamageNoiseOverlay->SetVisibility(ESlateVisibility::Collapsed);
 }

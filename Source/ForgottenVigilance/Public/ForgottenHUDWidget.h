@@ -58,6 +58,12 @@ protected:
 
 	UFUNCTION()
 	void HandleBossActiveChanged(bool bIsActive);
+	
+	UFUNCTION()
+	void HandlePlayerDamaged();
+
+	UFUNCTION()
+	void HideDamageOverlay();
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -107,7 +113,14 @@ protected:
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_Warning;
 	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DamageNoiseOverlay;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	float DamageOverlayDuration;
+	
 private:
 	FTimerHandle KillMarkerTimerHandle;
 	FTimerHandle HitMarkerTimerHandle;
+	FTimerHandle DamageOverlayTimerHandle;
 };

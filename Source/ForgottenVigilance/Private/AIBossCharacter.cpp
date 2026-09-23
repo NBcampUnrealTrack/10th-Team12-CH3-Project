@@ -23,7 +23,8 @@ constexpr float DefaultStaggerThreshold = 200.0f;
 constexpr float DefaultStaggerDuration = 1.5f;
 constexpr float DefaultStaggerImmunityDuration = 6.0f;
 constexpr float StaggerRatioMax = 1.0f;
-constexpr int32 OutlineStencilValue = 1;
+constexpr int32 BossPhaseOneStencilValue = 1;
+constexpr int32 BossPhaseTwoStencilValue = 3;
 }
 
 AAIBossCharacter::AAIBossCharacter()
@@ -52,6 +53,9 @@ AAIBossCharacter::AAIBossCharacter()
 void AAIBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetMesh()->SetCustomDepthStencilValue(BossPhaseOneStencilValue);
+	GetMesh()->SetRenderCustomDepth(true);
 
 	UHealthComponent* BossHealth = FindComponentByClass<UHealthComponent>();
 
@@ -102,8 +106,6 @@ void AAIBossCharacter::HandleBossHealthChanged(float CurrentHealth, float MaxHea
 		}
 	}
 
-	OnBossHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-
 	const float DamageTaken = LastBossHealth - CurrentHealth;
 	LastBossHealth = CurrentHealth;
 
@@ -113,6 +115,11 @@ void AAIBossCharacter::HandleBossHealthChanged(float CurrentHealth, float MaxHea
 	}
 
 	if (MaxHealth <= BossZeroThreshold)
+	{
+		return;
+	}
+
+	if (CurrentHealth / MaxHealth > SecondPhaseHealthRatio)
 	{
 		return;
 	}
@@ -179,8 +186,7 @@ void AAIBossCharacter::EnterBossPhase(EBossPhase NewPhase)
 
 	SetMovementSpeed(RunSpeed * SecondPhaseSpeedMultiplier);
 
-	GetMesh()->SetCustomDepthStencilValue(OutlineStencilValue);
-	GetMesh()->SetRenderCustomDepth(true);
+	GetMesh()->SetCustomDepthStencilValue(BossPhaseTwoStencilValue);
 }
 
 void AAIBossCharacter::HandleBossDeath(AActor* DeadOwner)
