@@ -176,14 +176,12 @@ ACameraActor* UVisionStealComponent::SpawnCameraActor(AAIBaseCharacter* Target)
 {
 	if (!IsValid(Target))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: invalid target"));
 		return nullptr;
 	}
 
 	UWorld* World = GetWorld();
 	if (!World)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: world not found"));
 		return nullptr;
 	}
 
@@ -195,7 +193,6 @@ ACameraActor* UVisionStealComponent::SpawnCameraActor(AAIBaseCharacter* Target)
 		ACameraActor::StaticClass(), Target->GetActorTransform(), SpawnParams);
 	if (!CameraActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: spawn failed"));
 		return nullptr;
 	}
 
@@ -210,19 +207,11 @@ ACameraActor* UVisionStealComponent::SpawnCameraActor(AAIBaseCharacter* Target)
 			AttachParent = TargetMesh;
 			AttachSocket = CameraAttachSocketName;
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: socket %s not found on %s, falling back to root"),
-				*CameraAttachSocketName.ToString(), *GetNameSafe(Target));
-		}
 	}
 
 	CameraActor->AttachToComponent(AttachParent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocket);
 	CameraActor->SetActorRelativeLocation(CameraRelativeLocation);
 	CameraActor->SetActorRelativeRotation(CameraRelativeRotation);
-
-	UE_LOG(LogTemp, Warning, TEXT("SpawnCameraActor: attached to %s socket %s"),
-		*GetNameSafe(Target), *AttachSocket.ToString());
 
 	return CameraActor;
 }
@@ -300,7 +289,6 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
 
 	if (!OwnerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: owner is not a pawn"));
 		return nullptr;
 	}
 
@@ -309,7 +297,6 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
 
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: player controller not found"));
 		return nullptr;
 	}
 
@@ -343,7 +330,6 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
 
 	if (!bIsHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: nothing hit"));
 		return nullptr;
 	}
 
@@ -354,12 +340,6 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
 
 	if (!TargetEnemy)
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("FindTargetByCrosshair: hit %s, not an enemy"),
-			*GetNameSafe(HitResult.GetActor()));
-
 		return nullptr;
 	}
 
@@ -374,16 +354,9 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
 		ECC_Visibility,
 		QueryParams))
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("FindTargetByCrosshair: target blocked %s"),
-			*GetNameSafe(ObstacleHit.GetActor()));
-
 		return nullptr;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Target found: %s"), *TargetEnemy->GetName());
 	return TargetEnemy;
 }
 

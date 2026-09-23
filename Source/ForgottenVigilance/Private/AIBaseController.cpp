@@ -36,8 +36,6 @@ void AAIBaseController::StartBehaviorTree()
 	if (BehaviorTreeAsset)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
-
-		UE_LOG(LogTemp, Warning, TEXT("[ICE AGE] bt started"));
 	}
 }
 
@@ -156,9 +154,4 @@ void AAIBaseController::StopChasing()
 		AICharacter->SetMovementSpeed(AICharacter->WalkSpeed);
 		AICharacter->SetAlertChasing(false);
 	}
-
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("[AI] Chase timeout"));
 }

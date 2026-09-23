@@ -54,7 +54,6 @@ void AAIBaseCharacter::SetMovementSpeed(float NewSpeed)
 	}
 
 	Movement->MaxWalkSpeed = NewSpeed;
-	UE_LOG(LogTemp, Warning, TEXT("[Sparta] Speed changed: %.1f"), NewSpeed);
 }
 
 void AAIBaseCharacter::BeginPlay()
@@ -110,11 +109,6 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 			ApplyStun(StunDuration);
 		}
 	}
-
-	UE_LOG(LogTemp, Warning,
-		TEXT("AI Health Changed: %.1f / %.1f"),
-		CurrentHealth,
-		MaxHealth);
 
 	PreviousHealth = CurrentHealth;
 }

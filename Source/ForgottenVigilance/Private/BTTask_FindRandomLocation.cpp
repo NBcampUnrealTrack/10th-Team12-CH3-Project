@@ -49,7 +49,6 @@ EBTNodeResult::Type UBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 
 	if (!bFound)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[FindRandom]갈곳 찾지못함"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -60,7 +59,6 @@ EBTNodeResult::Type UBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 	}
 
 	BlackboardComp->SetValueAsVector(LocationKey.SelectedKeyName, RandomLocation.Location);
-	UE_LOG(LogTemp, Log, TEXT("[FindRandom] 새로운 목적지: %s"), *RandomLocation.Location.ToString());
 
 	return EBTNodeResult::Succeeded;
 }
