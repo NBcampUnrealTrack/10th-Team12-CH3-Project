@@ -23,9 +23,9 @@
 namespace
 {
 constexpr float DefaultCharacterTargetArmLength = 300.0f;
-constexpr float DefaultNonForwardSpeedMultiplier = 0.5f;
-constexpr float DefaultNormalSpeed = 600.0f;
-constexpr float DefaultSprintMultiplier = 1.7f;
+constexpr float DefaultNonForwardSpeedMultiplier = 0.6f;
+constexpr float DefaultNormalSpeed = 500.0f;
+constexpr float DefaultSprintMultiplier = 1.4f;
 constexpr int32 RightHandMuzzleIndex = 0;
 constexpr float DefaultHitStopDuration = 0.2f;
 constexpr float DefaultHitStopTimeDilation = 0.05f;

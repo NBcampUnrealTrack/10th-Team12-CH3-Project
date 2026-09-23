@@ -13,7 +13,7 @@
 
 namespace
 {
-constexpr float DefaultSecondPhaseHealthRatio = 0.5f;
+constexpr float DefaultSecondPhaseHealthRatio = 0.6f;
 constexpr float DefaultSecondPhaseSpeedMultiplier = 1.8f;
 constexpr float DefaultMeleeRange = 300.0f;
 constexpr float DefaultDashRange = 1500.0f;

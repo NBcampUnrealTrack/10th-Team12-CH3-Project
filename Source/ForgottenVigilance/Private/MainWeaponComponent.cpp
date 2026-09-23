@@ -23,7 +23,7 @@ constexpr float DefaultFireInterval = 0.25f;
 constexpr float DefaultTraceDistance = 10000.0f;
 constexpr float DefaultMaxHeat = 100.0f;
 constexpr float DefaultHeatPerShot = 5.0f;
-constexpr float DefaultCoolingRate = 17.0f;
+constexpr float DefaultCoolingRate = 15.0f;
 constexpr float MainWeaponZeroThreshold = 0.0f;
 const FName DefaultAttachSocketName(TEXT("weapon"));
 const FName DefaultRightMuzzleSocket(TEXT("Muzzle_01"));
