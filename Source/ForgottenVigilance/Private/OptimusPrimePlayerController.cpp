@@ -136,11 +136,6 @@ void AOptimusPrimePlayerController::ShowHUD()
 		{
 			MiniMapWidget->InitMiniMap(CaptureActor, MyCharacter);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("ShowHUD: MiniMap init failed. Character=%s Capture=%s"),
-				*GetNameSafe(MyCharacter), *GetNameSafe(CaptureActor));
-		}
 	}
 
 	bShowMouseCursor = false;

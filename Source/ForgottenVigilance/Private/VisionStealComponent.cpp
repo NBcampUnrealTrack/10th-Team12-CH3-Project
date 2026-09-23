@@ -2,7 +2,6 @@
 #include "AIBaseCharacter.h"
 #include "Camera/CameraActor.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "DrawDebugHelpers.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "HealthComponent.h"

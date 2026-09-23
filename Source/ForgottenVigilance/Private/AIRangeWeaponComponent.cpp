@@ -4,7 +4,6 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -119,13 +118,6 @@ USkeletalMeshComponent* UAIRangeWeaponComponent::GetMuzzleMesh() const
 
 	if (!Mesh->DoesSocketExist(MuzzleSocketName))
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("%s: Muzzle socket '%s' does not exist."),
-			*GetNameSafe(GetOwner()),
-			*MuzzleSocketName.ToString());
-
 		return nullptr;
 	}
 

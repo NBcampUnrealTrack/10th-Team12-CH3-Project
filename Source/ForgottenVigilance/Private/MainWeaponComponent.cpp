@@ -8,7 +8,6 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Perception/AISense_Hearing.h"
 #include "Sound/SoundBase.h"
 #include "NiagaraComponent.h"
@@ -102,9 +101,6 @@ void UMainWeaponComponent::BeginPlay()
 		{
 			continue;
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("%s: muzzle socket '%s' is unavailable."),
-			*GetNameSafe(GetOwner()), *SocketName.ToString());
 	}
 }
 

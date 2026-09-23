@@ -12,7 +12,6 @@ void UForgottenMiniMap::InitMiniMap(AForgottenMiniMapCaptureActor* InCapture, AO
 {
 	if (!InCapture || !InPlayer)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("InitMiniMap Invalid Parameter"));
 		return;
 	}
 
@@ -70,9 +69,6 @@ void UForgottenMiniMap::UnbindPlayerEvents()
 
 void UForgottenMiniMap::HandleTargetDetected(AActor* Target)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleTargetDetected: Target=%s MarkerClass=%s MarkerCanvas=%s"),
-		*GetNameSafe(Target), *GetNameSafe(MarkerClass), *GetNameSafe(MarkerCanvas));
-
 	if (!Target || !MarkerClass || !MarkerCanvas || Markers.Contains(Target))
 	{
 		return;
