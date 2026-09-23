@@ -14,7 +14,7 @@ class FORGOTTENVIGILANCE_API UForgottenTargetMarker : public UUserWidget
 public:
 	void SetTarget(AActor* InTarget);
 
-	AActor* GetTarget() const {return Target.Get();}
+	AActor* GetTarget() const { return Target.Get(); }
 
 private:
 	TWeakObjectPtr<AActor> Target;

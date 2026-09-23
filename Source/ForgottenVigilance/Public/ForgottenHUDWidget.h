@@ -31,7 +31,7 @@ protected:
 
 	UFUNCTION()
 	void HandleOverheatChanged(bool bIsOverHeated);
-	
+
 	UFUNCTION()
 	void HandleScoreChanged(int32 NewScore);
 
@@ -40,31 +40,31 @@ protected:
 
 	UFUNCTION()
 	void HandleRemainingTimeChanged(float RemainingTime);
-	
+
 	UFUNCTION()
 	void HandleKillCountChanged(int32 NewKillCount);
 
 	UFUNCTION()
 	void HideKillMarker();
-	
+
 	UFUNCTION()
 	void HandleShotHit(bool bHitCharacter);
 
 	UFUNCTION()
 	void HideHitMarker();
-	
+
 	UFUNCTION()
 	void HandleBossHealthUpdated(float CurrentHealth, float MaxHealth);
 
 	UFUNCTION()
 	void HandleBossActiveChanged(bool bIsActive);
-	
+
 	UFUNCTION()
 	void HandlePlayerDamaged();
 
 	UFUNCTION()
 	void HideDamageOverlay();
-	
+
 	UFUNCTION()
 	void HandleVisionStealChargeChanged(int32 CurrentCharges, int32 MaxCharges);
 
@@ -82,7 +82,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> OverheatWarningText;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ScoreText;
 
@@ -94,25 +94,25 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UForgottenMiniMap> MiniMap;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> KillMarkerImage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float KillMarkerDuration;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> HitMarkerImage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float HitMarkerDuration;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UProgressBar> BossHealthBar;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> BossNameText;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> BossHealthFrameImage;
 
@@ -121,19 +121,19 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_BossHP;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> DamageNoiseOverlay;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float DamageOverlayDuration;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> VisionStealChargeText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> VisionStealActiveOverlay;
-	
+
 private:
 	FTimerHandle KillMarkerTimerHandle;
 	FTimerHandle HitMarkerTimerHandle;

@@ -8,18 +8,17 @@ class UFXSystemAsset;
 class UFXSystemComponent;
 class USkeletalMeshComponent;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORGOTTENVIGILANCE_API UAIRangeWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UAIRangeWeaponComponent();
 
 	void FireGun();
 
 private:
-	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float AIGunDamage = 20.0f;
 
@@ -32,22 +31,21 @@ private:
 	bool AITraceForHit(FHitResult& OutHit, FVector& OutShotEnd) const;
 
 	FVector GetMuzzleLocation() const;
-	
+
 	USkeletalMeshComponent* GetMuzzleMesh() const;
 
 	void PlayShotEffects(const FVector& ShotEnd);
-	
+
 	void PlayMuzzleFlash();
-	
+
 	void StopMuzzleEffect();
-	
+
 	void PlayTracer(const FVector& TracerStart, const FVector& TracerEnd) const;
 
-	
-	UFXSystemComponent* SpawnEffectAttached(UFXSystemAsset* Effect, USceneComponent* Parent, FName SocketName) const;
-	
-	UFXSystemComponent* SpawnEffectAtLocation(UFXSystemAsset* Effect, const FVector& Location, const FRotator& Rotation) const;
 
+	UFXSystemComponent* SpawnEffectAttached(UFXSystemAsset* Effect, USceneComponent* Parent, FName SocketName) const;
+
+	UFXSystemComponent* SpawnEffectAtLocation(UFXSystemAsset* Effect, const FVector& Location, const FRotator& Rotation) const;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Muzzle", meta = (AllowPrivateAccess = "true"))
@@ -55,7 +53,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|VFX", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UFXSystemAsset> MuzzleEffect;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|VFX", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UFXSystemAsset> TracerEffect;
 

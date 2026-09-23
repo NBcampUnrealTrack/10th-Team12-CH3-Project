@@ -71,7 +71,7 @@ void UForgottenMiniMap::UnbindPlayerEvents()
 void UForgottenMiniMap::HandleTargetDetected(AActor* Target)
 {
 	UE_LOG(LogTemp, Warning, TEXT("HandleTargetDetected: Target=%s MarkerClass=%s MarkerCanvas=%s"),
-	    *GetNameSafe(Target), *GetNameSafe(MarkerClass), *GetNameSafe(MarkerCanvas));
+		*GetNameSafe(Target), *GetNameSafe(MarkerClass), *GetNameSafe(MarkerCanvas));
 
 	if (!Target || !MarkerClass || !MarkerCanvas || Markers.Contains(Target))
 	{

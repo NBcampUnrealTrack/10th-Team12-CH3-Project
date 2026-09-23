@@ -84,7 +84,7 @@ private:
 	void ClearAttackAlert();
 
 	void UpdateAlertVisual();
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
 

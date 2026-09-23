@@ -42,15 +42,15 @@ private:
 		const UDamageType* DamageType,
 		AController* InstigatedBy,
 		AActor* DamageCauser);
-	
+
 	void PlayHealthSound(USoundBase* SoundToPlay) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = true))
 	float MaxHealth;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = true))
 	float CurrentHealth;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health|Sound", meta = (AllowPrivateAccess = true))
 	TObjectPtr<USoundBase> HitSound;
 

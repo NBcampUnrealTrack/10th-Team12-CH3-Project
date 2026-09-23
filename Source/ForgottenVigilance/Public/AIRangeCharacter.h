@@ -11,8 +11,8 @@ UCLASS()
 class FORGOTTENVIGILANCE_API AAIRangeCharacter : public AAIBaseCharacter
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AAIRangeCharacter();
 

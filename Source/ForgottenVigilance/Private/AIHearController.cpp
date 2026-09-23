@@ -7,7 +7,7 @@ AAIHearController::AAIHearController()
 {
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 
-	 HearingConfig->HearingRange = 3000.0f;
+	HearingConfig->HearingRange = 3000.0f;
 
 	HearingConfig->SetMaxAge(5.0f);
 

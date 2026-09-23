@@ -15,7 +15,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenMiniMap : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> MarkerCanvas;

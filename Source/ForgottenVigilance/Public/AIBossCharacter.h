@@ -106,7 +106,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	int32 AttackCounter;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
 	float StaggerThreshold;
 
@@ -124,12 +124,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Stagger", meta = (AllowPrivateAccess = true))
 	bool bStaggerImmune;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	bool bShowHealthBar;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Phase", meta = (AllowPrivateAccess = true))
 	float VisionStealDuration;
-	
+
 	FTimerHandle StaggerImmunityHandle;
 };

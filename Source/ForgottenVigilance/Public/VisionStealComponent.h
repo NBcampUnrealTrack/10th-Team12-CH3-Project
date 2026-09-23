@@ -1,5 +1,4 @@
-﻿
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -35,7 +34,7 @@ public:
 	bool IsVisionStealActive() const { return bVisionStealActive; }
 
 	UVisionStealComponent();
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "VisionSteal")
 	FOnVisionStealChargeChanged OnVisionStealChargeChanged;
 
@@ -48,12 +47,12 @@ protected:
 private:
 	UFUNCTION()
 	void HandleTargetDeath(AActor* DeadOwner);
-	
+
 	ACameraActor* SpawnCameraActor(AAIBaseCharacter* Target);
 
 	AAIBaseCharacter* FindTargetByCrosshair(
-	FVector& OutBeamStart,
-	FVector& OutBeamEnd) const;
+		FVector& OutBeamStart,
+		FVector& OutBeamEnd) const;
 
 	UPROPERTY(EditAnywhere, Category = "VisionSteal")
 	float MaxTargetDistance = 3000.0f;
@@ -74,12 +73,12 @@ private:
 	TObjectPtr<UNiagaraSystem> VisionStealBeamEffect = nullptr;
 
 	FTimerHandle VisionStealTimerHandle;
-	
+
 	UFUNCTION()
 	void HandleVisionStealTimeout();
 
 	bool BeginVisionSteal(AActor* Target, float Duration, bool bConsumeCharge);
-	
+
 	UPROPERTY(EditAnywhere, Category = "VisionSteal")
 	int32 MaxCharges = 3;
 
@@ -91,7 +90,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
 	bool bForcedVisionSteal = false;
-	
+
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
 	TObjectPtr<AActor> VisionStealTarget;
 };

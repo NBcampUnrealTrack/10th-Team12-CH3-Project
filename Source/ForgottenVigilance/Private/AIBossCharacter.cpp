@@ -75,9 +75,6 @@ void AAIBossCharacter::BeginPlay()
 	OnBossHealthChanged.Broadcast(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
 	OnBossPhaseChanged.Broadcast(BossPhase);
 
-	OnBossHealthChanged.Broadcast(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
-	OnBossPhaseChanged.Broadcast(BossPhase);
-
 	if (!bShowHealthBar)
 	{
 		return;

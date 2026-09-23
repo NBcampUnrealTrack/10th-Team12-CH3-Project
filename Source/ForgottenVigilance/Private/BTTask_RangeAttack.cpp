@@ -127,5 +127,3 @@ void UBTTask_RangeAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
 }
-
-

@@ -36,11 +36,11 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_Main;
-	
-    UPROPERTY(Transient, meta = (BindWidgetAnim))
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_StartHover;
 
-    UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_ExitHover;
 
 
@@ -63,5 +63,5 @@ protected:
 	UFUNCTION()
 	void OnExitButtonClicked();
 
-	
+
 };

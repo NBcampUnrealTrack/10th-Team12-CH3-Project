@@ -10,7 +10,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API AAIHearController : public AAIBaseController
 {
 	GENERATED_BODY()
-	
+
 public:
 	AAIHearController();
 

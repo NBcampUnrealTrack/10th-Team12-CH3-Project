@@ -51,7 +51,5 @@ protected:
 	UFUNCTION()
 	void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	
-
 
 };

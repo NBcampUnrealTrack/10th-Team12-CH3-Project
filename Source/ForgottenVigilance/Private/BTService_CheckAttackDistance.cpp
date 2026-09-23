@@ -13,9 +13,9 @@ UBTService_CheckAttackDistance::UBTService_CheckAttackDistance()
 }
 
 void UBTService_CheckAttackDistance::TickNode(
-    UBehaviorTreeComponent& OwnerComp,
-    uint8* NodeMemory,
-    float DeltaSeconds)
+	UBehaviorTreeComponent& OwnerComp,
+	uint8* NodeMemory,
+	float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
@@ -53,10 +53,9 @@ void UBTService_CheckAttackDistance::TickNode(
 	}
 
 	float Distance = FVector::Dist(
-	    AIPawn->GetActorLocation(),
-	    TargetActor->GetActorLocation());
+		AIPawn->GetActorLocation(),
+		TargetActor->GetActorLocation());
 
-	
 
 	bool bCanAttack = Distance <= AttackDistance;
 

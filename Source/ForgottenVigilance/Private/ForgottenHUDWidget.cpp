@@ -21,10 +21,10 @@ constexpr float DefaultDamageOverlayDuration = 0.35f;
 void UForgottenHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	HandleBossActiveChanged(false);
 	HandleVisionStealStateChanged(false);
-	
+
 	DamageOverlayDuration = DefaultDamageOverlayDuration;
 
 	if (DamageNoiseOverlay)
@@ -49,7 +49,7 @@ void UForgottenHUDWidget::NativeConstruct()
 	{
 		return;
 	}
-	
+
 	if (AOptimusPrimeCharacter* PlayerCharacter = Cast<AOptimusPrimeCharacter>(OwningPawn))
 	{
 		PlayerCharacter->OnPlayerDamaged.AddDynamic(this, &UForgottenHUDWidget::HandlePlayerDamaged);
@@ -108,7 +108,7 @@ void UForgottenHUDWidget::NativeConstruct()
 	ForgottenGameState->OnRemainingTimeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleRemainingTimeChanged);
 	ForgottenGameState->OnBossHealthUpdated.AddDynamic(this, &UForgottenHUDWidget::HandleBossHealthUpdated);
 	ForgottenGameState->OnBossActiveChanged.AddDynamic(this, &UForgottenHUDWidget::HandleBossActiveChanged);
-	
+
 	HandleScoreChanged(ForgottenGameState->GetScore());
 	HandleObjectiveChanged(
 		ForgottenGameState->GetObjectiveProgress(),
@@ -191,7 +191,7 @@ void UForgottenHUDWidget::HandleOverheatChanged(bool bIsOverheated)
 			OverheatWarningText->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
-	
+
 	if (Anim_Warning)
 	{
 		if (bIsOverheated)
@@ -269,8 +269,8 @@ void UForgottenHUDWidget::HandleBossHealthUpdated(float CurrentHealth, float Max
 void UForgottenHUDWidget::HandleBossActiveChanged(bool bIsActive)
 {
 	const ESlateVisibility BossVisibility = bIsActive
-		? ESlateVisibility::HitTestInvisible
-		: ESlateVisibility::Collapsed;
+		                                        ? ESlateVisibility::HitTestInvisible
+		                                        : ESlateVisibility::Collapsed;
 
 	PlayAnimation(Anim_BossHP);
 
@@ -343,6 +343,6 @@ void UForgottenHUDWidget::HandleVisionStealStateChanged(bool bIsActive)
 	}
 
 	VisionStealActiveOverlay->SetVisibility(bIsActive
-		? ESlateVisibility::HitTestInvisible
-		: ESlateVisibility::Collapsed);
+		                                        ? ESlateVisibility::HitTestInvisible
+		                                        : ESlateVisibility::Collapsed);
 }

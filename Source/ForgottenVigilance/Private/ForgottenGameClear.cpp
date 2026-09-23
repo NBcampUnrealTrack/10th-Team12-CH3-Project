@@ -17,15 +17,15 @@ void UForgottenGameClear::NativeConstruct()
 	if (ExitButton)
 	{
 		ExitButton->OnHovered.AddDynamic(
-		    this,
-		    &UForgottenGameClear::OnExitButtonHovered);
+			this,
+			&UForgottenGameClear::OnExitButtonHovered);
 
 		ExitButton->OnUnhovered.AddDynamic(
-		    this,
-		    &UForgottenGameClear::OnExitButtonUnhovered);
+			this,
+			&UForgottenGameClear::OnExitButtonUnhovered);
 		ExitButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenGameClear::OnExitButtonClicked);
+			this,
+			&UForgottenGameClear::OnExitButtonClicked);
 	}
 }
 
@@ -50,7 +50,6 @@ void UForgottenGameClear::OnExitButtonUnhovered()
 void UForgottenGameClear::OnExitButtonClicked()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("TitleMap")));
+		GetWorld(),
+		FName(TEXT("TitleMap")));
 }
-

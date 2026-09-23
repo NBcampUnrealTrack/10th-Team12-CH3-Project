@@ -64,7 +64,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	TArray<FForgottenSpawnEntry> SpawnTable;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UBoxComponent> SpawnBox;
 
@@ -76,7 +76,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	bool bCleared;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = true))
 	EGroupActivation ActivationMode;
 

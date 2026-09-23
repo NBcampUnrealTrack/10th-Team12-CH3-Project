@@ -95,11 +95,11 @@ void AAIBaseController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		{
 			// 시야에서 놓침
 			GetWorld()->GetTimerManager().SetTimer(
-			    LoseSightTimer,
-			    this,
-			    &AAIBaseController::StopChasing,
-			    LoseSightDelay,
-			    false);
+				LoseSightTimer,
+				this,
+				&AAIBaseController::StopChasing,
+				LoseSightDelay,
+				false);
 		}
 	}
 	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
@@ -129,13 +129,13 @@ void AAIBaseController::PlayAIPerceptionSound(USoundBase* SoundToPlay) const
 	}
 
 	UGameplayStatics::PlaySoundAtLocation(
-	    this,
-	    SoundToPlay,
-	    thisPawn->GetActorLocation(),
-	    1.0f,
-	    1.0f,
-	    0.0f,
-	    AISoundAttenuation);
+		this,
+		SoundToPlay,
+		thisPawn->GetActorLocation(),
+		1.0f,
+		1.0f,
+		0.0f,
+		AISoundAttenuation);
 }
 
 void AAIBaseController::StopChasing()
@@ -158,7 +158,7 @@ void AAIBaseController::StopChasing()
 	}
 
 	UE_LOG(
-	    LogTemp,
-	    Warning,
-	    TEXT("[AI] Chase timeout"));
+		LogTemp,
+		Warning,
+		TEXT("[AI] Chase timeout"));
 }

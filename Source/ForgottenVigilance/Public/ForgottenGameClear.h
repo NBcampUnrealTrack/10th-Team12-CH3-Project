@@ -12,7 +12,7 @@ UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenGameClear : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void NativeConstruct() override;
 
