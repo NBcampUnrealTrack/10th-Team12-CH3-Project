@@ -14,13 +14,13 @@
 namespace
 {
 constexpr float DefaultSecondPhaseHealthRatio = 0.5f;
-constexpr float DefaultSecondPhaseSpeedMultiplier = 1.4f;
+constexpr float DefaultSecondPhaseSpeedMultiplier = 1.8f;
 constexpr float DefaultMeleeRange = 300.0f;
-constexpr float DefaultDashRange = 900.0f;
+constexpr float DefaultDashRange = 1500.0f;
 constexpr float BossZeroThreshold = 0.0f;
 constexpr int32 InvalidPatternIndex = -1;
 constexpr int32 PatternSingleStep = 1;
-constexpr float DefaultStaggerThreshold = 200.0f;
+constexpr float DefaultStaggerThreshold = 100.0f;
 constexpr float DefaultStaggerDuration = 1.5f;
 constexpr float DefaultStaggerImmunityDuration = 6.0f;
 constexpr float StaggerRatioMax = 1.0f;
