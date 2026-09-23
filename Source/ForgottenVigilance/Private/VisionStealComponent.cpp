@@ -7,6 +7,9 @@
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "HealthComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 void UVisionStealComponent::ToggleVisionSteal()
 {
@@ -26,8 +29,44 @@ void UVisionStealComponent::ToggleVisionSteal()
 		return;
 	}
 
-	AAIBaseCharacter* TargetAIBaseCharacter = FindTargetByCrosshair();
+	FVector BeamStart;
+	FVector BeamEnd;
 
+	// 타겟이 없어도 조준 방향의 빔 끝점까지 계산합니다.
+	AAIBaseCharacter* TargetAIBaseCharacter =
+	FindTargetByCrosshair(BeamStart, BeamEnd);
+
+	// 빔 시각 효과의 시작점만 캐릭터 상체 근처로 옮깁니다.
+	// 숫자를 조절해 캐릭터에 맞는 높이를 찾으세요.
+	if (const APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		BeamStart = OwnerPawn->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
+	}
+
+	// 타겟 유무와 관계없이 먼저 빔을 발사합니다.
+	if (VisionStealBeamEffect)
+	{
+		UNiagaraComponent* BeamComponent =
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				VisionStealBeamEffect,
+				BeamStart,
+				(BeamEnd - BeamStart).Rotation(),
+				FVector::OneVector,
+				true,
+				false);
+
+		if (BeamComponent)
+		{
+			BeamComponent->SetVariableVec3(
+				FName(TEXT("User.BeamEnd")),
+				BeamEnd);
+
+			BeamComponent->Activate(true);
+		}
+	}
+
+	// 타겟이 없으면 빔만 보이고, 비전스틸은 시작하지 않습니다.
 	if (!TargetAIBaseCharacter)
 	{
 		return;
@@ -254,71 +293,99 @@ void UVisionStealComponent::BeginPlay()
 	OnVisionStealStateChanged.Broadcast(false);
 }
 
-AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair() const
+AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair(
+    FVector& OutBeamStart,
+    FVector& OutBeamEnd) const
 {
-	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: owner is not a pawn"));
-		return nullptr;
-	}
+    const APawn* OwnerPawn = Cast<APawn>(GetOwner());
 
-	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
-	if (!PlayerController)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: player controller not found"));
-		return nullptr;
-	}
-	FVector ViewLocation;
-	FRotator ViewRotation;
+    if (!OwnerPawn)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: owner is not a pawn"));
+        return nullptr;
+    }
 
-	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    APlayerController* PlayerController =
+        Cast<APlayerController>(OwnerPawn->GetController());
 
-	const FVector EndPointLocation = ViewLocation + ViewRotation.Vector() * MaxTargetDistance;
+    if (!PlayerController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: player controller not found"));
+        return nullptr;
+    }
 
-	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(OwnerPawn);
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
 
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+    OutBeamStart = ViewLocation;
+    OutBeamEnd = ViewLocation + ViewRotation.Vector() * MaxTargetDistance;
 
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		return nullptr;
-	}
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(OwnerPawn);
 
-	const bool bIsHit = World->LineTraceSingleByObjectType(
-	    HitResult, ViewLocation, EndPointLocation, ObjectQueryParams, QueryParams);
+    FCollisionObjectQueryParams ObjectQueryParams;
+    ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
 
-	DrawDebugLine(World, ViewLocation, EndPointLocation, FColor::Green, false, 3.0f, 0, 1.0f);
+    const UWorld* World = GetWorld();
 
-	if (!bIsHit)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: nothing hit"));
-		return nullptr;
-	}
+    if (!World)
+    {
+        return nullptr;
+    }
 
-	DrawDebugPoint(World, HitResult.ImpactPoint, 15.0f, FColor::Red, false, 3.0f);
+    const bool bIsHit = World->LineTraceSingleByObjectType(
+        HitResult,
+        OutBeamStart,
+        OutBeamEnd,
+        ObjectQueryParams,
+        QueryParams);
 
-	if (AAIBaseCharacter* TargetEnemy = Cast<AAIBaseCharacter>(HitResult.GetActor()))
-	{
-		QueryParams.AddIgnoredActor(TargetEnemy);
-		if (FHitResult ObstacleHit;
-		    World->LineTraceSingleByChannel(ObstacleHit, ViewLocation, HitResult.ImpactPoint, ECC_Visibility, QueryParams))
-		{
+    if (!bIsHit)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: nothing hit"));
+        return nullptr;
+    }
 
-			UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: target blocked %s"), *GetNameSafe(ObstacleHit.GetActor()));
-			return nullptr;
-		}
+    OutBeamEnd = HitResult.ImpactPoint;
 
-		UE_LOG(LogTemp, Warning, TEXT("Target found: %s"), *TargetEnemy->GetName());
-		return TargetEnemy;
-	}
-	UE_LOG(LogTemp, Warning, TEXT("FindTargetByCrosshair: hit %s, not an enemy"), *GetNameSafe(HitResult.GetActor()));
+    AAIBaseCharacter* TargetEnemy =
+        Cast<AAIBaseCharacter>(HitResult.GetActor());
 
-	return nullptr;
+    if (!TargetEnemy)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("FindTargetByCrosshair: hit %s, not an enemy"),
+            *GetNameSafe(HitResult.GetActor()));
+
+        return nullptr;
+    }
+
+    QueryParams.AddIgnoredActor(TargetEnemy);
+
+    FHitResult ObstacleHit;
+
+    if (World->LineTraceSingleByChannel(
+            ObstacleHit,
+            OutBeamStart,
+            OutBeamEnd,
+            ECC_Visibility,
+            QueryParams))
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("FindTargetByCrosshair: target blocked %s"),
+            *GetNameSafe(ObstacleHit.GetActor()));
+
+        return nullptr;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Target found: %s"), *TargetEnemy->GetName());
+    return TargetEnemy;
 }
 
 void UVisionStealComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

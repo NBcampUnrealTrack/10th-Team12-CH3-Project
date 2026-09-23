@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVisionStealStateChanged, bool, bI
 class AAIBaseCharacter;
 class ACameraActor;
 class UForgottenHUDWidget;
+class UNiagaraSystem;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FORGOTTENVIGILANCE_API UVisionStealComponent : public UActorComponent
@@ -50,7 +51,9 @@ private:
 	
 	ACameraActor* SpawnCameraActor(AAIBaseCharacter* Target);
 
-	AAIBaseCharacter* FindTargetByCrosshair() const;
+	AAIBaseCharacter* FindTargetByCrosshair(
+	FVector& OutBeamStart,
+	FVector& OutBeamEnd) const;
 
 	UPROPERTY(EditAnywhere, Category = "VisionSteal")
 	float MaxTargetDistance = 3000.0f;
@@ -67,6 +70,8 @@ private:
 	FVector CameraRelativeLocation = FVector(50.0f, 0.0f, 70.0f);
 	UPROPERTY(EditAnywhere, Category = "VisionSteal|Camera")
 	FRotator CameraRelativeRotation = FRotator::ZeroRotator;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VisionSteal|VFX", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UNiagaraSystem> VisionStealBeamEffect = nullptr;
 
 	FTimerHandle VisionStealTimerHandle;
 	
