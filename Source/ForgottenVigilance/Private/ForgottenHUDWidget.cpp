@@ -262,8 +262,6 @@ void UForgottenHUDWidget::HandleBossHealthUpdated(float CurrentHealth, float Max
 	{
 		return;
 	}
-	
-	PlayAnimation(Anim_BossHP);
 
 	BossHealthBar->SetPercent(CurrentHealth / MaxHealth);
 }
@@ -273,6 +271,8 @@ void UForgottenHUDWidget::HandleBossActiveChanged(bool bIsActive)
 	const ESlateVisibility BossVisibility = bIsActive
 		? ESlateVisibility::HitTestInvisible
 		: ESlateVisibility::Collapsed;
+
+	PlayAnimation(Anim_BossHP);
 
 	if (BossHealthBar)
 	{
