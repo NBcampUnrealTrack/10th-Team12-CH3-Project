@@ -45,6 +45,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void HandleTargetDeath(AActor* DeadOwner);
+	
 	ACameraActor* SpawnCameraActor(AAIBaseCharacter* Target);
 
 	AAIBaseCharacter* FindTargetByCrosshair() const;
@@ -83,4 +86,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
 	bool bForcedVisionSteal = false;
+	
+	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
+	TObjectPtr<AActor> VisionStealTarget;
 };

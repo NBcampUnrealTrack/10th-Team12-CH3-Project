@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "HealthComponent.h"
 
 void UVisionStealComponent::ToggleVisionSteal()
 {
@@ -95,6 +96,14 @@ bool UVisionStealComponent::BeginVisionSteal(AActor* Target, float Duration, boo
 	PlayerController->SetViewTargetWithBlend(ViewTarget, ViewTargetBlendTime);
 
 	bVisionStealActive = true;
+	VisionStealTarget = Target;
+
+	UHealthComponent* TargetHealth = Target->FindComponentByClass<UHealthComponent>();
+
+	if (TargetHealth)
+	{
+		TargetHealth->OnDeath.AddDynamic(this, &UVisionStealComponent::HandleTargetDeath);
+	}
 
 	if (bConsumeCharge)
 	{
@@ -210,6 +219,18 @@ void UVisionStealComponent::EndVisionSteal()
 	{
 		SpawnedVisionCameraActor->Destroy();
 	}
+	
+	if (IsValid(VisionStealTarget))
+	{
+		UHealthComponent* TargetHealth = VisionStealTarget->FindComponentByClass<UHealthComponent>();
+
+		if (TargetHealth)
+		{
+			TargetHealth->OnDeath.RemoveDynamic(this, &UVisionStealComponent::HandleTargetDeath);
+		}
+	}
+
+	VisionStealTarget = nullptr;
 
 	SpawnedVisionCameraActor = nullptr;
 	bVisionStealActive = false;
@@ -318,3 +339,8 @@ void UVisionStealComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	EndVisionSteal();
 }
 
+void UVisionStealComponent::HandleTargetDeath(AActor* DeadOwner)
+{
+	bForcedVisionSteal = false;
+	EndVisionSteal();
+}
