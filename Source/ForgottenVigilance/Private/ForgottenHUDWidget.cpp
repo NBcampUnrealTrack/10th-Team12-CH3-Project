@@ -196,17 +196,7 @@ void UForgottenHUDWidget::HandleOverheatChanged(bool bIsOverheated)
 	{
 		if (bIsOverheated)
 		{
-			PlayAnimation(
-				Anim_Warning,
-				0.0f,
-				1,
-				EUMGSequencePlayMode::Forward,
-				1.0f,
-				false);
-		}
-		else
-		{
-			StopAnimation(Anim_Warning);
+			PlayAnimation(Anim_Warning);
 		}
 	}
 }
@@ -272,6 +262,8 @@ void UForgottenHUDWidget::HandleBossHealthUpdated(float CurrentHealth, float Max
 	{
 		return;
 	}
+	
+	PlayAnimation(Anim_BossHP);
 
 	BossHealthBar->SetPercent(CurrentHealth / MaxHealth);
 }
