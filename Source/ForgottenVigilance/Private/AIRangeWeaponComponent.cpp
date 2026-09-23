@@ -91,16 +91,6 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit, FVector& OutShot
 	        ECC_Pawn,
 	        QueryParams);
 
-	DrawDebugLine(
-	    World,
-	    TraceStart,
-	    TraceEnd,
-	    bHit ? FColor::Red : FColor::Green,
-	    false,
-	    1.0f,
-	    0,
-	    1.0f);
-
 	if (bHit)
 	{
 		OutShotEnd = OutHit.ImpactPoint;
