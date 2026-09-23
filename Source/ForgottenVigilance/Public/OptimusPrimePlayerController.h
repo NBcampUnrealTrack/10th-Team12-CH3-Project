@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -37,6 +37,10 @@ public:
 	TObjectPtr<UInputAction> ShootAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> CrouchAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> DashAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<UForgottenHUDWidget> HUDWidgetClass;
@@ -52,14 +56,14 @@ public:
 	TSubclassOf<UForgottenGameOver> GameOverWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Over")
 	TObjectPtr<UForgottenGameOver> GameOverWidgetInstance;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Clear")
 	TSubclassOf<UForgottenGameClear> GameClearWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Clear")
 	TObjectPtr<UForgottenGameClear> GameClearWidgetInstance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
-	FName MainMenuLevelName; 
+	FName MainMenuLevelName;
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowMainMenu();
@@ -69,7 +73,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowGameOver();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowGameClear();
 
