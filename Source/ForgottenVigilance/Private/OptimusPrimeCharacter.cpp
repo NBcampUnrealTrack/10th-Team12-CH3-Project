@@ -96,14 +96,14 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
-	PawnSensingComp->SightRadius = 3000.0f;           
-	PawnSensingComp->SetPeripheralVisionAngle(60.0f); 
-	PawnSensingComp->HearingThreshold = 1200.0f;     
-	PawnSensingComp->bOnlySensePlayers = false;      
+	PawnSensingComp->SightRadius = 3000.0f;
+	PawnSensingComp->SetPeripheralVisionAngle(60.0f);
+	PawnSensingComp->HearingThreshold = 1200.0f;
+	PawnSensingComp->bOnlySensePlayers = false;
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AOptimusPrimeCharacter::OnPawnDetected);
-	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch= true;
-	
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
 	HitCameraShake = nullptr;
 	HitStopDuration = DefaultHitStopDuration;
 	HitStopTimeDilation = DefaultHitStopTimeDilation;
@@ -543,6 +543,7 @@ void AOptimusPrimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 			    ETriggerEvent::Completed,
 			    this,
 			    &AOptimusPrimeCharacter::StopCrouch);
+		}
 		if (PlayerController->VisionStealAction)
 		{
 			EnhancedInput->BindAction(
@@ -601,8 +602,7 @@ void AOptimusPrimeCharacter::StartDash(const FInputActionValue& Value)
 	}
 	else
 	{
-		DashDirection = (ForwardDirection * CurrentMoveInput.X
-		    + RightDirection * CurrentMoveInput.Y).GetSafeNormal();
+		DashDirection = (ForwardDirection * CurrentMoveInput.X + RightDirection * CurrentMoveInput.Y).GetSafeNormal();
 	}
 
 	SavedPawnCollisionResponse = GetCapsuleComponent()->GetCollisionResponseToChannel(ECC_Pawn);
@@ -616,18 +616,20 @@ void AOptimusPrimeCharacter::StartDash(const FInputActionValue& Value)
 		bDashOnCooldown = true;
 		GetWorldTimerManager().SetTimer(
 		    DashCooldownTimer,
-		    FTimerDelegate::CreateWeakLambda(this, [this]() {
+		    FTimerDelegate::CreateWeakLambda(this, [this]()
+		        {
 			    bDashOnCooldown = false;
 
 			    if (GEngine && !IsCharacterDead())
 			    {
 				    GEngine->AddOnScreenDebugMessage(
 				        -1, 1.5f, FColor::Green, TEXT("대시 사용 가능"));
-			    }
-		    }),
+			    } }),
 		    DashCooldown,
 		    false);
 	}
+}
+
 void AOptimusPrimeCharacter::UseVisionSteal(const FInputActionValue& Value)
 {
 	VisionStealComponent->ToggleVisionSteal();
@@ -723,11 +725,11 @@ void AOptimusPrimeCharacter::HandleHealthChanged(float CurrentHealth, float MaxH
 	UGameplayStatics::SetGlobalTimeDilation(this, HitStopTimeDilation);
 
 	GetWorldTimerManager().SetTimer(
-		HitStopTimerHandle,
-		this,
-		&AOptimusPrimeCharacter::EndHitStop,
-		HitStopDuration * HitStopTimeDilation,
-		false);
+	    HitStopTimerHandle,
+	    this,
+	    &AOptimusPrimeCharacter::EndHitStop,
+	    HitStopDuration * HitStopTimeDilation,
+	    false);
 }
 
 void AOptimusPrimeCharacter::EndHitStop()
