@@ -10,6 +10,7 @@
 class UForgottenMiniMap;
 class UProgressBar;
 class UTextBlock;
+class UWidgetAnimation;
 
 UCLASS()
 class FORGOTTENVIGILANCE_API UForgottenHUDWidget : public UUserWidget
@@ -102,6 +103,9 @@ protected:
 	
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> BossHealthFrameImage;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Anim_Warning;
 	
 private:
 	FTimerHandle KillMarkerTimerHandle;

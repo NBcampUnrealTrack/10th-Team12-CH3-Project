@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "ForgottenGameState.h"
 #include "TimerManager.h"
+#include "Animation/WidgetAnimation.h"
 
 namespace
 {
@@ -164,6 +165,24 @@ void UForgottenHUDWidget::HandleOverheatChanged(bool bIsOverheated)
 			HeatBarImage->SetColorAndOpacity(FLinearColor::White);
 
 			OverheatWarningText->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+
+	if (Anim_Warning)
+	{
+		if (bIsOverheated)
+		{
+			PlayAnimation(
+			    Anim_Warning,
+			    0.0f,
+			    1,
+			    EUMGSequencePlayMode::Forward,
+			    1.0f,
+			    false);
+		}
+		else
+		{
+			StopAnimation(Anim_Warning);
 		}
 	}
 }
