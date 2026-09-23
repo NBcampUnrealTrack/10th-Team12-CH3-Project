@@ -15,7 +15,7 @@ constexpr float BgmZeroVolume = 0.0f;
 UBgmPlayerComponent::UBgmPlayerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
+
 	FadeDuration = DefaultFadeDuration;
 	bContinueWhenPaused = true;
 	ChannelA = nullptr;

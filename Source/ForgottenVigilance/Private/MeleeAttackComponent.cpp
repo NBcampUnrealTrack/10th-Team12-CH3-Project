@@ -32,11 +32,11 @@ void UMeleeAttackComponent::PerformAttack(AActor* TargetActor)
 
 	bIsAttackOnCooldown = true;
 	GetWorld()->GetTimerManager().SetTimer(
-	    AttackCooldownTimer,
-	    this,
-	    &UMeleeAttackComponent::ResetAttackCooldown,
-	    AttackCooldown,
-	    false);
+		AttackCooldownTimer,
+		this,
+		&UMeleeAttackComponent::ResetAttackCooldown,
+		AttackCooldown,
+		false);
 
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerActor);
 	if (AttackMontage && OwnerCharacter && OwnerCharacter->PlayAnimMontage(AttackMontage) > 0.0f)
@@ -69,11 +69,11 @@ void UMeleeAttackComponent::ApplyDamage(AActor* TargetActor)
 
 	APawn* OwnerPawn = Cast<APawn>(OwnerActor);
 	UGameplayStatics::ApplyDamage(
-	    TargetActor,
-	    AttackDamage,
-	    OwnerPawn ? OwnerPawn->GetController() : nullptr,
-	    OwnerActor,
-	    nullptr);
+		TargetActor,
+		AttackDamage,
+		OwnerPawn ? OwnerPawn->GetController() : nullptr,
+		OwnerActor,
+		nullptr);
 }
 
 void UMeleeAttackComponent::ResetAttackCooldown()

@@ -31,7 +31,7 @@ AAIBaseCharacter::AAIBaseCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	ScoreOnDeathComponent = CreateDefaultSubobject<UScoreOnDeathComponent>(TEXT("ScoreOnDeathComponent"));
-	
+
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
@@ -62,16 +62,16 @@ void AAIBaseCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnLocation = GetActorLocation();
-	
+
 	PreviousHealth = HealthComponent->GetCurrentHealth();
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &AAIBaseCharacter::HandleHealthChanged);
 
 	HealthComponent->OnDeath.AddDynamic(this, &AAIBaseCharacter::HandleDeath);
-	
+
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	
+
 	AlertWidget->SetRelativeLocation(FVector(0.0f, 0.0f, AlertHeightOffset));
 	AlertWidget->SetDrawSize(AlertDrawSize);
 	UpdateAlertVisual();
@@ -112,9 +112,9 @@ void AAIBaseCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
 	}
 
 	UE_LOG(LogTemp, Warning,
-	    TEXT("AI Health Changed: %.1f / %.1f"),
-	    CurrentHealth,
-	    MaxHealth);
+		TEXT("AI Health Changed: %.1f / %.1f"),
+		CurrentHealth,
+		MaxHealth);
 
 	PreviousHealth = CurrentHealth;
 }
@@ -184,7 +184,7 @@ void AAIBaseCharacter::ClearStun()
 void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 {
 	SetAlertChasing(false);
-	
+
 	AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
 
 	if (AIController)
@@ -195,7 +195,7 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 			AIController->BrainComponent->StopLogic(TEXT("Dead"));
 		}
 	}
-	
+
 
 	GetCharacterMovement()->DisableMovement();
 
@@ -290,4 +290,3 @@ void AAIBaseCharacter::UpdateAlertVisual()
 
 	AlertImage->SetBrushFromTexture(AlertTexture, true);
 }
-

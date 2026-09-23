@@ -97,8 +97,8 @@ void AForgottenLever::Tick(float DeltaTime)
 	RotateElapsed = FMath::Min(RotateElapsed + DeltaTime, RotateDuration);
 
 	const float RotateAlpha = RotateDuration > RotateZeroThreshold
-		? RotateElapsed / RotateDuration
-		: RotateAlphaMax;
+		                          ? RotateElapsed / RotateDuration
+		                          : RotateAlphaMax;
 
 	const float EasedAlpha = FMath::InterpEaseInOut(RotateAlphaMin, RotateAlphaMax, RotateAlpha, RotateEaseExponent);
 

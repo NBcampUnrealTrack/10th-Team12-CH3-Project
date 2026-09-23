@@ -5,8 +5,11 @@
 #include "OptimusPrimeCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathAnimationReady);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetDetercted, AActor*, Target);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetLost, AActor*, Target);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDamaged);
 
 class USpringArmComponent;
@@ -52,7 +55,7 @@ public:
 	void ClearCurrentTarget();
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void GetDetectedTargets(TArray<AActor*>& OutDetectedTargets) const;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Damage Feedback")
 	FOnPlayerDamaged OnPlayerDamaged;
 
@@ -97,7 +100,7 @@ private:
 	void HandleDeath(AActor* DeadOwner);
 	UFUNCTION()
 	void HandleShotFired(int32 MuzzleIndex);
-	
+
 	UFUNCTION()
 	void HandleHealthChanged(float CurrentHealth, float MaxHealth);
 
@@ -116,8 +119,8 @@ private:
 	void CheckStaleTargets();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|DeadZone",
-	    meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
-	        ToolTip = "Width relative to the reference screen: 0.1 = 10%, 1 = 100%. Values above 1 are allowed. Follows Target Arm Length and camera FOV changes, independently of viewport resizing and spring arm collision."))
+		meta = (AllowPrivateAccess = "true", ClampMin = "0.0",
+			ToolTip = "Width relative to the reference screen: 0.1 = 10%, 1 = 100%. Values above 1 are allowed. Follows Target Arm Length and camera FOV changes, independently of viewport resizing and spring arm collision."))
 	float DeadZoneWidthFraction = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Camera|DeadZone", meta = (ClampMin = "1.0", Units = "cm"))
@@ -145,7 +148,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash", meta = (ClampMin = "0.0"))
 	float DashDistance = 200.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash",
-	    meta = (ClampMin = "0.01", ToolTip = "Time to travel the distance above. Shorter means a faster dash."))
+		meta = (ClampMin = "0.01", ToolTip = "Time to travel the distance above. Shorter means a faster dash."))
 	float DashDuration = 0.25f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Dash", meta = (ClampMin = "0.0"))
 	float DashCooldown = 2.0f;
@@ -176,7 +179,7 @@ private:
 	TObjectPtr<UAnimMontage> RightFireMontage = nullptr;
 	// 사격 몽타주의 재생 속도 배율. 1.0은 원래 속도
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Combat",
-	    meta = (ClampMin = "0.01", UIMin = "0.1"))
+		meta = (ClampMin = "0.01", UIMin = "0.1"))
 	float FireMontagePlayRate = 2.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Death")
 	TObjectPtr<UAnimSequence> ForwardDeathSequence = nullptr;
@@ -184,9 +187,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Death")
 	TObjectPtr<UAnimSequence> BackwardDeathSequence = nullptr;
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Animation|Death",
-	    meta = (AllowPrivateAccess = "true"))
+		meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimSequence> SelectedDeathSequence = nullptr;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage Feedback", meta = (AllowPrivateAccess = true))
 	TSubclassOf<UCameraShakeBase> HitCameraShake;
 

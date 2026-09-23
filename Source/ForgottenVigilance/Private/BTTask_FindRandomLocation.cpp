@@ -43,9 +43,9 @@ EBTNodeResult::Type UBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCompone
 
 	FNavLocation RandomLocation;
 	bool bFound = NavSystem->GetRandomReachablePointInRadius(
-	    AIChracter->SpawnLocation,
-	    SearchRadius,
-	    RandomLocation);
+		AIChracter->SpawnLocation,
+		SearchRadius,
+		RandomLocation);
 
 	if (!bFound)
 	{

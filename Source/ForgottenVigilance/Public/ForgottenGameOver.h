@@ -42,7 +42,7 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_ExitHover;
-	
+
 	UFUNCTION()
 	void OnRetryButtonHovered();
 

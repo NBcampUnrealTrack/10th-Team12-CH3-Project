@@ -65,7 +65,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
 	FOnRemainingTimeChanged OnRemainingTimeChanged;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Forgotten")
 	FOnBossHealthUpdated OnBossHealthUpdated;
 
@@ -93,7 +93,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = true))
 	TObjectPtr<AOptimusPrimePlayerController> PlayerController;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BGM", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UBgmPlayerComponent> BgmPlayer;
 };

@@ -42,7 +42,7 @@ bool TraceMuzzlePath(UWorld* World, const FVector& GuardStart, const FVector& Mu
 	bMuzzleBlocked = World->LineTraceSingleByChannel(OutHit, GuardStart, MuzzleStart,
 		ECC_Visibility, QueryParams);
 	return bMuzzleBlocked || World->LineTraceSingleByChannel(OutHit, MuzzleStart,
-		TraceEnd, ECC_Pawn, QueryParams);
+		       TraceEnd, ECC_Pawn, QueryParams);
 }
 }
 
@@ -62,10 +62,10 @@ UMainWeaponComponent::UMainWeaponComponent()
 	CoolingRate = DefaultCoolingRate;
 	CurrentHeat = MainWeaponZeroThreshold;
 	bIsOverheated = false;
-	
+
 	NoiseLoudness = DefaultNoiseLoudness;
 	NoiseRange = DefaultNoiseRange;
-	
+
 	MuzzleSocketNames.Add(DefaultRightMuzzleSocket);
 	MuzzleSocketNames.Add(DefaultLeftMuzzleSocket);
 	bRandomizeMuzzle = true;
@@ -176,7 +176,7 @@ void UMainWeaponComponent::Fire()
 	}
 	SelectMuzzleForShot();
 	OnShotFired.Broadcast(CurrentMuzzleIndex);
-	
+
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(
@@ -269,7 +269,7 @@ void UMainWeaponComponent::SetOverheated(bool bNewOverheated)
 	{
 		return;
 	}
-	
+
 	bIsOverheated = bNewOverheated;
 	OnOverheatStateChanged.Broadcast(bIsOverheated);
 
@@ -299,8 +299,8 @@ bool UMainWeaponComponent::GetAimTarget(FVector& OutTarget) const
 		int32 ViewportHeight = 0;
 		PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
 		if (ViewportWidth <= 0 || ViewportHeight <= 0
-			|| !PlayerController->DeprojectScreenPositionToWorld(ViewportWidth * 0.5f,
-				ViewportHeight * 0.5f, RayStart, RayDirection))
+		    || !PlayerController->DeprojectScreenPositionToWorld(ViewportWidth * 0.5f,
+			    ViewportHeight * 0.5f, RayStart, RayDirection))
 		{
 			return false;
 		}

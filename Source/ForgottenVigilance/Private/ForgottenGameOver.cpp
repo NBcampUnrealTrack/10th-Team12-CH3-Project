@@ -20,27 +20,27 @@ void UForgottenGameOver::NativeConstruct()
 			&UForgottenGameOver::OnRetryButtonHovered);
 
 		RetryButton->OnUnhovered.AddDynamic(
-		    this,
-		    &UForgottenGameOver::OnRetryButtonUnhovered);
+			this,
+			&UForgottenGameOver::OnRetryButtonUnhovered);
 
 		RetryButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenGameOver::OnRetryButtonClicked);
+			this,
+			&UForgottenGameOver::OnRetryButtonClicked);
 	}
 
 	if (ExitButton)
 	{
 		ExitButton->OnHovered.AddDynamic(
 			this,
-		    &UForgottenGameOver::OnExitButtonHovered);
+			&UForgottenGameOver::OnExitButtonHovered);
 
 		ExitButton->OnUnhovered.AddDynamic(
 			this,
-		    &UForgottenGameOver::OnExitButtonUnhovered);
+			&UForgottenGameOver::OnExitButtonUnhovered);
 
 		ExitButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenGameOver::OnExitButtonClicked);
+			this,
+			&UForgottenGameOver::OnExitButtonClicked);
 	}
 }
 
@@ -81,13 +81,13 @@ void UForgottenGameOver::OnExitButtonUnhovered()
 void UForgottenGameOver::OnRetryButtonClicked()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("MainLevel")));
+		GetWorld(),
+		FName(TEXT("MainLevel")));
 }
 
 void UForgottenGameOver::OnExitButtonClicked()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("TitleMap")));
+		GetWorld(),
+		FName(TEXT("TitleMap")));
 }

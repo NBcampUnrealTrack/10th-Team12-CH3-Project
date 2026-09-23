@@ -18,30 +18,30 @@ void UForgottenMain::NativeConstruct()
 	{
 		StartButton->OnHovered.AddDynamic(
 			this,
-		    &UForgottenMain::OnStartButtonHovered);
+			&UForgottenMain::OnStartButtonHovered);
 
 		StartButton->OnUnhovered.AddDynamic(
 			this,
-		    &UForgottenMain::OnStartButtonUnhovered);
+			&UForgottenMain::OnStartButtonUnhovered);
 
 		StartButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenMain::OnStartButtonClicked);
+			this,
+			&UForgottenMain::OnStartButtonClicked);
 	}
 
 	if (ExitButton)
 	{
 		ExitButton->OnHovered.AddDynamic(
 			this,
-		    &UForgottenMain::OnExitButtonHovered);
+			&UForgottenMain::OnExitButtonHovered);
 
 		ExitButton->OnUnhovered.AddDynamic(
 			this,
-		    &UForgottenMain::OnExitButtonUnhovered);
+			&UForgottenMain::OnExitButtonUnhovered);
 
 		ExitButton->OnClicked.AddDynamic(
-		    this,
-		    &UForgottenMain::OnExitButtonClicked);
+			this,
+			&UForgottenMain::OnExitButtonClicked);
 	}
 }
 
@@ -83,16 +83,16 @@ void UForgottenMain::OnExitButtonUnhovered()
 void UForgottenMain::OnStartButtonClicked()
 {
 	UGameplayStatics::OpenLevel(
-	    GetWorld(),
-	    FName(TEXT("MainLevel")));
+		GetWorld(),
+		FName(TEXT("MainLevel")));
 }
 
 
 void UForgottenMain::OnExitButtonClicked()
 {
 	UKismetSystemLibrary::QuitGame(
-	    GetWorld(),
-	    nullptr,
-	    EQuitPreference::Quit,
-	    false);
+		GetWorld(),
+		nullptr,
+		EQuitPreference::Quit,
+		false);
 }

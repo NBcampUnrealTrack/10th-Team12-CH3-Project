@@ -28,11 +28,11 @@ AForgottenSpawnGroup::AForgottenSpawnGroup()
 	SpawnBox->SetBoxExtent(FVector(DefaultBoxExtentXY, DefaultBoxExtentXY, DefaultBoxExtentZ));
 	SpawnBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SpawnBox->SetHiddenInGame(true);
-	
+
 	AliveCount = SpawnZeroCount;
 	bActivated = false;
 	bCleared = false;
-	
+
 	ActivationMode = EGroupActivation::OnBeginPlay;
 	ActivationPhase = EForgottenPhase::FinalBoss;
 }

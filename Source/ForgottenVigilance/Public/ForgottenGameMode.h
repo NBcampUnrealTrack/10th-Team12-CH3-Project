@@ -38,7 +38,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rule", meta = (AllowPrivateAccess = true))
 	bool bGameFinished;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rule", meta = (AllowPrivateAccess = true))
 	float FreezeDelay;
 

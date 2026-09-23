@@ -27,21 +27,21 @@ AForgottenMiniMapCaptureActor::AForgottenMiniMapCaptureActor()
 void AForgottenMiniMapCaptureActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	 if (MiniMapRenderTarget)
+
+	if (MiniMapRenderTarget)
 	{
 		CaptureComponent->TextureTarget = MiniMapRenderTarget;
 	}
 
-	 TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-	 if (TargetPlayer)
-	 {
-		 FVector Location = TargetPlayer->GetActorLocation();
-		 Location.Z += CaptureHeight;
+	if (TargetPlayer)
+	{
+		FVector Location = TargetPlayer->GetActorLocation();
+		Location.Z += CaptureHeight;
 
-		 SetActorLocation(Location);
-	 }
+		SetActorLocation(Location);
+	}
 
 }
 

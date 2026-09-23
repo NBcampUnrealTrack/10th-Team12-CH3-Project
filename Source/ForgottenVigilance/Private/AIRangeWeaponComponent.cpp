@@ -40,7 +40,7 @@ void UAIRangeWeaponComponent::FireGun()
 	{
 		return;
 	}
-	
+
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (HitActor != PlayerPawn)
@@ -49,11 +49,11 @@ void UAIRangeWeaponComponent::FireGun()
 	}
 
 	UGameplayStatics::ApplyDamage(
-	    HitActor,
-	    AIGunDamage,
-	    OwnerPawn->GetController(),
-	    GetOwner(),
-	    nullptr);
+		HitActor,
+		AIGunDamage,
+		OwnerPawn->GetController(),
+		GetOwner(),
+		nullptr);
 }
 
 bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit, FVector& OutShotEnd) const
@@ -75,7 +75,7 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit, FVector& OutShot
 
 	const FVector TraceStart = OwnerPawn->GetActorLocation();
 
-	const FVector TraceEnd =  TraceStart + OwnerPawn->GetActorForwardVector() * AIGunAttackRange;
+	const FVector TraceEnd = TraceStart + OwnerPawn->GetActorForwardVector() * AIGunAttackRange;
 
 	OutShotEnd = TraceEnd;
 
@@ -84,12 +84,12 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit, FVector& OutShot
 	QueryParams.AddIgnoredActor(GetOwner());
 
 	const bool bHit =
-	    World->LineTraceSingleByChannel(
-	        OutHit,
-	        TraceStart,
-	        TraceEnd,
-	        ECC_Pawn,
-	        QueryParams);
+		World->LineTraceSingleByChannel(
+			OutHit,
+			TraceStart,
+			TraceEnd,
+			ECC_Pawn,
+			QueryParams);
 
 	if (bHit)
 	{
@@ -102,7 +102,7 @@ bool UAIRangeWeaponComponent::AITraceForHit(FHitResult& OutHit, FVector& OutShot
 USkeletalMeshComponent* UAIRangeWeaponComponent::GetMuzzleMesh() const
 {
 	const ACharacter* OwnerCharacter =
-	    Cast<ACharacter>(GetOwner());
+		Cast<ACharacter>(GetOwner());
 
 	if (!OwnerCharacter)
 	{
@@ -110,7 +110,7 @@ USkeletalMeshComponent* UAIRangeWeaponComponent::GetMuzzleMesh() const
 	}
 
 	USkeletalMeshComponent* Mesh =
-	    OwnerCharacter->GetMesh();
+		OwnerCharacter->GetMesh();
 
 	if (!Mesh)
 	{
@@ -120,11 +120,11 @@ USkeletalMeshComponent* UAIRangeWeaponComponent::GetMuzzleMesh() const
 	if (!Mesh->DoesSocketExist(MuzzleSocketName))
 	{
 		UE_LOG(
-		    LogTemp,
-		    Warning,
-		    TEXT("%s: Muzzle socket '%s' does not exist."),
-		    *GetNameSafe(GetOwner()),
-		    *MuzzleSocketName.ToString());
+			LogTemp,
+			Warning,
+			TEXT("%s: Muzzle socket '%s' does not exist."),
+			*GetNameSafe(GetOwner()),
+			*MuzzleSocketName.ToString());
 
 		return nullptr;
 	}
@@ -141,8 +141,8 @@ FVector UAIRangeWeaponComponent::GetMuzzleLocation() const
 		const APawn* OwnerPawn = Cast<APawn>(GetOwner());
 
 		return OwnerPawn
-		           ? OwnerPawn->GetPawnViewLocation()
-		           : FVector::ZeroVector;
+			       ? OwnerPawn->GetPawnViewLocation()
+			       : FVector::ZeroVector;
 	}
 
 	return MuzzleMesh->GetSocketLocation(MuzzleSocketName);
@@ -160,10 +160,10 @@ void UAIRangeWeaponComponent::PlayMuzzleFlash()
 	}
 
 	ActiveMuzzleComponent =
-	    SpawnEffectAttached(
-	        MuzzleEffect,
-	        MuzzleMesh,
-	        MuzzleSocketName);
+		SpawnEffectAttached(
+			MuzzleEffect,
+			MuzzleMesh,
+			MuzzleSocketName);
 
 	if (!ActiveMuzzleComponent)
 	{
@@ -171,11 +171,11 @@ void UAIRangeWeaponComponent::PlayMuzzleFlash()
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(
-	    MuzzleStopTimerHandle,
-	    this,
-	    &UAIRangeWeaponComponent::StopMuzzleEffect,
-	    MuzzleEffectLifetime,
-	    false);
+		MuzzleStopTimerHandle,
+		this,
+		&UAIRangeWeaponComponent::StopMuzzleEffect,
+		MuzzleEffectLifetime,
+		false);
 }
 
 void UAIRangeWeaponComponent::StopMuzzleEffect()
@@ -185,7 +185,7 @@ void UAIRangeWeaponComponent::StopMuzzleEffect()
 	if (World)
 	{
 		World->GetTimerManager().ClearTimer(
-		    MuzzleStopTimerHandle);
+			MuzzleStopTimerHandle);
 	}
 
 	if (!ActiveMuzzleComponent)
@@ -198,14 +198,14 @@ void UAIRangeWeaponComponent::StopMuzzleEffect()
 }
 
 void UAIRangeWeaponComponent::PlayTracer(
-    const FVector& TracerStart,
-    const FVector& TracerEnd) const
+	const FVector& TracerStart,
+	const FVector& TracerEnd) const
 {
 	UFXSystemComponent* TracerComponent =
-	    SpawnEffectAtLocation(
-	        TracerEffect,
-	        TracerStart,
-	        (TracerEnd - TracerStart).Rotation());
+		SpawnEffectAtLocation(
+			TracerEffect,
+			TracerStart,
+			(TracerEnd - TracerStart).Rotation());
 
 	if (!TracerComponent)
 	{
@@ -213,36 +213,36 @@ void UAIRangeWeaponComponent::PlayTracer(
 	}
 
 	UNiagaraComponent* NiagaraTracer =
-	    Cast<UNiagaraComponent>(TracerComponent);
+		Cast<UNiagaraComponent>(TracerComponent);
 
 	if (!NiagaraTracer)
 	{
 		TracerComponent->SetVectorParameter(
-		    TracerEndParameterName,
-		    TracerEnd);
+			TracerEndParameterName,
+			TracerEnd);
 
 		return;
 	}
 
 	NiagaraTracer->SetVariableVec3(
-	    TracerEndParameterName,
-	    TracerEnd);
+		TracerEndParameterName,
+		TracerEnd);
 }
 
 void UAIRangeWeaponComponent::PlayShotEffects(
-    const FVector& ShotEnd)
+	const FVector& ShotEnd)
 {
 	PlayMuzzleFlash();
 
 	PlayTracer(
-	    GetMuzzleLocation(),
-	    ShotEnd);
+		GetMuzzleLocation(),
+		ShotEnd);
 }
 
 UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAttached(
-    UFXSystemAsset* Effect,
-    USceneComponent* Parent,
-    FName SocketName) const
+	UFXSystemAsset* Effect,
+	USceneComponent* Parent,
+	FName SocketName) const
 {
 	if (!Effect || !Parent)
 	{
@@ -250,22 +250,22 @@ UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAttached(
 	}
 
 	if (UNiagaraSystem* NiagaraEffect =
-	        Cast<UNiagaraSystem>(Effect))
+		Cast<UNiagaraSystem>(Effect))
 	{
 		return UNiagaraFunctionLibrary::SpawnSystemAttached(
-		    NiagaraEffect,
-		    Parent,
-		    SocketName,
-		    FVector::ZeroVector,
-		    FRotator::ZeroRotator,
-		    MuzzleEffectScale,
-		    EAttachLocation::SnapToTarget,
-		    true,
-		    ENCPoolMethod::AutoRelease);
+			NiagaraEffect,
+			Parent,
+			SocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			MuzzleEffectScale,
+			EAttachLocation::SnapToTarget,
+			true,
+			ENCPoolMethod::AutoRelease);
 	}
 
 	UParticleSystem* CascadeEffect =
-	    Cast<UParticleSystem>(Effect);
+		Cast<UParticleSystem>(Effect);
 
 	if (!CascadeEffect)
 	{
@@ -273,21 +273,21 @@ UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAttached(
 	}
 
 	return UGameplayStatics::SpawnEmitterAttached(
-	    CascadeEffect,
-	    Parent,
-	    SocketName,
-	    FVector::ZeroVector,
-	    FRotator::ZeroRotator,
-	    MuzzleEffectScale,
-	    EAttachLocation::SnapToTarget,
-	    true);
+		CascadeEffect,
+		Parent,
+		SocketName,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		MuzzleEffectScale,
+		EAttachLocation::SnapToTarget,
+		true);
 }
 
 
 UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAtLocation(
-    UFXSystemAsset* Effect,
-    const FVector& Location,
-    const FRotator& Rotation) const
+	UFXSystemAsset* Effect,
+	const FVector& Location,
+	const FRotator& Rotation) const
 {
 	if (!Effect)
 	{
@@ -295,21 +295,21 @@ UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAtLocation(
 	}
 
 	if (UNiagaraSystem* NiagaraEffect =
-	        Cast<UNiagaraSystem>(Effect))
+		Cast<UNiagaraSystem>(Effect))
 	{
 		return UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		    this,
-		    NiagaraEffect,
-		    Location,
-		    Rotation,
-		    FVector::OneVector,
-		    true,
-		    true,
-		    ENCPoolMethod::AutoRelease);
+			this,
+			NiagaraEffect,
+			Location,
+			Rotation,
+			FVector::OneVector,
+			true,
+			true,
+			ENCPoolMethod::AutoRelease);
 	}
 
 	UParticleSystem* CascadeEffect =
-	    Cast<UParticleSystem>(Effect);
+		Cast<UParticleSystem>(Effect);
 
 	if (!CascadeEffect)
 	{
@@ -317,9 +317,9 @@ UFXSystemComponent* UAIRangeWeaponComponent::SpawnEffectAtLocation(
 	}
 
 	return UGameplayStatics::SpawnEmitterAtLocation(
-	    this,
-	    CascadeEffect,
-	    Location,
-	    Rotation,
-	    true);
+		this,
+		CascadeEffect,
+		Location,
+		Rotation,
+		true);
 }

@@ -40,9 +40,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Transient, Category = "Weapon")
 	FOnShotFired OnShotFired;
-	
-		UPROPERTY(BlueprintAssignable, Category = "Weapon")
-    	FOnShotHit OnShotHit;
+
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
+	FOnShotHit OnShotHit;
 
 protected:
 	virtual void BeginPlay() override;
@@ -102,7 +102,7 @@ private:
 	float NoiseLoudness;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sound", meta = (AllowPrivateAccess = true))
 	float NoiseRange;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Muzzle", meta = (AllowPrivateAccess = true))
 	TArray<FName> MuzzleSocketNames;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Muzzle", meta = (AllowPrivateAccess = true))
