@@ -29,7 +29,7 @@ constexpr int32 RightHandMuzzleIndex = 0;
 constexpr float DefaultHitStopDuration = 0.2f;
 constexpr float DefaultHitStopTimeDilation = 0.05f;
 constexpr float NormalTimeDilation = 1.0f;
-constexpr float HealthZeroThreshold = 0.0f;
+constexpr float PlayerHealthZeroThreshold = 0.0f;
 
 FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
     const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
@@ -105,7 +105,7 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 	HitCameraShake = nullptr;
 	HitStopDuration = DefaultHitStopDuration;
 	HitStopTimeDilation = DefaultHitStopTimeDilation;
-	PlayerPreviousHealth = HealthZeroThreshold;
+	PlayerPreviousHealth = PlayerHealthZeroThreshold;
 }
 
 void AOptimusPrimeCharacter::UpdateSpeed()
@@ -680,7 +680,7 @@ void AOptimusPrimeCharacter::HandleHealthChanged(float CurrentHealth, float MaxH
 	const bool bDamaged = CurrentHealth < PlayerPreviousHealth;
 	PlayerPreviousHealth = CurrentHealth;
 
-	if (!bDamaged || CurrentHealth <= HealthZeroThreshold)
+	if (!bDamaged || CurrentHealth <= PlayerHealthZeroThreshold)
 	{
 		return;
 	}
@@ -694,7 +694,7 @@ void AOptimusPrimeCharacter::HandleHealthChanged(float CurrentHealth, float MaxH
 		OwningController->ClientStartCameraShake(HitCameraShake);
 	}
 
-	if (HitStopDuration <= HealthZeroThreshold)
+	if (HitStopDuration <= PlayerHealthZeroThreshold)
 	{
 		return;
 	}
