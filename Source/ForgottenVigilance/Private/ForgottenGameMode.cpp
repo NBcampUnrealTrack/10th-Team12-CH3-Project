@@ -13,7 +13,7 @@ constexpr float DefaultMissionTimeLimit = 600.0f;
 constexpr float MissionTickInterval = 1.0f;
 constexpr float BindRetryInterval = 0.2f;
 constexpr float TimeZeroThreshold = 0.0f;
-constexpr float DefaultFreezeDelay = 0.0f;
+constexpr float DefaultFreezeDelay = 1.0f;
 }
 
 AForgottenGameMode::AForgottenGameMode()
@@ -21,6 +21,7 @@ AForgottenGameMode::AForgottenGameMode()
 	MissionTimeLimit = DefaultMissionTimeLimit;
 	RemainingTime = DefaultMissionTimeLimit;
 	bGameFinished = false;
+	FreezeDelay = DefaultFreezeDelay;
 }
 
 void AForgottenGameMode::BeginPlay()
