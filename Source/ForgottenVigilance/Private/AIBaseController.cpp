@@ -1,6 +1,5 @@
 #include "AIBaseController.h"
 #include "AIBaseCharacter.h"
-#include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AISense.h"
 #include "Perception/AIPerceptionComponent.h"

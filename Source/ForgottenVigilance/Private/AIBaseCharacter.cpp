@@ -9,7 +9,6 @@
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
 #include "Components/TextRenderComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Components/WidgetComponent.h"
 #include "Components/Image.h"
 #include "Blueprint/UserWidget.h"

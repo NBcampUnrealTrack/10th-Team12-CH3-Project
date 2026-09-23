@@ -37,10 +37,10 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
 	  , MainMenuWidgetInstance(nullptr)
 	  , GameOverWidgetClass(nullptr)
 	  , GameOverWidgetInstance(nullptr)
-	  , InitialCameraPitch(DefaultInitialCameraPitch)
-	  , AimRotationSpeed(DefaultAimRotationSpeed)
 	  , GameClearWidgetClass(nullptr)
 	  , GameClearWidgetInstance(nullptr)
+	  , InitialCameraPitch(DefaultInitialCameraPitch)
+	  , AimRotationSpeed(DefaultAimRotationSpeed)
 {
 }
 
