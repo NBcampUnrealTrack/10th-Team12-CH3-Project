@@ -4,49 +4,85 @@
 #include "Camera/CameraActor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
 
 void UVisionStealComponent::ToggleVisionSteal()
 {
-	if (!bVisionStealActive)
+	if (bVisionStealActive)
 	{
-		AAIBaseCharacter* TargetAIBaseCharacter = FindTargetByCrosshair();
-		StartVisionSteal(TargetAIBaseCharacter);
-	}
-	else
-	{
+		if (bForcedVisionSteal)
+		{
+			return;
+		}
+
 		EndVisionSteal();
+		return;
 	}
+
+	if (CurrentCharges <= 0)
+	{
+		return;
+	}
+
+	AAIBaseCharacter* TargetAIBaseCharacter = FindTargetByCrosshair();
+
+	if (!TargetAIBaseCharacter)
+	{
+		return;
+	}
+
+	BeginVisionSteal(TargetAIBaseCharacter, VisionStealDuration, true);
 }
 
 bool UVisionStealComponent::StartVisionSteal(AActor* Target)
 {
-	if (!IsValid(Target))
+	return BeginVisionSteal(Target, VisionStealDuration, true);
+}
+
+void UVisionStealComponent::ForceVisionSteal(AActor* Target, float Duration)
+{
+	if (bVisionStealActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: invalid target"));
+		EndVisionSteal();
+	}
+
+	if (!BeginVisionSteal(Target, Duration, false))
+	{
+		return;
+	}
+
+	bForcedVisionSteal = true;
+}
+
+bool UVisionStealComponent::BeginVisionSteal(AActor* Target, float Duration, bool bConsumeCharge)
+{
+	if (!IsValid(Target) || bVisionStealActive)
+	{
 		return false;
 	}
 
-	if (bVisionStealActive)
+	if (bConsumeCharge && CurrentCharges <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: already active"));
 		return false;
 	}
 
 	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
 	if (!OwnerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: owner is not a pawn"));
 		return false;
 	}
 
 	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: player controller not found"));
 		return false;
 	}
 
 	AActor* ViewTarget = Target;
+
 	if (AAIBaseCharacter* TargetCharacter = Cast<AAIBaseCharacter>(Target))
 	{
 		if (ACameraActor* CameraActor = SpawnCameraActor(TargetCharacter))
@@ -58,10 +94,35 @@ bool UVisionStealComponent::StartVisionSteal(AActor* Target)
 
 	PlayerController->SetViewTargetWithBlend(ViewTarget, ViewTargetBlendTime);
 
-	UE_LOG(LogTemp, Warning, TEXT("StartVisionSteal: view switched to %s"), *GetNameSafe(ViewTarget));
-
 	bVisionStealActive = true;
+
+	if (bConsumeCharge)
+	{
+		CurrentCharges -= 1;
+		OnVisionStealChargeChanged.Broadcast(CurrentCharges, MaxCharges);
+	}
+
+	OnVisionStealStateChanged.Broadcast(true);
+
+	if (Duration <= 0.0f)
+	{
+		return true;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		VisionStealTimerHandle,
+		this,
+		&UVisionStealComponent::HandleVisionStealTimeout,
+		Duration,
+		false);
+
 	return true;
+}
+
+void UVisionStealComponent::HandleVisionStealTimeout()
+{
+	bForcedVisionSteal = false;
+	EndVisionSteal();
 }
 
 ACameraActor* UVisionStealComponent::SpawnCameraActor(AAIBaseCharacter* Target)
@@ -123,31 +184,38 @@ void UVisionStealComponent::EndVisionSteal()
 {
 	if (!bVisionStealActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("EndVisionSteal: not active"));
 		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(VisionStealTimerHandle);
 	}
 
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
-	{
-		return;
-	}
-	
-	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
-	if (!PlayerController)
-	{
-		return;
-	}
 
-	PlayerController->SetViewTargetWithBlend(OwnerPawn, ViewTargetBlendTime);
+	if (OwnerPawn)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+
+		if (PlayerController)
+		{
+			PlayerController->SetViewTargetWithBlend(OwnerPawn, ViewTargetBlendTime);
+		}
+	}
 
 	if (IsValid(SpawnedVisionCameraActor))
 	{
 		SpawnedVisionCameraActor->Destroy();
 	}
-	SpawnedVisionCameraActor = nullptr;
 
+	SpawnedVisionCameraActor = nullptr;
 	bVisionStealActive = false;
+	bForcedVisionSteal = false;
+
+	OnVisionStealStateChanged.Broadcast(false);
 }
 
 UVisionStealComponent::UVisionStealComponent()
@@ -159,6 +227,10 @@ UVisionStealComponent::UVisionStealComponent()
 void UVisionStealComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CurrentCharges = MaxCharges;
+	OnVisionStealChargeChanged.Broadcast(CurrentCharges, MaxCharges);
+	OnVisionStealStateChanged.Broadcast(false);
 }
 
 AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair() const
@@ -231,5 +303,18 @@ AAIBaseCharacter* UVisionStealComponent::FindTargetByCrosshair() const
 void UVisionStealComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (!bVisionStealActive)
+	{
+		return;
+	}
+
+	if (IsValid(SpawnedVisionCameraActor))
+	{
+		return;
+	}
+
+	bForcedVisionSteal = false;
+	EndVisionSteal();
 }
 

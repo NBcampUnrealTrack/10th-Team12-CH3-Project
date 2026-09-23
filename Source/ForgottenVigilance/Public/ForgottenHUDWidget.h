@@ -64,6 +64,12 @@ protected:
 
 	UFUNCTION()
 	void HideDamageOverlay();
+	
+	UFUNCTION()
+	void HandleVisionStealChargeChanged(int32 CurrentCharges, int32 MaxCharges);
+
+	UFUNCTION()
+	void HandleVisionStealStateChanged(bool bIsActive);
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -118,6 +124,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float DamageOverlayDuration;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> VisionStealChargeText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> VisionStealActiveOverlay;
 	
 private:
 	FTimerHandle KillMarkerTimerHandle;

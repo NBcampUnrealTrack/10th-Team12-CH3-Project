@@ -5,8 +5,13 @@
 #include "Components/ActorComponent.h"
 #include "VisionStealComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnVisionStealChargeChanged, int32, CurrentCharges, int32, MaxCharges);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVisionStealStateChanged, bool, bIsActive);
+
 class AAIBaseCharacter;
 class ACameraActor;
+class UForgottenHUDWidget;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FORGOTTENVIGILANCE_API UVisionStealComponent : public UActorComponent
@@ -15,6 +20,9 @@ class FORGOTTENVIGILANCE_API UVisionStealComponent : public UActorComponent
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void ForceVisionSteal(AActor* Target, float Duration);
+	int32 GetCurrentCharges() const { return CurrentCharges; }
+	int32 GetMaxCharges() const { return MaxCharges; }
 
 	UFUNCTION()
 	void ToggleVisionSteal();
@@ -26,6 +34,12 @@ public:
 	bool IsVisionStealActive() const { return bVisionStealActive; }
 
 	UVisionStealComponent();
+	
+	UPROPERTY(BlueprintAssignable, Category = "VisionSteal")
+	FOnVisionStealChargeChanged OnVisionStealChargeChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "VisionSteal")
+	FOnVisionStealStateChanged OnVisionStealStateChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -52,4 +66,21 @@ private:
 	FRotator CameraRelativeRotation = FRotator::ZeroRotator;
 
 	FTimerHandle VisionStealTimerHandle;
+	
+	UFUNCTION()
+	void HandleVisionStealTimeout();
+
+	bool BeginVisionSteal(AActor* Target, float Duration, bool bConsumeCharge);
+	
+	UPROPERTY(EditAnywhere, Category = "VisionSteal")
+	int32 MaxCharges = 3;
+
+	UPROPERTY(EditAnywhere, Category = "VisionSteal")
+	float VisionStealDuration = 4.0f;
+
+	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
+	int32 CurrentCharges = 3;
+
+	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
+	bool bForcedVisionSteal = false;
 };

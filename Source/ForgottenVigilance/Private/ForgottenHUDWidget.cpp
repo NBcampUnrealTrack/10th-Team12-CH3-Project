@@ -8,6 +8,7 @@
 #include "TimerManager.h"
 #include "OptimusPrimeCharacter.h"
 #include "Animation/WidgetAnimation.h"
+#include "VisionStealComponent.h"
 
 namespace
 {
@@ -22,6 +23,7 @@ void UForgottenHUDWidget::NativeConstruct()
 	Super::NativeConstruct();
 	
 	HandleBossActiveChanged(false);
+	HandleVisionStealStateChanged(false);
 	
 	DamageOverlayDuration = DefaultDamageOverlayDuration;
 
@@ -51,6 +53,14 @@ void UForgottenHUDWidget::NativeConstruct()
 	if (AOptimusPrimeCharacter* PlayerCharacter = Cast<AOptimusPrimeCharacter>(OwningPawn))
 	{
 		PlayerCharacter->OnPlayerDamaged.AddDynamic(this, &UForgottenHUDWidget::HandlePlayerDamaged);
+	}
+
+	if (UVisionStealComponent* VisionSteal = OwningPawn->FindComponentByClass<UVisionStealComponent>())
+	{
+		VisionSteal->OnVisionStealChargeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleVisionStealChargeChanged);
+		VisionSteal->OnVisionStealStateChanged.AddDynamic(this, &UForgottenHUDWidget::HandleVisionStealStateChanged);
+
+		HandleVisionStealChargeChanged(VisionSteal->GetCurrentCharges(), VisionSteal->GetMaxCharges());
 	}
 
 	if (UHealthComponent* HealthComp = OwningPawn->FindComponentByClass<UHealthComponent>())
@@ -320,4 +330,27 @@ void UForgottenHUDWidget::HideDamageOverlay()
 	}
 
 	DamageNoiseOverlay->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UForgottenHUDWidget::HandleVisionStealChargeChanged(int32 CurrentCharges, int32 MaxCharges)
+{
+	if (!VisionStealChargeText)
+	{
+		return;
+	}
+
+	VisionStealChargeText->SetText(FText::FromString(
+		FString::Printf(TEXT("%d / %d"), CurrentCharges, MaxCharges)));
+}
+
+void UForgottenHUDWidget::HandleVisionStealStateChanged(bool bIsActive)
+{
+	if (!VisionStealActiveOverlay)
+	{
+		return;
+	}
+
+	VisionStealActiveOverlay->SetVisibility(bIsActive
+		? ESlateVisibility::HitTestInvisible
+		: ESlateVisibility::Collapsed);
 }

@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "ForgottenGameState.h"
+#include "VisionStealComponent.h"
 
 namespace
 {
@@ -25,6 +26,7 @@ constexpr float DefaultStaggerImmunityDuration = 6.0f;
 constexpr float StaggerRatioMax = 1.0f;
 constexpr int32 BossPhaseOneStencilValue = 1;
 constexpr int32 BossPhaseTwoStencilValue = 3;
+constexpr float DefaultBossVisionStealDuration = 5.0f;
 }
 
 AAIBossCharacter::AAIBossCharacter()
@@ -48,6 +50,7 @@ AAIBossCharacter::AAIBossCharacter()
 	LastBossHealth = BossZeroThreshold;
 	bStaggerImmune = false;
 	bShowHealthBar = true;
+	VisionStealDuration = DefaultBossVisionStealDuration;
 }
 
 void AAIBossCharacter::BeginPlay()
@@ -187,6 +190,22 @@ void AAIBossCharacter::EnterBossPhase(EBossPhase NewPhase)
 	SetMovementSpeed(RunSpeed * SecondPhaseSpeedMultiplier);
 
 	GetMesh()->SetCustomDepthStencilValue(BossPhaseTwoStencilValue);
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (!PlayerPawn)
+	{
+		return;
+	}
+
+	UVisionStealComponent* PlayerVisionSteal = PlayerPawn->FindComponentByClass<UVisionStealComponent>();
+
+	if (!PlayerVisionSteal)
+	{
+		return;
+	}
+
+	PlayerVisionSteal->ForceVisionSteal(this, VisionStealDuration);
 }
 
 void AAIBossCharacter::HandleBossDeath(AActor* DeadOwner)

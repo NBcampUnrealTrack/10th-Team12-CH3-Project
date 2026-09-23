@@ -128,5 +128,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	bool bShowHealthBar;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Phase", meta = (AllowPrivateAccess = true))
+	float VisionStealDuration;
+	
 	FTimerHandle StaggerImmunityHandle;
 };
