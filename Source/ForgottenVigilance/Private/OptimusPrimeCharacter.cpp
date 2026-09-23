@@ -14,7 +14,9 @@
 #include "Perception/PawnSensingComponent.h"
 #include "TimerManager.h"
 #include "Engine/Engine.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 #include "ForgottenLever.h"
 
 namespace
@@ -24,6 +26,10 @@ constexpr float DefaultNonForwardSpeedMultiplier = 0.5f;
 constexpr float DefaultNormalSpeed = 600.0f;
 constexpr float DefaultSprintMultiplier = 1.7f;
 constexpr int32 RightHandMuzzleIndex = 0;
+constexpr float DefaultHitStopDuration = 0.2f;
+constexpr float DefaultHitStopTimeDilation = 0.05f;
+constexpr float NormalTimeDilation = 1.0f;
+constexpr float HealthZeroThreshold = 0.0f;
 
 FVector CalculateDeadZonePivot(const FVector& PreviousPivot, const FVector& TargetLocation,
     const FVector& TargetMovement, const FVector& CameraRight, float HalfWidth)
@@ -95,6 +101,11 @@ AOptimusPrimeCharacter::AOptimusPrimeCharacter()
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AOptimusPrimeCharacter::OnPawnDetected);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch= true;
+	
+	HitCameraShake = nullptr;
+	HitStopDuration = DefaultHitStopDuration;
+	HitStopTimeDilation = DefaultHitStopTimeDilation;
+	PlayerPreviousHealth = HealthZeroThreshold;
 }
 
 void AOptimusPrimeCharacter::UpdateSpeed()
@@ -217,7 +228,8 @@ void AOptimusPrimeCharacter::BeginPlay()
 
 	UpdateSpeed();
 
-	HealthComp->OnDeath.AddDynamic(this, &AOptimusPrimeCharacter::HandleDeath);
+	PlayerPreviousHealth = HealthComp->GetCurrentHealth();
+	HealthComp->OnHealthChanged.AddDynamic(this, &AOptimusPrimeCharacter::HandleHealthChanged);
 	MainWeaponComponent->OnShotFired.AddDynamic(this, &AOptimusPrimeCharacter::HandleShotFired);
 }
 
@@ -661,4 +673,43 @@ void AOptimusPrimeCharacter::CheckStaleTargets()
 		}
 		DetectedEnemies.Remove(StaleTarget);
 	}
+}
+
+void AOptimusPrimeCharacter::HandleHealthChanged(float CurrentHealth, float MaxHealth)
+{
+	const bool bDamaged = CurrentHealth < PlayerPreviousHealth;
+	PlayerPreviousHealth = CurrentHealth;
+
+	if (!bDamaged || CurrentHealth <= HealthZeroThreshold)
+	{
+		return;
+	}
+
+	OnPlayerDamaged.Broadcast();
+
+	APlayerController* OwningController = Cast<APlayerController>(GetController());
+
+	if (OwningController && HitCameraShake)
+	{
+		OwningController->ClientStartCameraShake(HitCameraShake);
+	}
+
+	if (HitStopDuration <= HealthZeroThreshold)
+	{
+		return;
+	}
+
+	UGameplayStatics::SetGlobalTimeDilation(this, HitStopTimeDilation);
+
+	GetWorldTimerManager().SetTimer(
+		HitStopTimerHandle,
+		this,
+		&AOptimusPrimeCharacter::EndHitStop,
+		HitStopDuration * HitStopTimeDilation,
+		false);
+}
+
+void AOptimusPrimeCharacter::EndHitStop()
+{
+	UGameplayStatics::SetGlobalTimeDilation(this, NormalTimeDilation);
 }

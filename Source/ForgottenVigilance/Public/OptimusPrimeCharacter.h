@@ -7,6 +7,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathAnimationReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetDetercted, AActor*, Target);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetLost, AActor*, Target);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDamaged);
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -15,6 +16,7 @@ class UMainWeaponComponent;
 class UPawnSensingComponent;
 class UAnimMontage;
 class UAnimSequence;
+class UCameraShakeBase;
 
 struct FInputActionValue;
 
@@ -49,6 +51,9 @@ public:
 	void ClearCurrentTarget();
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void GetDetectedTargets(TArray<AActor*>& OutDetectedTargets) const;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Damage Feedback")
+	FOnPlayerDamaged OnPlayerDamaged;
 
 	AOptimusPrimeCharacter();
 
@@ -90,6 +95,12 @@ private:
 	void HandleDeath(AActor* DeadOwner);
 	UFUNCTION()
 	void HandleShotFired(int32 MuzzleIndex);
+	
+	UFUNCTION()
+	void HandleHealthChanged(float CurrentHealth, float MaxHealth);
+
+	UFUNCTION()
+	void EndHitStop();
 
 	void UpdateDash(float DeltaTime);
 	void EndDash();
@@ -171,6 +182,15 @@ private:
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Animation|Death",
 	    meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimSequence> SelectedDeathSequence = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage Feedback", meta = (AllowPrivateAccess = true))
+	TSubclassOf<UCameraShakeBase> HitCameraShake;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage Feedback", meta = (AllowPrivateAccess = true))
+	float HitStopDuration;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage Feedback", meta = (AllowPrivateAccess = true))
+	float HitStopTimeDilation;
 
 	bool bIsMovingSidewaysOrBackward;
 	bool bIsSprinting;
@@ -179,4 +199,6 @@ private:
 	FVector PreviousCameraTargetLocation = FVector::ZeroVector;
 	FVector InitialCameraPivotOffset = FVector::ZeroVector;
 	bool bDeadZoneWidthInitialized = false;
+	float PlayerPreviousHealth;
+	FTimerHandle HitStopTimerHandle;
 };
