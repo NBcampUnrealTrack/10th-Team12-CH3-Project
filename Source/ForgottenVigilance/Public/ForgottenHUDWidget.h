@@ -118,6 +118,9 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Anim_Warning;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Anim_BossHP;
 	
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> DamageNoiseOverlay;
