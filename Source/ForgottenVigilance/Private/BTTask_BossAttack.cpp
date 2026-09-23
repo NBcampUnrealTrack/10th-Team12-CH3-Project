@@ -24,7 +24,6 @@ EBTNodeResult::Type UBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	if (!BlackboardComp || !AIOwner)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BossAttack: No BB or AIOwner"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -33,13 +32,11 @@ EBTNodeResult::Type UBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	if (!BossCharacter)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BossAttack: Pawn is not BossCharacter"));
 		return EBTNodeResult::Failed;
 	}
 
 	if (!TargetActor)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BossAttack: No TargetActor"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -47,12 +44,8 @@ EBTNodeResult::Type UBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	if (MontageDuration <= AttackZeroThreshold)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BossAttack: Duration 0"));
 		return EBTNodeResult::Failed;
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
-		FString::Printf(TEXT("BossAttack: playing %.2fs"), MontageDuration));
 
 	FBTBossAttackMemory* AttackMemory = reinterpret_cast<FBTBossAttackMemory*>(NodeMemory);
 	AttackMemory->RemainingTime = MontageDuration;

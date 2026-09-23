@@ -619,12 +619,6 @@ void AOptimusPrimeCharacter::StartDash(const FInputActionValue& Value)
 			FTimerDelegate::CreateWeakLambda(this, [this]()
 			{
 				bDashOnCooldown = false;
-
-				if (GEngine && !IsCharacterDead())
-				{
-					GEngine->AddOnScreenDebugMessage(
-						-1, 1.5f, FColor::Green, TEXT("대시 사용 가능"));
-				}
 			}),
 			DashCooldown,
 			false);

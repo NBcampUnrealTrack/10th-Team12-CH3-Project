@@ -61,10 +61,4 @@ void UBTService_CheckAttackDistance::TickNode(
 
 
 	BlackboardComp->SetValueAsBool(TEXT("IsAttack"), bCanAttack);
-
-	/*if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(1, 0.2f, FColor::Green, FString::Printf(TEXT("AI Distance: %.1f cm"), Distance));
-		GEngine->AddOnScreenDebugMessage(1, 0.2f, FColor::Green, FString::Printf(TEXT("AI bool: %d cm"), bCanAttack));
-	}*/
 }
