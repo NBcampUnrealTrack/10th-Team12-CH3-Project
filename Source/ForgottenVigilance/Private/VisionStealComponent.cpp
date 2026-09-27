@@ -146,6 +146,7 @@ bool UVisionStealComponent::BeginVisionSteal(AActor* Target, float Duration, boo
 	{
 		CurrentCharges -= 1;
 		OnVisionStealChargeChanged.Broadcast(CurrentCharges, MaxCharges);
+		ApplyOwnerDamageScale(VisionStealDamageScale);
 	}
 
 	OnVisionStealStateChanged.Broadcast(true);
@@ -256,6 +257,8 @@ void UVisionStealComponent::EndVisionSteal()
 		}
 	}
 
+	ApplyOwnerDamageScale(1.0f);
+	
 	VisionStealTarget = nullptr;
 
 	SpawnedVisionCameraActor = nullptr;
@@ -381,4 +384,23 @@ void UVisionStealComponent::HandleTargetDeath(AActor* DeadOwner)
 {
 	bForcedVisionSteal = false;
 	EndVisionSteal();
+}
+
+void UVisionStealComponent::ApplyOwnerDamageScale(float NewScale)
+{
+	AActor* OwnerActor = GetOwner();
+
+	if (!OwnerActor)
+	{
+		return;
+	}
+
+	UHealthComponent* OwnerHealth = OwnerActor->FindComponentByClass<UHealthComponent>();
+
+	if (!OwnerHealth)
+	{
+		return;
+	}
+
+	OwnerHealth->SetDamageScale(NewScale);
 }

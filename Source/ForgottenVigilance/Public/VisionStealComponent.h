@@ -83,7 +83,7 @@ private:
 	int32 MaxCharges = 3;
 
 	UPROPERTY(EditAnywhere, Category = "VisionSteal")
-	float VisionStealDuration = 4.0f;
+	float VisionStealDuration = 3.0f;
 
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
 	int32 CurrentCharges = 3;
@@ -93,4 +93,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "VisionSteal")
 	TObjectPtr<AActor> VisionStealTarget;
+	
+	void ApplyOwnerDamageScale(float NewScale);
+	
+	UPROPERTY(EditAnywhere, Category = "VisionSteal")
+	float VisionStealDamageScale = 0.3f;
 };

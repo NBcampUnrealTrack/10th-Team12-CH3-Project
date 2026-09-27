@@ -48,6 +48,15 @@ void UHealthComponent::HandleTakeAnyDamage(
 	{
 		return;
 	}
+	
+	const float ScaledDamage = Damage * DamageScale;
+
+	if (ScaledDamage <= HealthZeroThreshold)
+	{
+		return;
+	}
+
+	CurrentHealth = FMath::Clamp(CurrentHealth - ScaledDamage, HealthZeroThreshold, MaxHealth);
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, HealthZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
@@ -120,4 +129,9 @@ float UHealthComponent::GetMaxHealth() const
 bool UHealthComponent::IsHit() const
 {
 	return CurrentHealth < MaxHealth;
+}
+
+void UHealthComponent::SetDamageScale(float NewScale)
+{
+	DamageScale = FMath::Clamp(NewScale, 0.0f, 1.0f);
 }

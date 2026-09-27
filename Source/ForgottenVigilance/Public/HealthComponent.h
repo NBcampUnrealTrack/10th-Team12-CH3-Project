@@ -24,6 +24,7 @@ public:
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
 	bool IsHit() const;
+	void SetDamageScale(float NewScale);
 
 	UPROPERTY(BlueprintAssignable, Transient, Category = Health)
 	FOnHealthChanged OnHealthChanged;
@@ -59,4 +60,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health|Sound", meta = (AllowPrivateAccess = true))
 	TObjectPtr<USoundAttenuation> SoundAttenuation;
+	
+	UPROPERTY(VisibleAnywhere, Category = Health)
+	float DamageScale = 1.0f;
 };
