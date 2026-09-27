@@ -63,6 +63,12 @@ public:
 	TSubclassOf<UForgottenGameClear> GameClearWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Clear")
 	TObjectPtr<UForgottenGameClear> GameClearWidgetInstance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pause")
+	TSubclassOf<UForgottenMain> PauseWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pause")
+	TObjectPtr<UForgottenMain> PauseWidgetInstance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	FName MainMenuLevelName;

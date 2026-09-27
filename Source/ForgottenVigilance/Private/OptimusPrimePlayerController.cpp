@@ -41,6 +41,8 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
 	  , GameOverWidgetInstance(nullptr)
 	  , GameClearWidgetClass(nullptr)
 	  , GameClearWidgetInstance(nullptr)
+	  , PauseWidgetClass(nullptr)
+	  , PauseWidgetInstance(nullptr)
 	  , InitialCameraPitch(DefaultInitialCameraPitch)
 	  , AimRotationSpeed(DefaultAimRotationSpeed)
 {
@@ -219,6 +221,12 @@ void AOptimusPrimePlayerController::ClearAllWidgets()
 		GameClearWidgetInstance->RemoveFromParent();
 		GameClearWidgetInstance = nullptr;
 	}
+	
+	if (PauseWidgetInstance)
+	{
+		PauseWidgetInstance->RemoveFromParent();
+		PauseWidgetInstance = nullptr;
+	}
 }
 
 void AOptimusPrimePlayerController::StartGame()
@@ -280,7 +288,15 @@ void AOptimusPrimePlayerController::TogglePauseMenu()
 
 	bPauseMenuOpen = true;
 
-	ShowMainMenu();
+	if (PauseWidgetClass)
+	{
+		PauseWidgetInstance = CreateWidget<UForgottenMain>(this, PauseWidgetClass);
+
+		if (PauseWidgetInstance)
+		{
+			PauseWidgetInstance->AddToViewport();
+		}
+	}
 
 	FInputModeGameAndUI PauseInputMode;
 	PauseInputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -298,7 +314,11 @@ void AOptimusPrimePlayerController::ResumeGame()
 
 	bPauseMenuOpen = false;
 
-	ShowHUD();
+	if (PauseWidgetInstance)
+	{
+		PauseWidgetInstance->RemoveFromParent();
+		PauseWidgetInstance = nullptr;
+	}
 
 	FInputModeGameOnly GameInputMode;
 	SetInputMode(GameInputMode);
