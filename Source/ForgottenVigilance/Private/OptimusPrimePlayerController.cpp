@@ -13,6 +13,8 @@
 #include "Engine/LocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "ForgottenGameClear.h"
+#include "EnhancedInputComponent.h"
+#include "ForgottenGameState.h"
 
 namespace
 {
@@ -47,6 +49,8 @@ AOptimusPrimePlayerController::AOptimusPrimePlayerController()
 void AOptimusPrimePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	bShouldPerformFullTickWhenPaused = true;
 
 	const float MinPitch = FMath::Min(CameraPitchMin, CameraPitchMax);
 	const float MaxPitch = FMath::Max(CameraPitchMin, CameraPitchMax);
@@ -234,4 +238,69 @@ void AOptimusPrimePlayerController::RetryGame()
 float AOptimusPrimePlayerController::GetAimRotationSpeed() const
 {
 	return AimRotationSpeed;
+}
+
+void AOptimusPrimePlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent);
+
+	if (!EnhancedInput || !PauseMenuAction)
+	{
+		return;
+	}
+
+	EnhancedInput->BindAction(
+		PauseMenuAction,
+		ETriggerEvent::Started,
+		this,
+		&AOptimusPrimePlayerController::TogglePauseMenu);
+}
+
+void AOptimusPrimePlayerController::TogglePauseMenu()
+{
+	const AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (ForgottenGameState)
+	{
+		const EForgottenPhase CurrentPhase = ForgottenGameState->GetPhase();
+
+		if (CurrentPhase == EForgottenPhase::Cleared || CurrentPhase == EForgottenPhase::Failed)
+		{
+			return;
+		}
+	}
+
+	if (bPauseMenuOpen)
+	{
+		ResumeGame();
+		return;
+	}
+
+	bPauseMenuOpen = true;
+
+	ShowMainMenu();
+
+	FInputModeGameAndUI PauseInputMode;
+	PauseInputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	PauseInputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(PauseInputMode);
+	SetShowMouseCursor(true);
+}
+
+void AOptimusPrimePlayerController::ResumeGame()
+{
+	if (!bPauseMenuOpen)
+	{
+		return;
+	}
+
+	bPauseMenuOpen = false;
+
+	ShowHUD();
+
+	FInputModeGameOnly GameInputMode;
+	SetInputMode(GameInputMode);
+	SetShowMouseCursor(false);
 }

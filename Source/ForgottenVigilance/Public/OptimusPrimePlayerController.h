@@ -66,6 +66,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	FName MainMenuLevelName;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> PauseMenuAction;
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowMainMenu();
@@ -89,8 +92,16 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnPossess(APawn* InPawn) override;
+	
+	virtual void SetupInputComponent() override;
 
 private:
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void TogglePauseMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ResumeGame();
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float InitialCameraPitch;
 
@@ -104,4 +115,6 @@ private:
 	float AimRotationSpeed;
 
 	void ClearAllWidgets();
+	
+	bool bPauseMenuOpen = false;
 };
