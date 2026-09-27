@@ -57,8 +57,6 @@ void UHealthComponent::HandleTakeAnyDamage(
 	}
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - ScaledDamage, HealthZeroThreshold, MaxHealth);
-
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, HealthZeroThreshold, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
 	if (IsAlive())
