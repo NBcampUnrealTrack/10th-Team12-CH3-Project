@@ -73,6 +73,9 @@ protected:
 	
 	UFUNCTION()
 	void HandleDashCooldownChanged(float RemainingRatio);
+	
+	UFUNCTION()
+	void HandleBossStaggerUpdated(float StaggerRatio);
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> HealthBar;
@@ -142,6 +145,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	float DashIconMinAlpha;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UProgressBar> BossStaggerBar;
 
 private:
 	FTimerHandle KillMarkerTimerHandle;

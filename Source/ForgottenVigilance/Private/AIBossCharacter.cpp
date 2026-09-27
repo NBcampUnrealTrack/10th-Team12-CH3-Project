@@ -20,7 +20,7 @@ constexpr float DefaultDashRange = 1500.0f;
 constexpr float BossZeroThreshold = 0.0f;
 constexpr int32 InvalidPatternIndex = -1;
 constexpr int32 PatternSingleStep = 1;
-constexpr float DefaultStaggerThreshold = 100.0f;
+constexpr float DefaultStaggerThreshold = 500.0f;
 constexpr float DefaultStaggerDuration = 1.5f;
 constexpr float DefaultStaggerImmunityDuration = 6.0f;
 constexpr float StaggerRatioMax = 1.0f;
@@ -51,6 +51,7 @@ AAIBossCharacter::AAIBossCharacter()
 	bStaggerImmune = false;
 	bShowHealthBar = true;
 	VisionStealDuration = DefaultBossVisionStealDuration;
+		bStunOnHit = false;
 }
 
 void AAIBossCharacter::BeginPlay()
@@ -89,6 +90,7 @@ void AAIBossCharacter::BeginPlay()
 
 	ForgottenGameState->NotifyBossHealth(BossHealth->GetCurrentHealth(), BossHealth->GetMaxHealth());
 	ForgottenGameState->NotifyBossActive(true);
+	NotifyStaggerRatio();
 }
 
 
@@ -138,12 +140,14 @@ void AAIBossCharacter::AccumulateStagger(float DamageAmount)
 
 	if (StaggerGauge < StaggerThreshold)
 	{
+		NotifyStaggerRatio();
 		return;
 	}
 
 	StaggerGauge = BossZeroThreshold;
 	bStaggerImmune = true;
 
+	NotifyStaggerRatio();
 	ApplyStun(StaggerDuration);
 
 	GetWorldTimerManager().SetTimer(
@@ -157,6 +161,7 @@ void AAIBossCharacter::AccumulateStagger(float DamageAmount)
 void AAIBossCharacter::ClearStaggerImmunity()
 {
 	bStaggerImmune = false;
+	NotifyStaggerRatio();
 }
 
 float AAIBossCharacter::GetStaggerRatio() const
@@ -334,4 +339,21 @@ float AAIBossCharacter::GetMeleeRange() const
 float AAIBossCharacter::GetDashRange() const
 {
 	return DashRange;
+}
+
+void AAIBossCharacter::NotifyStaggerRatio()
+{
+	if (!bShowHealthBar)
+	{
+		return;
+	}
+
+	AForgottenGameState* ForgottenGameState = GetWorld()->GetGameState<AForgottenGameState>();
+
+	if (!ForgottenGameState)
+	{
+		return;
+	}
+
+	ForgottenGameState->NotifyBossStagger(GetStaggerRatio());
 }

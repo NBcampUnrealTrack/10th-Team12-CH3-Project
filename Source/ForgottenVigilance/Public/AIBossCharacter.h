@@ -79,6 +79,7 @@ private:
 	int32 SelectPatternIndex(float DistanceToTarget) const;
 	void AccumulateStagger(float DamageAmount);
 	void ClearStaggerImmunity();
+	void NotifyStaggerRatio();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss", meta = (AllowPrivateAccess = true))
 	TArray<FBossAttackPattern> AttackPatterns;

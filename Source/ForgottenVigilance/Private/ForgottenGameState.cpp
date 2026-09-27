@@ -131,3 +131,8 @@ void AForgottenGameState::NotifyBossHealth(float CurrentHealth, float MaxHealth)
 {
 	OnBossHealthUpdated.Broadcast(CurrentHealth, MaxHealth);
 }
+
+void AForgottenGameState::NotifyBossStagger(float StaggerRatio)
+{
+	OnBossStaggerUpdated.Broadcast(StaggerRatio);
+}

@@ -112,7 +112,8 @@ void UForgottenHUDWidget::NativeConstruct()
 	ForgottenGameState->OnRemainingTimeChanged.AddDynamic(this, &UForgottenHUDWidget::HandleRemainingTimeChanged);
 	ForgottenGameState->OnBossHealthUpdated.AddDynamic(this, &UForgottenHUDWidget::HandleBossHealthUpdated);
 	ForgottenGameState->OnBossActiveChanged.AddDynamic(this, &UForgottenHUDWidget::HandleBossActiveChanged);
-
+	ForgottenGameState->OnBossStaggerUpdated.AddDynamic(this, &UForgottenHUDWidget::HandleBossStaggerUpdated);
+	
 	HandleScoreChanged(ForgottenGameState->GetScore());
 	HandleObjectiveChanged(
 		ForgottenGameState->GetObjectiveProgress(),
@@ -292,6 +293,11 @@ void UForgottenHUDWidget::HandleBossActiveChanged(bool bIsActive)
 	{
 		BossNameText->SetVisibility(BossVisibility);
 	}
+	
+	if (BossStaggerBar)
+	{
+		BossStaggerBar->SetVisibility(BossVisibility);
+	}
 }
 
 void UForgottenHUDWidget::HandlePlayerDamaged()
@@ -361,4 +367,14 @@ void UForgottenHUDWidget::HandleDashCooldownChanged(float RemainingRatio)
 	const float IconAlpha = FMath::Lerp(DashIconMinAlpha, 1.0f, RemainingRatio);
 
 	DashIconImage->SetRenderOpacity(IconAlpha);
+}
+
+void UForgottenHUDWidget::HandleBossStaggerUpdated(float StaggerRatio)
+{
+	if (!BossStaggerBar)
+	{
+		return;
+	}
+
+	BossStaggerBar->SetPercent(StaggerRatio);
 }
