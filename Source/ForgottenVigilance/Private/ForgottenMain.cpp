@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Animation/WidgetAnimation.h"
+#include "Blueprint/UserWidget.h"
 
 void UForgottenMain::NativeConstruct()
 {
@@ -120,6 +121,11 @@ void UForgottenMain::OnStartButtonClicked()
 
 void UForgottenMain::OnControlsButtonClicked()
 {
+	if (ControlGuideWidget && ControlGuideWidget->IsInViewport())
+	{
+		return;
+	}
+
 	static const FSoftClassPath ControlGuidePath(TEXT("/Game/UI/WBP_ForgottenControls.WBP_ForgottenControls_C"));
 
 	UClass* ControlGuideClass = ControlGuidePath.TryLoadClass<UUserWidget>();
@@ -129,12 +135,24 @@ void UForgottenMain::OnControlsButtonClicked()
 		return;
 	}
 
-	UUserWidget* ControlGuideWidget =  CreateWidget<UUserWidget>(GetWorld(), ControlGuideClass);
+	ControlGuideWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), ControlGuideClass);
 
 	if (ControlGuideWidget)
 	{
 		ControlGuideWidget->AddToViewport();
-		ControlGuideWidget->SetKeyboardFocus();
+		FInputModeUIOnly InputMode;
+
+		InputMode.SetWidgetToFocus(ControlGuideWidget->TakeWidget());
+
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+
+		if (PlayerController)
+		{
+			PlayerController->SetInputMode(InputMode);
+			PlayerController->bShowMouseCursor = true;
+		}
 	}
 }
 
