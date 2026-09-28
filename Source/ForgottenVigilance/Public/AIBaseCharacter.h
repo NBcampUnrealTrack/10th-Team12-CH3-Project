@@ -40,6 +40,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	FVector SpawnLocation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Death")
+	bool bUseRagdollOnDeath = false;
+
 
 	void SetAlertChasing(bool bIsChasing);
 	void SetAlertAttacking();
@@ -76,6 +79,9 @@ private:
 
 	UFUNCTION()
 	void HandleDeath(AActor* DeadOwner);
+
+	UFUNCTION()
+	void StartRagdoll();
 
 	UFUNCTION()
 	void ClearStun();
