@@ -125,6 +125,8 @@ private:
 	float MuzzleEffectLifetime;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|VFX", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UFXSystemComponent> ActiveMuzzleComponent;
+	
+	float LastFireTime = 0.0f;
 
 	FTimerHandle FireTimerHandle;
 	FTimerHandle MuzzleStopTimerHandle;
