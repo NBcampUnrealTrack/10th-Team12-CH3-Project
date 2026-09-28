@@ -195,6 +195,12 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	if (bUseRagdollOnDeath)
+	{
+		StartRagdoll();
+	}
+
+
 	if (DeathMontage)
 	{
 		PlayAnimMontage(DeathMontage);
@@ -205,6 +211,20 @@ void AAIBaseCharacter::HandleDeath(AActor* DeadOwner)
 	{
 		SetLifeSpan(DeadDestoryTime);
 	}
+}
+
+void AAIBaseCharacter::StartRagdoll()
+{
+	GetCharacterMovement()->DisableMovement();
+
+	GetCapsuleComponent()->SetCollisionEnabled(
+	    ECollisionEnabled::NoCollision);
+
+	USkeletalMeshComponent* SkeltalMesh = GetMesh();
+
+	SkeltalMesh->SetCollisionProfileName(TEXT("Ragdoll"));
+	SkeltalMesh->SetSimulatePhysics(true);
+	SkeltalMesh->WakeAllRigidBodies();
 }
 
 void AAIBaseCharacter::SetAlertChasing(bool bIsChasing)
