@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "ForgottenMain.generated.h"
 
+class UUserWidget;
 class UButton;
 class UTextBlock;
 class UWidgetAnimation;
@@ -15,6 +16,9 @@ class FORGOTTENVIGILANCE_API UForgottenMain : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> ControlGuideWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> StartButton;
