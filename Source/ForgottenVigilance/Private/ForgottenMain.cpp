@@ -29,6 +29,21 @@ void UForgottenMain::NativeConstruct()
 			&UForgottenMain::OnStartButtonClicked);
 	}
 
+	if (ControlsButton)
+	{
+		ControlsButton->OnHovered.AddDynamic(
+		    this,
+		    &UForgottenMain::OnControlsButtonHovered);
+
+		ControlsButton->OnUnhovered.AddDynamic(
+		    this,
+		    &UForgottenMain::OnControlsButtonUnhovered);
+
+		ControlsButton->OnClicked.AddDynamic(
+		    this,
+		    &UForgottenMain::OnControlsButtonClicked);
+	}
+
 	if (ExitButton)
 	{
 		ExitButton->OnHovered.AddDynamic(
@@ -62,6 +77,22 @@ void UForgottenMain::OnStartButtonUnhovered()
 	Start_Cyan->SetVisibility(ESlateVisibility::Hidden);
 }
 
+void UForgottenMain::OnControlsButtonHovered()
+{
+	Controls_Red->SetVisibility(ESlateVisibility::Visible);
+	Controls_Cyan->SetVisibility(ESlateVisibility::Visible);
+
+	if (Anim_ControlsHover)
+	{
+		PlayAnimation(Anim_ControlsHover);
+	}
+}
+
+void UForgottenMain::OnControlsButtonUnhovered()
+{
+	Controls_Red->SetVisibility(ESlateVisibility::Hidden);
+	Controls_Cyan->SetVisibility(ESlateVisibility::Hidden);
+}
 
 void UForgottenMain::OnExitButtonHovered()
 {
@@ -86,6 +117,27 @@ void UForgottenMain::OnStartButtonClicked()
 		GetWorld(),
 		FName(TEXT("MainLevel")));
 }
+
+void UForgottenMain::OnControlsButtonClicked()
+{
+	static const FSoftClassPath ControlGuidePath(TEXT("/Game/UI/WBP_ForgottenControls.WBP_ForgottenControls_C"));
+
+	UClass* ControlGuideClass = ControlGuidePath.TryLoadClass<UUserWidget>();
+
+	if (!ControlGuideClass)
+	{
+		return;
+	}
+
+	UUserWidget* ControlGuideWidget =  CreateWidget<UUserWidget>(GetWorld(), ControlGuideClass);
+
+	if (ControlGuideWidget)
+	{
+		ControlGuideWidget->AddToViewport();
+		ControlGuideWidget->SetKeyboardFocus();
+	}
+}
+
 
 
 void UForgottenMain::OnExitButtonClicked()
